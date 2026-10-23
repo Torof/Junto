@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Suppression de compte — Junto',
-  description: 'Comment supprimer votre compte Junto et demander la suppression de vos données.',
+  title: 'Suppression de compte — askandgo',
+  description: 'Comment supprimer votre compte askandgo et demander la suppression de vos données.',
 };
 
 const CONTACT_EMAIL = 'contact@getjunto.app';
-const MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Demande de suppression de compte Junto')}&body=${encodeURIComponent(
-  'Bonjour,\n\nJe souhaite supprimer mon compte Junto et l’ensemble de mes données personnelles.\n\nAdresse email du compte : [votre email]\n\nMerci.',
+const MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Demande de suppression de compte askandgo')}&body=${encodeURIComponent(
+  'Bonjour,\n\nJe souhaite supprimer mon compte askandgo et l’ensemble de mes données personnelles.\n\nAdresse email du compte : [votre email]\n\nMerci.',
 )}`;
 
 // Web-accessible account-deletion request page — required by Google
@@ -18,7 +18,7 @@ export default function AccountDeletionPage() {
     <article style={{ color: 'var(--ink)', lineHeight: 1.6 }}>
       <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8 }}>Suppression de compte</h1>
       <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 32 }}>
-        Application Junto (app.getjunto)
+        Application askandgo (app.getjunto)
       </p>
 
       <H2>Supprimer votre compte depuis l&apos;application (immédiat)</H2>
@@ -26,7 +26,7 @@ export default function AccountDeletionPage() {
         Le moyen le plus rapide de supprimer votre compte et l&apos;ensemble de vos données :
       </P>
       <Ol>
-        <li>Ouvrez Junto et connectez-vous</li>
+        <li>Ouvrez askandgo et connectez-vous</li>
         <li>Allez dans <B>Profil → Paramètres</B></li>
         <li>Tout en bas, choisissez <B>Supprimer mon compte</B> et confirmez</li>
       </Ol>
@@ -43,7 +43,7 @@ export default function AccountDeletionPage() {
         application désinstallée), envoyez votre demande par email — aucune connexion requise :
       </P>
       <P>
-        <A href={MAILTO}>{CONTACT_EMAIL}</A> — objet : « Demande de suppression de compte Junto »,
+        <A href={MAILTO}>{CONTACT_EMAIL}</A> — objet : « Demande de suppression de compte askandgo »,
         en précisant l&apos;adresse email associée au compte.
       </P>
       <P>

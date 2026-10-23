@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Politique de confidentialité — Junto',
-  description: 'Politique de confidentialité de l\'application Junto.',
+  title: 'Politique de confidentialité — askandgo',
+  description: 'Politique de confidentialité de l\'application askandgo.',
 };
 
 const CONTACT_EMAIL = 'contact@getjunto.app';
@@ -17,7 +17,7 @@ export default function PrivacyPage() {
 
       <H2>1. Responsable du traitement</H2>
       <P>
-        Le responsable du traitement des données personnelles est Junto, joignable à l'adresse :{' '}
+        Le responsable du traitement des données personnelles est askandgo, joignable à l'adresse :{' '}
         <A href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</A>.
       </P>
 

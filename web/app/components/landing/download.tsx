@@ -14,7 +14,7 @@ export default async function Download({ playUrl, isPlayStore }: { playUrl: stri
       <img className="l-dl-img" src="/hero-map-ecrins.jpg" alt="" />
       <div className="l-dl-wrap">
         <div style={{ flex: '1 1 420px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <h2 className="l-dl-h2">Fini le sport solo.<br /><em>Va sur Junto.</em></h2>
+          <h2 className="l-dl-h2">Fini le sport solo.<br /><em>Va sur askandgo.</em></h2>
           <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: 'rgba(255,255,255,0.8)', maxWidth: '48ch' }}>Gratuit, sans publicité, sans revente de données. Pensé dans les Hautes-Alpes, pour partout.</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
             <a href={playUrl} className="l-btn-play">{isPlayStore ? 'Télécharger sur Google Play' : 'Télécharger l’app Android'}</a>
@@ -29,7 +29,7 @@ export default async function Download({ playUrl, isPlayStore }: { playUrl: stri
       </div>
       <footer className="l-footer">
         <div className="l-footer-wrap">
-          <span>© Junto 2026 · Fait dans les Hautes-Alpes</span>
+          <span>© askandgo 2026 · Fait dans les Hautes-Alpes</span>
           <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
             <a href="/legal/privacy">Confidentialité</a>
             <a href="/legal/terms">Conditions</a>

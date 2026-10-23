@@ -50,7 +50,7 @@ export function OpenAppLink({ deepLink }: Props) {
         fontWeight: 700,
       }}
     >
-      Ouvrir dans Junto
+      Ouvrir dans askandgo
     </a>
   );
 }

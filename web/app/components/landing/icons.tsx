@@ -55,13 +55,13 @@ export const IconHash = (p: IconProps) => (
 );
 
 // The juncture mark — two arcs and two bars, colourable.
-export function JunctureMark({ size = 30, color = '#FFFFFF' }: { size?: number; color?: string }) {
+// The askandgo mark (Scott 2026-10-23, version « A »): one stroke that is at
+// once a speech bubble, a question mark and an arrow leaving — ask, then go.
+export function AskandgoMark({ size = 30, color = '#FFFFFF' }: { size?: number; color?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 512 512" fill="none" stroke={color} strokeWidth="26" aria-hidden>
-      <path d="M 236 143 A 115 115 0 0 0 236 369" />
-      <path d="M 207 128 V 248" />
-      <path d="M 276 369 A 115 115 0 0 0 276 143" />
-      <path d="M 305 264 V 384" />
+    <svg width={size} height={size} viewBox="0 2 100 100" fill="none" stroke={color} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M26 76 L40 64 H74 A16 16 0 0 0 90 48 V28 A16 16 0 0 0 74 12 H34 A16 16 0 0 0 18 28 V36 C18 44 21 49 27 51" />
+      <path d="M25 92 H10 V77" />
     </svg>
   );
 }

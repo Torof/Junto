@@ -57,7 +57,7 @@ export default function EmailVerifiedPage() {
 
       <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 12 }}>Email confirmé !</h1>
       <p style={{ color: 'var(--text-secondary)', fontSize: 16, lineHeight: 1.5, marginBottom: 32 }}>
-        Ton compte Junto est prêt. Ouvre l&apos;app pour continuer.
+        Ton compte askandgo est prêt. Ouvre l&apos;app pour continuer.
       </p>
 
       <OpenAppLink deepLink={deepLink} />
@@ -66,7 +66,7 @@ export default function EmailVerifiedPage() {
         href={APK_DOWNLOAD_URL}
         style={{ marginTop: 16, color: 'var(--cta)', fontSize: 14, textDecoration: 'underline' }}
       >
-        Pas encore Junto installé ? Télécharger
+        Pas encore askandgo installé ? Télécharger
       </a>
     </main>
   );

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Conditions d\'utilisation — Junto',
-  description: 'Conditions générales d\'utilisation de l\'application Junto.',
+  title: 'Conditions d\'utilisation — askandgo',
+  description: 'Conditions générales d\'utilisation de l\'application askandgo.',
 };
 
 const CONTACT_EMAIL = 'contact@getjunto.app';
@@ -17,7 +17,7 @@ export default function TermsPage() {
 
       <H2>1. Objet</H2>
       <P>
-        Junto est une application mobile de mise en relation entre personnes souhaitant pratiquer des activités sportives et de plein air ensemble. Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation de l'application Junto (ci-après "l'Application") éditée par Junto (ci-après "l'Éditeur").
+        askandgo est une application mobile de mise en relation entre personnes souhaitant pratiquer des activités sportives et de plein air ensemble. Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation de l'application askandgo (ci-après "l'Application") éditée par askandgo (ci-après "l'Éditeur").
       </P>
 
       <H2>2. Acceptation des CGU</H2>

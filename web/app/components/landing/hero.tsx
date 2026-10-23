@@ -1,4 +1,4 @@
-import { IconPlus, IconSearch, IconUsers, JunctureMark } from './icons';
+import { AskandgoMark, IconPlus, IconSearch, IconUsers } from './icons';
 import { formatWhen, type OfferRow, type OutingRow } from './data';
 import { universeColor, type Universe, UNIVERSE_COLOR } from './tokens';
 
@@ -64,7 +64,7 @@ export default function Hero({ outings, offers, playUrl }: { outings: OutingRow[
       ))}
 
       <nav className="l-nav" aria-label="Navigation principale">
-        <a href="#" className="l-nav-brand"><JunctureMark /><span>junto</span></a>
+        <a href="#" className="l-nav-brand"><AskandgoMark /><span>askandgo</span></a>
         <div className="l-nav-links">
           <a href="#departs">Rejoindre</a>
           <a href="#lancer">Lancer</a>

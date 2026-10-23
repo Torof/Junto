@@ -22,10 +22,10 @@ export default async function ProPage({ params }: { params: Promise<{ id: string
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, maxWidth: 560, margin: '0 auto' }}>
       <div style={{ fontSize: 56, marginBottom: 16 }}>📌</div>
       <h1 style={{ fontSize: 26, fontWeight: 800, textAlign: 'center', marginBottom: 8 }}>
-        Une page professionnelle sur Junto
+        Une page professionnelle sur askandgo
       </h1>
       <p style={{ color: 'var(--text-secondary)', textAlign: 'center', maxWidth: 380, marginBottom: 32, lineHeight: 1.5 }}>
-        Guides, moniteurs et écoles d&apos;outdoor. Ouvre Junto pour voir cette page, son catalogue et ses avis.
+        Guides, moniteurs et écoles d&apos;outdoor. Ouvre askandgo pour voir cette page, son catalogue et ses avis.
       </p>
 
       <OpenAppLink deepLink={`junto://pro/${id}`} />
@@ -34,7 +34,7 @@ export default async function ProPage({ params }: { params: Promise<{ id: string
         href={APK_DOWNLOAD_URL}
         style={{ marginTop: 12, color: 'var(--cta)', fontSize: 14, textDecoration: 'underline' }}
       >
-        Pas encore Junto ? Télécharger
+        Pas encore askandgo ? Télécharger
       </a>
     </main>
   );

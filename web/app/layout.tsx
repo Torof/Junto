@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Junto — Sorties outdoor entre passionnés',
+  title: 'askandgo — Sorties outdoor entre passionnés',
   description:
     'Rejoins une sortie, lance la tienne, trouve des partenaires où que tu sois — ou réserve avec un guide. Escalade, rando, parapente, canyon, vélo, ski de rando.',
 };

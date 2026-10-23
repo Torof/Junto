@@ -55,7 +55,7 @@ export default function ResetPasswordBridge() {
         Réinitialiser ton mot de passe
       </h1>
       <p style={{ color: 'var(--text-secondary)', fontSize: 16, lineHeight: 1.5, marginBottom: 32 }}>
-        Ouvre Junto pour choisir un nouveau mot de passe.
+        Ouvre askandgo pour choisir un nouveau mot de passe.
       </p>
 
       <OpenAppLink deepLink={deepLink} />
@@ -64,7 +64,7 @@ export default function ResetPasswordBridge() {
         href={APK_DOWNLOAD_URL}
         style={{ marginTop: 16, color: 'var(--cta)', fontSize: 14, textDecoration: 'underline' }}
       >
-        Pas encore Junto installé ? Télécharger
+        Pas encore askandgo installé ? Télécharger
       </a>
     </main>
   );

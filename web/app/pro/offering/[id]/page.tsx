@@ -75,7 +75,7 @@ export default async function OfferingPage({ params }: { params: Promise<{ id: s
         href={APK_DOWNLOAD_URL}
         style={{ marginTop: 12, color: 'var(--cta)', fontSize: 14, textDecoration: 'underline' }}
       >
-        Pas encore Junto ? Télécharger
+        Pas encore askandgo ? Télécharger
       </a>
     </main>
   );
@@ -87,10 +87,10 @@ function NotFound() {
       <div style={{ fontSize: 48, marginBottom: 16 }}>🔎</div>
       <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Activité introuvable</h1>
       <p style={{ color: 'var(--text-secondary)', textAlign: 'center', maxWidth: 360, marginBottom: 24 }}>
-        Cette activité n&apos;existe plus. Découvre les autres sorties sur Junto.
+        Cette activité n&apos;existe plus. Découvre les autres sorties sur askandgo.
       </p>
       <a href={APK_DOWNLOAD_URL} style={{ background: 'var(--cta)', padding: '12px 24px', borderRadius: 999, fontWeight: 700 }}>
-        Télécharger Junto
+        Télécharger askandgo
       </a>
     </main>
   );
