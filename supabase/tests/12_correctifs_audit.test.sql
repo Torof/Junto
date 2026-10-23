@@ -389,3 +389,40 @@ PERFORM pg_temp.eq('C17 santé de la base réelle : aucune sortie en retard de t
   $q$SELECT count(*)::text FROM public.activities WHERE deleted_at IS NULL AND id <> pg_temp.get('c17_a')::uuid
      AND ((status = 'published' AND starts_at < now() - interval '5 minutes')
        OR (status = 'in_progress' AND starts_at + duration < now() - interval '5 minutes'))$q$, '0');
+
+-- ═════ C18 — Photos et avis pro visibles seulement quand la page l'est (garde : déjà vrai, via la RLS des pages et offres) ═════
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.user('c18_pro', 'tos'); PERFORM pg_temp.user('c18_x', 'tos'); PERFORM pg_temp.user('c18_adm', 'tos,admin'); PERFORM pg_temp.user('c18_rev', 'tos');
+PERFORM pg_temp.as_('c18_pro');
+PERFORM pg_temp.ok('C18 le pro s''inscrit', $$SELECT public.register_as_pro(p_display_name := 'Guide C18', p_company_name := 'SARL Test', p_real_name := 'Jean Test', p_primary_lng := -131.5, p_primary_lat := -39.5, p_primary_location_name := 'Océan')::text$$);
+PERFORM pg_temp.as_('c18_adm');
+PERFORM pg_temp.ok('C18 l''admin approuve', format($$SELECT public.approve_pro(%L)::text$$, pg_temp.id('c18_pro')));
+PERFORM pg_temp.as_('c18_pro');
+PERFORM pg_temp.put('c18_off', pg_temp.ok('C18 une offre', $$SELECT public.create_pro_offering(p_sport_id := (SELECT id FROM public.sports WHERE key = 'hiking'), p_title := 'Offre C18', p_description := 'd', p_level := 'x', p_location_lng := 6.6, p_location_lat := 44.9, p_location_name := 'B')::text$$));
+PERFORM pg_temp.as_('db');
+INSERT INTO public.pro_profile_photos (pro_id, photo_url, order_index) VALUES (pg_temp.id('c18_pro'), pg_temp.host() || '/storage/v1/object/public/pro-photos/x/1.jpg', 0);
+INSERT INTO public.pro_offering_photos (offering_id, photo_url, order_index) VALUES (pg_temp.get('c18_off')::uuid, pg_temp.host() || '/storage/v1/object/public/pro-photos/x/2.jpg', 0);
+INSERT INTO public.offering_reviews (offering_id, reviewer_id, rating) VALUES (pg_temp.get('c18_off')::uuid, pg_temp.id('c18_rev'), 5);
+PERFORM pg_temp.as_('c18_x');
+PERFORM pg_temp.eq('C18 témoin : page approuvée, tout est visible',
+  format($$SELECT (SELECT count(*) FROM public.pro_profile_photos WHERE pro_id = %L) || '|' || (SELECT count(*) FROM public.pro_offering_photos WHERE offering_id = %L) || '|' || (SELECT count(*) FROM public.offering_reviews WHERE offering_id = %L)$$,
+    pg_temp.id('c18_pro'), pg_temp.get('c18_off'), pg_temp.get('c18_off')), '1|1|1');
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.pro_profiles SET status = 'pending' WHERE user_id = pg_temp.id('c18_pro');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('c18_x');
+PERFORM pg_temp.eq('C18 page en attente : ni photos ni avis pour les autres',
+  format($$SELECT (SELECT count(*) FROM public.pro_profile_photos WHERE pro_id = %L) || '|' || (SELECT count(*) FROM public.pro_offering_photos WHERE offering_id = %L) || '|' || (SELECT count(*) FROM public.offering_reviews WHERE offering_id = %L)$$,
+    pg_temp.id('c18_pro'), pg_temp.get('c18_off'), pg_temp.get('c18_off')), '0|0|0');
+PERFORM pg_temp.as_('c18_pro');
+PERFORM pg_temp.eq('C18 le pro voit toujours les siennes', format($$SELECT (SELECT count(*) FROM public.pro_profile_photos WHERE pro_id = %L) || '|' || (SELECT count(*) FROM public.pro_offering_photos WHERE offering_id = %L)$$, pg_temp.id('c18_pro'), pg_temp.get('c18_off')), '1|1');
+PERFORM pg_temp.as_('c18_adm');
+PERFORM pg_temp.eq('C18 l''admin voit les photos de la page à examiner', format($$SELECT count(*)::text FROM public.pro_profile_photos WHERE pro_id = %L$$, pg_temp.id('c18_pro')), '1');
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.pro_profiles SET status = 'approved' WHERE user_id = pg_temp.id('c18_pro');
+UPDATE public.users SET suspended_at = now() WHERE id = pg_temp.id('c18_pro');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.as_('c18_x');
+PERFORM pg_temp.eq('C18 pro suspendu : les avis de ses offres disparaissent', format($$SELECT count(*)::text FROM public.offering_reviews WHERE offering_id = %L$$, pg_temp.get('c18_off')), '0');
