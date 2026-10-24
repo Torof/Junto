@@ -328,6 +328,8 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 **`send_message(p_conversation_id, p_content, p_reply_to_message_id DEFAULT NULL)`** — cœur d'écriture unifié :
 - Auth + non suspendu
 - Membre de la conversation (`private.is_conversation_member`) — un canal démo n'est la conversation de personne tant que le rideau démo est baissé (mig 00550)
+- **Réactions emoji** (mig 00551) : table `message_reactions` (une par personne et par message), lecture RLS = membre du fil + `message_author_visible` (pas les réactions d'un pair bloqué), aucune écriture client. `set_message_reaction(message, emoji)` 🔧 : connecté · non suspendu · message existant non supprimé · membre (`is_conversation_member`, rideau démo compris) · pas de blocage avec l'auteur · emoji court sans ASCII ni lettres (`junto.reaction_invalid`). Pas de notification ; diffusion `change` sur le topic de la conversation.
+- **Aperçu d'un canal non rejoint** (mig 00551) : `get_channel_preview(canal)` 🔧 lecture seule, 12 derniers messages : connecté · non suspendu · canal existant · rideau démo · pas banni · sans messages supprimés, auteurs bloqués (dans un sens ou l'autre) ni suspendus. Un canal est ouvert à tous : l'aperçu n'expose rien de plus qu'une adhésion.
 - Gate par type : **DM** → blocage bidirectionnel + pair non suspendu ; **activité** → status IN (`published`,`in_progress`) ; **groupe** → appartenance seule
 - `content` trim ∈ [1, 2000] ; `reply_to` (si fourni) dans la même conversation et non supprimé
 - Rate limit sous advisory lock : par conversation **15 (DM) / 30 (activité) / 30 (groupe)** par minute (`junto.dm_rate_limit`/`junto.wall_rate_limit`) + plafond global **60/min/sender** (`junto.send_rate_limit`)

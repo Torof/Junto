@@ -637,6 +637,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          is_demo: boolean
           photo_url: string | null
           radius_km: number
           sport_key: string | null
@@ -649,6 +650,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          is_demo?: boolean
           photo_url?: string | null
           radius_km: number
           sport_key?: string | null
@@ -661,6 +663,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          is_demo?: boolean
           photo_url?: string | null
           radius_km?: number
           sport_key?: string | null
@@ -1629,6 +1632,49 @@ export type Database = {
             columns: ["message_id"]
             isOneToOne: true
             referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -4006,6 +4052,17 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_channel_preview: {
+        Args: { p_conversation_id: string }
+        Returns: {
+          avatar_url: string
+          content: string
+          created_at: string
+          display_name: string
+          id: string
+          sender_id: string
+        }[]
+      }
       get_contacts: {
         Args: never
         Returns: {
@@ -4656,6 +4713,10 @@ export type Database = {
       }
       set_conversation_hidden: {
         Args: { p_conversation_id: string; p_hidden: boolean }
+        Returns: undefined
+      }
+      set_message_reaction: {
+        Args: { p_emoji: string; p_message_id: string }
         Returns: undefined
       }
       set_offering_details: {

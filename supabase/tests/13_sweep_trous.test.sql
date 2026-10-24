@@ -227,6 +227,8 @@ PERFORM pg_temp.put('sw_auth', $ref$ARRAY[
   'private.is_active_admin(p_uid uuid)',
   'private.is_conversation_member(p_conversation_id uuid, p_user_id uuid)',
   'private.demo_channel_hidden(p_conversation_id uuid)',
+  'public.set_message_reaction(p_message_id uuid, p_emoji text)',
+  'public.get_channel_preview(p_conversation_id uuid)',
   'public.send_message(p_conversation_id uuid, p_content text, p_reply_to_message_id uuid)',
   'public.waive_late_cancel_penalty(p_participation_id uuid)',
   'public.transition_single_activity(p_activity_id uuid)',
