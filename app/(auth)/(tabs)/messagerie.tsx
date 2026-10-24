@@ -12,7 +12,7 @@ import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeabl
 import { RectButton } from 'react-native-gesture-handler';
 import { MapPin, Check, X, Car, Users, Hash, Trash2 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
-import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
+import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { conversationService } from '@/services/conversation-service';
@@ -571,7 +571,7 @@ export default function MessagerieScreen() {
                   <View style={styles.rowContent}>
                     <View style={styles.rowHeader}>
                       <AppText style={[styles.name, isUnread && styles.nameUnread]} numberOfLines={1}>{title}</AppText>
-                      {time && <AppText style={styles.time}>{time}</AppText>}
+                      {time && <AppText style={[styles.time, isUnread && styles.timeUnread]}>{time}</AppText>}
                       {typeMeta && (
                         <View style={[styles.typePill, { backgroundColor: typeMeta.bg }]}>
                           <AppText style={[styles.typePillText, { color: typeMeta.text }]}>{typeMeta.label}</AppText>
@@ -872,8 +872,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     // Opaque so the swipe-to-delete action underneath doesn't show through.
     backgroundColor: colors.background,
   },
-  // Unread — floats as a soft card so the "new" block reads at a glance.
-  rowUnread: { backgroundColor: colors.surface, ...shadows.card },
+  // Unread — a grey wash (Scott 2026-10-24): the white card + shadow it
+  // replaced barely showed on the white page.
+  rowUnread: { backgroundColor: colors.surfaceAlt },
   // Revealed on swipe-right — a rounded red tile aligned to the row's inset.
   swipeDelete: {
     width: 72,
@@ -911,6 +912,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   typePill: { flexShrink: 0, alignSelf: 'center', paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.full },
   typePillText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4 },
   time: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '600' },
+  timeUnread: { color: colors.cta, fontWeight: '700' },
   sportLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
   sportLabel: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '700', flexShrink: 1 },
   preview: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 2 },
