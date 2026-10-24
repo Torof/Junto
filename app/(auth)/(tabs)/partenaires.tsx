@@ -24,7 +24,7 @@ import { usePartnersPagerStore } from '@/store/partners-pager-store';
 // one line (it opens the Découverte page), the matching dispos, then the
 // discussions. Each family has its own full page behind « Tout voir ».
 const CARD_W = 252;
-const TILE_W = 160;
+const TILE_W = 200;
 const GAP = 12;
 const CAROUSEL_LIMIT = 10;
 
