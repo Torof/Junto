@@ -26,6 +26,9 @@ L={ # lucide-ish paths (24 grid)
 'sliders':'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4"/>',
 'layers':'<path d="m12.8 2.2 8.5 4.2a1 1 0 0 1 0 1.8l-8.5 4.2a2 2 0 0 1-1.8 0L2.5 8.2a1 1 0 0 1 0-1.8l8.5-4.2a2 2 0 0 1 1.8 0"/><path d="m22 17.7-9.3 4.6a2 2 0 0 1-1.8 0L2 17.7"/><path d="m22 12.5-9.3 4.6a2 2 0 0 1-1.8 0L2 12.5"/>',
 'plus':'<path d="M5 12h14M12 5v14"/>',
+'mountain':'<path d="m8 3 4 8 5-5 5 15H2L8 3z"/>',
+'help':'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+'chevl':'<path d="m9 18 6-6-6-6"/>',
 'eye':'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12"/><circle cx="12" cy="12" r="3"/>',
 'bell':'<path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/><path d="M3.3 17c-.3.3-.3.8 0 1.1.2.2.4.3.7.3h16c.6 0 1-.4 1-1 0-.3-.1-.5-.3-.7-1.1-1.1-2.1-2.3-2.1-6.3a6.6 6.6 0 0 0-13.2 0c0 4-1 5.2-2.1 6.3"/>',
 }
@@ -59,7 +62,8 @@ h1{{position:relative;margin:150px 70px 0;text-align:center;font-size:82px;line-
 .scr{{position:relative;width:100%;height:100%;border-radius:50px;overflow:hidden;background:#FFF;display:flex;flex-direction:column}}
 .hd{{display:flex;align-items:center;gap:14px;padding:58px 28px 16px;font-size:34px;font-weight:800}}
 .hd .sm{{font-size:21px;color:{SEC};font-weight:600}}
-.tabs{{margin-top:auto;display:flex;justify-content:space-around;padding:16px 10px 34px;border-top:1px solid rgba(31,26,21,.08);background:#FFF}}
+.zoomwrap{{width:405px;height:845px;transform:scale(1.5);transform-origin:0 0;flex-shrink:0;display:flex;flex-direction:column}}
+.tabs{{margin-top:auto;position:relative;z-index:2;display:flex;justify-content:space-around;padding:16px 10px 34px;border-top:1px solid rgba(31,26,21,.08);background:#FFF}}
 .tab{{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:17px;color:{SEC};font-weight:600}}.tab.on{{color:{GREEN}}}
 .sp{{display:inline-flex;flex-shrink:0}}.sp svg{{width:100%;height:100%}}
 .li{{flex-shrink:0}}
@@ -134,23 +138,32 @@ body=f'''<div class="hd" style="padding-bottom:6px"><div class="av" style="backg
 pills=f'<div class="pills"><div class="pr"><b>TRANSPORT</b>qui conduit, qui monte, d\'où</div><div class="pr"><b>MATÉRIEL</b>qui apporte quoi, ce qui manque</div><div class="pr"><b>DISCUSSION</b>les participants, et personne d\'autre</div></div>'
 out['2-sortie']=screen('Dedans, tout<br>s\'organise.','Qui conduit, qui apporte la corde, qui est en retard : tout le monde le voit au même endroit. Personne ne relance personne.',body,'',top=830,pills=pills,scale=0.78)
 
-# 3 — partenaires
-def dispo(ini,name,sports,when,zone,bg='#DCE5D3',fg='#3F7A56'):
-    ss=''.join(f'<span class="sp" style="width:26px;height:26px;color:{UNI[s]}">{IC[s]}</span>' for s in sports)
-    return f'<div class="card"><div class="row" style="margin:0"><div class="av" style="background:{bg};color:{fg}">{ini}</div><div class="t"><b>{name}</b><small>{when} · {zone}</small></div><span class="gp">Inviter</span></div><div style="display:flex;gap:10px;margin-top:14px;align-items:center">{ss}<span style="font-size:18px;color:{SEC};margin-left:4px">cherche un binôme</span></div></div>'
-body=f'''<div class="hd">Partenaires</div>
-<div class="card" style="background:{DEEP};color:#FFF;margin-top:0"><div style="font-size:18px;font-weight:700;letter-spacing:1px;opacity:.8">TA DISPO</div>
- <div style="display:flex;align-items:center;gap:12px;margin-top:10px;font-size:25px;font-weight:800">{li('cal',26,'#FFF')}Samedi matin</div>
- <div style="display:flex;align-items:center;gap:10px;margin-top:10px;font-size:20px"><span class="sp" style="width:28px;height:28px;color:#FFF">{IC['climbing-sport']}</span><span class="sp" style="width:28px;height:28px;color:#FFF">{IC['ski-touring']}</span>Escalade, ski de rando</div>
- <div style="display:flex;align-items:center;gap:10px;margin-top:8px;font-size:20px">{li('pin',22,'#FFF')}Briançon · 35 km</div></div>
-<div style="padding:10px 28px 12px;font-size:19px;font-weight:800;letter-spacing:1px;color:{SEC}">QUI CHERCHE LA MÊME CHOSE · 5</div>
-{dispo('TB','Thomas B.',['climbing-sport'],'sam. matin','Briançon · 35 km')}
-{dispo('JR','Julie R.',['ski-touring','climbing-sport'],'sam. matin','Névache · 60 km','#E7DCEB','#6B4E8B')}
-{dispo('YA','Youssef A.',['climbing-sport','via-ferrata'],'sam. + dim.','Gap · 60 km','#F0E1D6','#A4552D')}
-{dispo('CD','Chloé D.',['ski-touring'],'dim. matin','Montgenèvre · 35 km','#DDE8F0','#2B5F86')}
-{dispo('PL','Pierre-Yves L.',['climbing-sport'],'sam. après-midi','Briançon · 35 km')}
+# 3 — partenaires (as the real tab: title + zone pill, « Ta dispo » line, dispo cards, discussion tiles)
+def ring_av(ini,color,bg='#DCE5D3',fg='#3F7A56'):
+    return f'<div style="width:56px;height:56px;border-radius:50%;border:3px solid {color};padding:2px;flex-shrink:0"><div class="av" style="width:100%;height:100%;background:{bg};color:{fg};font-size:17px">{ini}</div></div>'
+def dispo(ini,name,tier,tiercol,km,dates,sports,about,state=None,bg='#DCE5D3',fg='#3F7A56'):
+    pills=''.join(f'<span class="chip" style="background:{UNI[k]}1A;color:{UNI[k]};gap:4px;padding:4px 9px;font-size:13px"><span class="sp" style="width:14px;height:14px;color:{UNI[k]}">{IC[k]}</span>{n}</span>' for k,n in sports)
+    st=f'<span class="chip" style="font-size:14px;padding:4px 9px;color:{SEC}">{state}</span>' if state else ''
+    return f'''<div style="width:252px;flex-shrink:0;background:#FFF;border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 2px 6px rgba(31,26,21,.14)">
+<div style="display:flex;align-items:center;gap:10px">{ring_av(ini,tiercol,bg,fg)}<div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{name}</div><div style="font-size:14px;font-weight:600;color:{tiercol}">{tier}</div></div>{st}</div>
+<div style="font-size:14px;color:{SEC}">à {km} km · {dates}</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px">{pills}</div>
+<div style="font-size:14px;line-height:1.3">« {about} »</div><div style="font-size:13px;color:{SEC}">🧭 Découverte&nbsp;&nbsp;&nbsp;🤝 Convivialité</div></div>'''
+GOOD='#2ECC71'; EXC='#2F6FED'
+def tile_s(k,sk,sport,name,place,n,badge):
+    return f'<div class="tile" style="width:200px;height:150px;margin:0;flex-shrink:0;background-image:url({PH(k)});padding:12px"><div class="tt"><span class="chip" style="background:rgba(255,255,255,.92);color:#1F1A15;font-size:13px;padding:3px 9px">{badge}</span><span class="sc" style="font-size:13px;padding:4px 8px">{sp(sk,14)}</span></div><div class="tb"><b style="font-size:17px">{name}</b><div class="tm" style="font-size:14px"><span>{li("pin",14,"#FFF")}{place}</span><span>{li("users",14,"#FFF")}{n}</span></div></div></div>'
+body=f'''<div class="zoomwrap"><div style="display:flex;align-items:center;justify-content:space-between;padding:44px 16px 0"><span style="font-size:28px;font-weight:800;letter-spacing:-.5px">Partenaires</span><span class="chip" style="background:{GREEN}1A;color:{GREEN};gap:5px;font-size:16px">{li('pin',16,GREEN)}Briançon · 35 km</span></div>
+<div style="margin:14px 16px 0;background:#1F2A22;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px"><span style="width:10px;height:10px;border-radius:5px;background:{GREEN}"></span><div style="flex:1;min-width:0"><div style="color:#FFF;font-size:19px;font-weight:700">Ta dispo · en ligne</div><div style="color:rgba(255,255,255,.72);font-size:15px">8 nov – 15 nov · Escalade, Ski de rando</div></div>{li('chevl',20,'#FFF')}</div>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:22px 16px 10px"><span style="font-size:20px;font-weight:800">Dispos qui collent <span style="color:{GREEN}">3</span></span><span style="color:{GREEN};font-size:16px;font-weight:700">Tout voir ›</span></div>
+<div style="display:flex;gap:12px;padding:0 16px;overflow:hidden">
+{dispo('TB','Théo B.','Excellente',EXC,12,'8 nov – 15 nov',[('climbing-sport','Escalade')],'Falaise le week-end, je prends la corde.','En contact')}
+{dispo('JR','Julie R.','Bonne',GOOD,24,'9 nov – 12 nov',[('ski-touring','Ski de rando'),('climbing-sport','Escalade')],'Débutante en peaux, motivée !',None,'#E7DCEB','#6B4E8B')}
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:22px 16px 10px"><span style="font-size:20px;font-weight:800">Discussions</span><span style="color:{GREEN};font-size:16px;font-weight:700">Tout voir ›</span></div>
+<div style="display:flex;gap:12px;padding:0 16px;overflow:hidden">{tile_s(4,'climbing-sport','Escalade','Grimpe au soleil à Céüse','Gap',128,'Membre')}{tile_s(1,'ski-touring','Ski de rando','Peaux de phoque & poudreuse','Briançon',87,'Près de toi')}</div>
+<div style="display:flex;align-items:center;gap:6px;padding:14px 16px 0;color:{SEC};font-size:15px;font-weight:600">{li('plus',16,SEC)}Ouvrir une discussion</div></div>
 {tabbar(1)}'''
-extra=callout(26,1000,li('cal',50,INK),'Quand','ton créneau, pas ton agenda','left',212)+callout(838,1180,li('pin',50,INK),'Où','ta zone, jamais ton adresse','right',212)
+extra=callout(26,760,li('cal',50,INK),'Ta dispo','un créneau, des sports, une zone','left',212)+callout(838,1000,li('users',50,INK),'Qui colle','même sport, même zone, mêmes dates','right',212)
 out['3-partenaires']=screen('Dis quand<br>tu es dispo.','Pour quels sports, dans quelle zone — et vois qui cherche la même chose. Un message, et vous partez ensemble.',body,extra)
 
 # 4 — canaux
@@ -159,30 +172,32 @@ def tile(k,sk,sport,name,place,n,tag):
 body=f'''<div class="hd">Discussions<span class="sm" style="margin-left:auto">{li('search',26,SEC)}</span></div>
 {tile(4,'climbing-sport','Escalade','Grimpe au soleil à Céüse','Gap',128,'Membre')}
 {tile(1,'ski-touring','Ski de rando','Peaux de phoque & poudreuse','Briançon',87,'Rejoindre')}
-<div class="card alt" style="margin-top:4px"><div style="display:flex;align-items:center;gap:12px"><div class="av">TB</div><div style="font-size:19px;color:{SEC}"><b style="color:{INK}">Thomas B.</b> a proposé une sortie</div></div>
- <div style="margin-top:12px;background:#FFF;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px"><div class="av" style="background:#4A7C59;color:#FFF;width:44px;height:44px">{sp('climbing-sport',26)}</div><div style="flex:1"><b style="font-size:22px">Rocher Baron, samedi 9h</b><div style="font-size:18px;color:{SEC}">Villar-Saint-Pancrace · 5c à 6a · 2 places</div></div>{li('chev',24,SEC)}</div></div>
 {tile(2,'canyoning','Canyoning','Les mouillés de la Haute-Durance',"L'Argentière",64,'Rejoindre')}
 {tile(6,'paragliding','Parapente','Thermiques & décos du Gapençais','Gap',41,'Rejoindre')}
+{tile(3,'trail-running','Trail','Trail à la frontale · Briançon','Briançon',52,'Rejoindre')}
 {tabbar(1)}'''
-extra=callout(26,1060,sp('ski-touring',54,INK),'Par sport','et par vallée','left',212)+callout(838,1430,li('msg',50,INK),'Et dedans','les sorties se lancent','right',212)
+extra=callout(26,1060,sp('ski-touring',54,INK),'Par sport','et par vallée','left',212)+callout(838,1430,li('msg',50,INK),'Ouvert','à qui passe par là','right',212)
 out['4-canaux']=screen('Des discussions qui<br>finissent dehors.','Conditions du jour, binômes, matos, sorties proposées : chaque vallée a ses canaux, ouverts à qui passe par là.',body,extra)
 
-# 5 — confiance
-body=f'''<div class="hd"><div class="av" style="width:72px;height:72px;font-size:26px">LM</div><div><div>Léa M.</div><div class="sm">Membre depuis mars 2026 · Briançon</div></div></div>
-<div class="card alt" style="margin-top:8px"><div class="sec">{li('shield',24,GREEN)}Fiabilité</div>
- <div style="display:flex;align-items:baseline;gap:14px;margin-top:12px"><span style="font-size:40px;font-weight:800;color:{GREEN}">Bonne</span><span style="font-size:22px;color:{SEC}">présente à 94 % de ses sorties</span></div>
- <div style="height:12px;border-radius:6px;background:#E2DFD8;margin-top:12px"><div style="width:94%;height:100%;border-radius:6px;background:{GREEN}"></div></div>
- <div style="display:flex;justify-content:space-between;margin-top:18px;text-align:center">{"".join(f'<div><div style="font-size:32px;font-weight:800">{n}</div><div style="font-size:17px;color:{SEC}">{t}</div></div>' for n,t in [(53,'terminées'),(29,'créées'),(24,'rejointes')])}</div></div>
-<div class="card alt"><div class="sec">Sports pratiqués</div>
- <div class="row"><span class="sp" style="width:34px;height:34px;color:#4A7C59">{IC['climbing-sport']}</span><div class="t"><b>Escalade · ×29</b><small>6a confirmé par 7 partenaires</small></div><span class="chip ok">{li('check',18,'#1E6B45',3)}confirmé</span></div>
- <div class="row"><span class="sp" style="width:34px;height:34px;color:#4A7C59">{IC['ski-touring']}</span><div class="t"><b>Ski de rando · ×11</b><small>Intermédiaire · déclaré</small></div></div>
- <div class="row"><span class="sp" style="width:34px;height:34px;color:#E11D48">{IC['trail-running']}</span><div class="t"><b>Trail · ×6</b><small>Confirmé · 1 200 m D+</small></div></div></div>
-<div class="card alt"><div class="sec">Ses partenaires disent</div>
- <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px"><span class="chip">Ponctuelle <b style="color:{GREEN}">38</b></span><span class="chip">Préparée <b style="color:{GREEN}">17</b></span><span class="chip">Prudente <b style="color:{GREEN}">12</b></span><span class="chip">Conciliante <b style="color:{GREEN}">9</b></span></div></div>
-<div class="card alt"><div class="sec">Badges</div>
- <div style="display:flex;gap:10px;margin-top:16px">{"".join(f'<div style="flex:1;background:#FFF;border-radius:16px;padding:12px;text-align:center"><div style="font-size:30px">{e}</div><div style="font-size:17px;font-weight:700;margin-top:4px">{t}</div></div>' for e,t in [('🏔️','Encordée ×25'),('🌅','Lève-tôt'),('🧭','Organisatrice')])}</div></div>
+# 5 — confiance (the real public profile: hero card, sports chips, peer lines, contact button)
+GOOD='#2ECC71'
+def sportchip(k,count,lvl,tri):
+    t={'up':f'<span style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid {GOOD}"></span>','dot':f'<span style="width:8px;height:8px;border-radius:4px;background:#C9C3B9"></span>'}[tri]
+    return f'<span style="display:inline-flex;align-items:center;gap:8px;background:#F1EFEA;border-radius:999px;padding:9px 14px;font-size:18px;font-weight:700"><span class="sp" style="width:20px;height:20px;color:{UNI[k]}">{IC[k]}</span>×{count}<span style="width:1px;height:16px;background:#D5D0C7"></span><span style="font-weight:600">{lvl}</span>{t}</span>'
+def peer(label,n,col=GREEN):
+    return f'<span style="display:inline-flex;align-items:center;gap:7px;font-size:18px;padding:6px 0 6px 0;margin-right:22px"><span style="width:8px;height:8px;border-radius:4px;background:{col}"></span>{label}<b style="color:{col}">{n}</b></span>'
+body=f'''<div class="zoomwrap"><div style="display:flex;align-items:center;gap:14px;padding:44px 16px 10px;font-size:22px;font-weight:800">‹<span style="flex:1">Léa M.</span></div>
+<div class="card" style="margin:4px 16px 14px;padding:14px"><div style="display:flex;gap:16px;align-items:center">
+ <div style="position:relative;width:92px;flex-shrink:0;display:flex;flex-direction:column;align-items:center"><div style="width:92px;height:92px;border-radius:50%;border:4px solid {GOOD};padding:4px"><div class="av" style="width:100%;height:100%;font-size:28px">LM</div></div><span style="margin-top:-12px;background:{GOOD};color:#FFF;font-size:14px;font-weight:800;border-radius:999px;padding:3px 10px;box-shadow:0 3px 8px rgba(46,204,113,.45)">94%</span></div>
+ <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px;font-size:13px;letter-spacing:1px;font-weight:800;color:{SEC}">FIABILITÉ {li('help',14,'#A0968A')}</div><div style="font-size:34px;font-weight:800;color:{GOOD};line-height:1.1">Bonne</div><div style="font-size:15px;color:{SEC};margin-top:2px">Membre depuis mars 2026 · Briançon</div>
+ <div style="display:flex;align-items:center;margin-top:12px">{"".join(f'<div style=\"flex:1;text-align:center\"><div style=\"font-size:24px;font-weight:800;color:{c}\">{n}</div><div style=\"font-size:13px;color:{SEC}\">{t}</div></div>'+('<div style=\"width:1px;height:28px;background:#E2DFD8\"></div>' if i<2 else '') for i,(n,t,c) in enumerate([(53,'Terminées',GOOD),(29,'Créées',GREEN),(24,'Rejointes','#4B7CB8')]))}</div></div></div></div>
+<div class="card" style="margin:0 16px 14px;padding:14px;gap:10px;display:flex;flex-direction:column"><div style="display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800">{li('mountain',20,GREEN)}Sports pratiqués</div>
+ <div style="display:flex;flex-wrap:wrap;gap:8px">{sportchip('climbing-sport',29,'6a','up')}{sportchip('ski-touring',11,'Intermédiaire','dot')}{sportchip('trail-running',6,'Confirmé','up')}</div></div>
+<div class="card" style="margin:0 16px 14px;padding:14px;gap:8px;display:flex;flex-direction:column"><div style="display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800">{li('users',20,GREEN)}Ses partenaires disent…</div>
+ <div style="display:flex;flex-wrap:wrap">{peer('Ponctuel',38,'#C9A227')}{peer('Préparé',17,'#8E9AA8')}{peer('Prudent',12,'#8E9AA8')}{peer('Conciliant',9,'#B87333')}</div></div>
+<div style="margin:6px 16px 0;background:{GREEN};border-radius:999px;padding:14px;text-align:center;color:#FFF;font-size:17px;font-weight:800;box-shadow:0 8px 20px rgba(47,164,106,.4)">Demander le contact</div></div>
 {tabbar(3)}'''
-extra=callout(26,960,li('pin',50,INK),'Présence','vérifiée sur place, sortie après sortie','left',212)+callout(838,1240,li('users',50,INK),'Niveau','confirmé par ceux qui ont grimpé avec elle','right',212)
+extra=callout(26,900,li('pin',50,INK),'Présence','vérifiée sur place, sortie après sortie','left',212)+callout(838,1160,li('users',50,INK),'Niveau','confirmé par ceux qui ont grimpé avec elle','right',212)
 out['5-confiance']=screen('Des inconnus, oui.<br>Des inconnus fiables.','Pas de notes, pas de classement. Une fiabilité qui se construit dehors, et des niveaux confirmés par les partenaires.',body,extra)
 
 # 6 — pros
