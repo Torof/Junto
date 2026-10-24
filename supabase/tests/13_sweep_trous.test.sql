@@ -226,6 +226,7 @@ PERFORM pg_temp.put('sw_auth', $ref$ARRAY[
   'public.update_activity(p_activity_id uuid, p_title text, p_description text, p_level text, p_max_participants integer, p_meeting_lng double precision, p_meeting_lat double precision, p_starts_at timestamp with time zone, p_duration text, p_visibility text, p_level_max text, p_meeting_locality text)',
   'private.is_active_admin(p_uid uuid)',
   'private.is_conversation_member(p_conversation_id uuid, p_user_id uuid)',
+  'private.demo_channel_hidden(p_conversation_id uuid)',
   'public.send_message(p_conversation_id uuid, p_content text, p_reply_to_message_id uuid)',
   'public.waive_late_cancel_penalty(p_participation_id uuid)',
   'public.transition_single_activity(p_activity_id uuid)',
