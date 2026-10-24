@@ -514,6 +514,8 @@
     "dupCreate": "Create anyway",
     "closed": "closed",
     "joinToPost": "Join to take part",
+    "joinCta": "Join the channel",
+    "joinHint": "Once you've joined, you can read the whole conversation and post.",
     "closedReadOnly": "Discussion closed — read only",
     "renamePlaceholder": "Rename the discussion…",
     "rename": "Rename",

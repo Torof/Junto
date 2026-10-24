@@ -514,6 +514,8 @@
     "dupCreate": "Trotzdem erstellen",
     "closed": "geschlossen",
     "joinToPost": "Beitreten, um mitzureden",
+    "joinCta": "Kanal beitreten",
+    "joinHint": "Sobald du beigetreten bist, kannst du die ganze Unterhaltung lesen und schreiben.",
     "closedReadOnly": "Diskussion geschlossen — nur lesen",
     "renamePlaceholder": "Diskussion umbenennen…",
     "rename": "Umbenennen",

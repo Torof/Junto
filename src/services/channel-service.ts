@@ -58,6 +58,17 @@ export interface ChannelMember {
   joined_at: string;
 }
 
+// The last messages of a channel one has not joined, for the « join » card
+// (get_channel_preview, 00551) — read-only, author identity included.
+export interface ChannelPreviewMessage {
+  id: string;
+  sender_id: string;
+  display_name: string;
+  avatar_url: string | null;
+  content: string;
+  created_at: string;
+}
+
 export interface SearchChannelsFilters {
   query?: string | null;
   sportKey?: string | null;
@@ -115,6 +126,12 @@ export const channelService = {
     const { data, error } = await supabase.rpc('get_channel_members', { p_conversation_id: conversationId });
     if (error) throw error;
     return (data ?? []) as unknown as ChannelMember[];
+  },
+
+  preview: async (conversationId: string): Promise<ChannelPreviewMessage[]> => {
+    const { data, error } = await supabase.rpc('get_channel_preview', { p_conversation_id: conversationId });
+    if (error) throw error;
+    return (data ?? []) as unknown as ChannelPreviewMessage[];
   },
 
   rename: async (conversationId: string, name: string): Promise<void> => {

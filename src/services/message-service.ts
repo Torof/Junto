@@ -35,6 +35,14 @@ export interface PrivateMessage {
   metadata: MessageMetadata | null;
   reply_to_message_id: string | null;
   reply_to: ReplySnippet | null;
+  // One per person (00551), read under RLS with the message — members only,
+  // never from someone one is blocked with.
+  reactions: MessageReaction[];
+}
+
+export interface MessageReaction {
+  emoji: string;
+  user_id: string;
 }
 
 type RawMessageRow = Omit<PrivateMessage, 'reply_to'> & {
@@ -49,7 +57,8 @@ export const messageService = {
       .select(`
         id, conversation_id, sender_id, content,
         edited_at, deleted_at, created_at, metadata, reply_to_message_id,
-        reply_to:reply_to_message_id (id, sender_id, content, deleted_at)
+        reply_to:reply_to_message_id (id, sender_id, content, deleted_at),
+        reactions:message_reactions (emoji, user_id)
       `)
       .eq('conversation_id', conversationId)
       .is('deleted_at', null)
@@ -64,7 +73,17 @@ export const messageService = {
     return ((data ?? []) as unknown as RawMessageRow[]).map((row) => ({
       ...row,
       reply_to: Array.isArray(row.reply_to) ? (row.reply_to[0] ?? null) : row.reply_to,
+      reactions: row.reactions ?? [],
     }));
+  },
+
+  // Same emoji again or null removes mine; another emoji replaces it (00551).
+  react: async (messageId: string, emoji: string | null): Promise<void> => {
+    const { error } = await supabase.rpc('set_message_reaction', {
+      p_message_id: messageId,
+      p_emoji: emoji as string,
+    });
+    if (error) throw error;
   },
 
   send: async (conversationId: string, content: string, replyToMessageId?: string | null): Promise<string> => {

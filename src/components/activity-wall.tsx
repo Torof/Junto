@@ -239,7 +239,12 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
                   )}
                   <View style={styles.bubbleCol}>
                     {isFirstInGroup && !isMine && (
-                      <AppText style={styles.authorName} numberOfLines={1}>
+                      <AppText
+                        style={styles.authorName}
+                        numberOfLines={1}
+                        onPress={item.user_id ? () => router.push(`/(auth)/profile/${item.user_id}`) : undefined}
+                        suppressHighlighting
+                      >
                         {item.display_name ?? t('wall.deletedUser')}
                       </AppText>
                     )}
@@ -250,8 +255,8 @@ export function ActivityWall({ activityId, isActive, currentUserId }: ActivityWa
                         styles.messageCard,
                         isMine ? styles.messageCardMine : styles.messageCardOther,
                         isMine
-                          ? { borderTopRightRadius: isFirstInGroup ? 18 : 5, borderBottomRightRadius: isLastInGroup ? 18 : 5 }
-                          : { borderTopLeftRadius: isFirstInGroup ? 18 : 5, borderBottomLeftRadius: isLastInGroup ? 18 : 5 },
+                          ? { borderTopRightRadius: isFirstInGroup ? 18 : 8, borderBottomRightRadius: isLastInGroup ? 6 : 8 }
+                          : { borderTopLeftRadius: isFirstInGroup ? 18 : 8, borderBottomLeftRadius: isLastInGroup ? 6 : 8 },
                       ]}
                     >
                       <AppText style={[styles.messageContent, isMine && styles.messageContentMine]}>{item.content}</AppText>
@@ -442,9 +447,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     textTransform: 'capitalize',
   },
 
-  // Side alignment + group spacing. firstInGroup gets larger top margin
-  // so a new author starts visually separated; midInGroup messages snug
-  // up to the previous one (1px) so the run reads as one block.
+  // Side alignment + group spacing (Scott 2026-10-24, same as the threads):
+  // 16 when the author changes, 6 inside one person's run.
   messageRow: {
     flexDirection: 'row',
   },
@@ -455,10 +459,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   firstInGroup: {
-    marginTop: spacing.sm + 4,
+    marginTop: 16,
   },
   midInGroup: {
-    marginTop: 2,
+    marginTop: 6,
   },
 
   // Messenger-style bubbles (2026-07-09): big radius, solid accent for
@@ -475,7 +479,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.surfaceAlt,
   },
   avatarSlot: { width: 32, justifyContent: 'flex-end' },
-  bubbleCol: { maxWidth: '78%' },
+  bubbleCol: { maxWidth: '70%' },
   messageContentMine: { color: '#FFFFFF' },
   onAccentMuted: { color: 'rgba(255,255,255,0.75)' },
 

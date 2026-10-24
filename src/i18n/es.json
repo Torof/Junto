@@ -514,6 +514,8 @@
     "dupCreate": "Crear de todos modos",
     "closed": "cerrado",
     "joinToPost": "Únete para participar",
+    "joinCta": "Unirse al canal",
+    "joinHint": "Cuando te unas podrás leer toda la conversación y escribir.",
     "closedReadOnly": "Canal cerrado — solo lectura",
     "renamePlaceholder": "Renombrar el canal…",
     "rename": "Renombrar",

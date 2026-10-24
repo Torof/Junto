@@ -43,8 +43,10 @@ import { PickTraceSheet } from '@/components/pick-trace-sheet';
 import type { GpxTrace } from '@/services/gpx-trace-service';
 import { groupService } from '@/services/group-service';
 import { GroupManageSheet } from '@/components/group-manage-sheet';
-import { channelService } from '@/services/channel-service';
+import { channelService, type ChannelPreviewMessage } from '@/services/channel-service';
 import { ChatBackdrop } from '@/components/chat-backdrop';
+import { ChannelJoinCard } from '@/components/channel-join-card';
+import { ReactionPills, ReactionBar } from '@/components/message-reactions';
 import { useSports } from '@/hooks/use-sports';
 import { pickAndUploadChannelPhoto } from '@/utils/channel-photo-upload';
 
@@ -240,6 +242,23 @@ export default function ConversationScreen() {
   const channelMemberById = useMemo(
     () => new Map((channelMembers ?? []).map((m) => [m.user_id, m])),
     [channelMembers],
+  );
+  // A channel one has not joined opens on its last messages (read-only,
+  // get_channel_preview) under the join card; no composer.
+  const channelLocked = isChannel && !channelIsMember;
+  const { data: channelPreview, isLoading: previewLoading } = useQuery({
+    queryKey: ['channel-preview', id],
+    queryFn: () => channelService.preview(id!),
+    enabled: !!id && channelLocked,
+    staleTime: 30_000,
+  });
+  const previewAuthorById = useMemo(
+    () => new Map((channelPreview ?? []).map((m) => [m.sender_id, m])),
+    [channelPreview],
+  );
+  const previewMessages = useMemo(
+    () => (channelPreview ?? []).map(previewToMessage),
+    [channelPreview],
   );
 
   useLayoutEffect(() => {
@@ -660,6 +679,32 @@ export default function ConversationScreen() {
     setSelectedMessage(msg);
   };
 
+  // One reaction per person: the same emoji again removes it. Applied to the
+  // cache at once; the conversation topic's 'change' refreshes everyone else.
+  const handleReact = async (msg: PrivateMessage, emoji: string) => {
+    if (!currentUser || !id) return;
+    setSelectedMessage(null);
+    const mine = msg.reactions.find((r) => r.user_id === currentUser)?.emoji;
+    const next = mine === emoji ? null : emoji;
+    haptic.light();
+    queryClient.setQueryData<PrivateMessage[]>(['messages', id], (old) => old?.map((m) => (
+      m.id !== msg.id ? m : {
+        ...m,
+        reactions: [
+          ...m.reactions.filter((r) => r.user_id !== currentUser),
+          ...(next ? [{ emoji: next, user_id: currentUser }] : []),
+        ],
+      }
+    )));
+    try {
+      await messageService.react(msg.id, next);
+    } catch (e) {
+      Burnt.toast({ title: getFriendlyError(e, 'generic') });
+    } finally {
+      queryClient.invalidateQueries({ queryKey: ['messages', id] });
+    }
+  };
+
   const handleReplyTo = () => {
     if (!selectedMessage) return;
     setReplyingTo(selectedMessage);
@@ -749,10 +794,52 @@ export default function ConversationScreen() {
     <View style={styles.container}>
       {isChannel && <ChatBackdrop photoUrl={channelInfo?.photo_url} sportKey={channelInfo?.sport_key} />}
       <Animated.View style={[styles.containerInner, dockPadding]}>
-      {isLoading ? (
+      {(channelLocked ? previewLoading : isLoading) ? (
         <View style={styles.center}>
           <LogoSpinner />
         </View>
+      ) : channelLocked ? (
+        <FlatList
+          style={styles.messageListContainer}
+          data={previewMessages}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item, index }) => {
+            const prev = previewMessages[index - 1];
+            const next = previewMessages[index + 1];
+            const isFirstInGroup = !prev || prev.sender_id !== item.sender_id;
+            const isLastInGroup = !next || next.sender_id !== item.sender_id;
+            const author = previewAuthorById.get(item.sender_id);
+            const own = isOwnMessage(item);
+            return (
+              <MessageBubble
+                item={item}
+                isOwn={own}
+                isFirstInGroup={isFirstInGroup}
+                isLastInGroup={isLastInGroup}
+                showAuthor={!own && isFirstInGroup}
+                replyToName={null}
+                currentUser={currentUser ?? null}
+                otherUserName={author?.display_name ?? '?'}
+                otherUserAvatarUrl={author?.avatar_url ?? null}
+                seatReqId={null}
+                seatReqStatus={null}
+                seatActionId={null}
+                onLongPress={() => {}}
+                onReply={() => {}}
+                onReact={() => {}}
+                onAuthorPress={undefined}
+                onTracePreview={setTracePreview}
+                onActivityNav={() => {}}
+                onSeatAccept={() => {}}
+                onSeatDecline={() => {}}
+                styles={styles}
+                colors={colors}
+                t={t}
+              />
+            );
+          }}
+          contentContainerStyle={styles.messageList}
+        />
       ) : !messages || messages.length === 0 ? (
         <View style={styles.center}>
           <AppText style={styles.emptyText}>{t('messagerie.noMessages')}</AppText>
@@ -808,6 +895,8 @@ export default function ConversationScreen() {
                 seatActionId={seatActionId}
                 onLongPress={handleLongPress}
                 onReply={setReplyingTo}
+                onReact={handleReact}
+                onAuthorPress={!own && item.sender_id ? () => router.push(`/(auth)/profile/${item.sender_id}`) : undefined}
                 onTracePreview={setTracePreview}
                 onActivityNav={(activityId) => router.push(`/(auth)/activity/${activityId}`)}
                 onSeatAccept={handleSeatAccept}
@@ -852,11 +941,7 @@ export default function ConversationScreen() {
           </View>
         )}
 
-        {isChannel && !channelIsMember ? (
-          <Pressable style={styles.channelJoinBar} onPress={handleJoinChannel}>
-            <AppText style={styles.channelJoinText}>{t('channels.joinToPost', { defaultValue: 'Rejoindre pour participer' })}</AppText>
-          </Pressable>
-        ) : isChannel && channelClosed ? (
+        {channelLocked ? null : isChannel && channelClosed ? (
           <View style={styles.channelClosedBar}>
             <Lock size={14} color={colors.textSecondary} strokeWidth={2.2} />
             <AppText style={styles.channelClosedText}>{t('channels.closedReadOnly', { defaultValue: 'Discussion fermé — lecture seule' })}</AppText>
@@ -890,6 +975,14 @@ export default function ConversationScreen() {
           </View>
         )}
       </View>
+
+      {channelLocked && channelInfo && (
+        <ChannelJoinCard
+          channel={channelInfo}
+          authors={uniqueAuthors(channelPreview ?? [])}
+          onJoin={handleJoinChannel}
+        />
+      )}
 
       {/* Attach menu (Brique 4c) — share an outing or a GPX trace. */}
       <Modal visible={attachMenuOpen} animationType="slide" transparent onRequestClose={() => setAttachMenuOpen(false)}>
@@ -1139,6 +1232,12 @@ export default function ConversationScreen() {
         <Pressable style={styles.menuBackdrop} onPress={() => setSelectedMessage(null)}>
           <Pressable style={styles.menuSheet} onPress={() => {}}>
             <View style={styles.menuHandle} />
+            {selectedMessage && selectedMessage.sender_id && (
+              <ReactionBar
+                mine={selectedMessage.reactions.find((r) => r.user_id === currentUser)?.emoji ?? null}
+                onPick={(emoji) => handleReact(selectedMessage, emoji)}
+              />
+            )}
             <Pressable style={styles.menuItem} onPress={handleReplyTo}>
               <AppText style={styles.menuText}>{t('messagerie.reply', { defaultValue: 'Répondre' })}</AppText>
             </Pressable>
@@ -1210,6 +1309,9 @@ type MessageBubbleProps = {
   seatActionId: string | null;
   onLongPress: (msg: PrivateMessage) => void;
   onReply: (msg: PrivateMessage) => void;
+  onReact: (msg: PrivateMessage, emoji: string) => void;
+  // Avatar + name open the author's profile (groups, channels, DMs).
+  onAuthorPress: (() => void) | undefined;
   onTracePreview: (preview: { name: string; coords: [number, number][]; geo: GeoJsonLineString }) => void;
   onActivityNav: (activityId: string) => void;
   onSeatAccept: (id: string) => void;
@@ -1234,6 +1336,8 @@ function MessageBubble({
   seatActionId,
   onLongPress,
   onReply,
+  onReact,
+  onAuthorPress,
   onTracePreview,
   onActivityNav,
   onSeatAccept,
@@ -1297,7 +1401,9 @@ function MessageBubble({
         {!isOwn && (
           <View style={styles.avatarSlot}>
             {isLastInGroup && (
-              <UserAvatar name={otherUserName ?? '?'} avatarUrl={otherUserAvatarUrl} size={28} />
+              <Pressable onPress={onAuthorPress} disabled={!onAuthorPress} hitSlop={6}>
+                <UserAvatar name={otherUserName ?? '?'} avatarUrl={otherUserAvatarUrl} size={28} />
+              </Pressable>
             )}
           </View>
         )}
@@ -1334,7 +1440,9 @@ function MessageBubble({
       {!isOwn && (
         <View style={styles.avatarSlot}>
           {isLastInGroup && (
-            <UserAvatar name={otherUserName ?? '?'} avatarUrl={otherUserAvatarUrl} size={28} />
+            <Pressable onPress={onAuthorPress} disabled={!onAuthorPress} hitSlop={6}>
+              <UserAvatar name={otherUserName ?? '?'} avatarUrl={otherUserAvatarUrl} size={28} />
+            </Pressable>
           )}
         </View>
       )}
@@ -1345,13 +1453,13 @@ function MessageBubble({
             styles.bubble,
             isOwn ? styles.bubbleOwn : styles.bubbleOther,
             isOwn
-              ? { borderTopRightRadius: isFirstInGroup ? 18 : 5, borderBottomRightRadius: isLastInGroup ? 18 : 5 }
-              : { borderTopLeftRadius: isFirstInGroup ? 18 : 5, borderBottomLeftRadius: isLastInGroup ? 18 : 5 },
+              ? { borderTopRightRadius: isFirstInGroup ? 18 : 8, borderBottomRightRadius: isLastInGroup ? 6 : 8 }
+              : { borderTopLeftRadius: isFirstInGroup ? 18 : 8, borderBottomLeftRadius: isLastInGroup ? 6 : 8 },
           ]}
           onLongPress={() => onLongPress(item)}
         >
           {showAuthor && (
-            <AppText style={styles.bubbleAuthor} numberOfLines={1}>{otherUserName ?? '?'}</AppText>
+            <AppText style={styles.bubbleAuthor} numberOfLines={1} onPress={onAuthorPress} suppressHighlighting>{otherUserName ?? '?'}</AppText>
           )}
           {item.reply_to && (
             <View style={[styles.bubbleReplyQuote, isOwn && styles.bubbleReplyQuoteOwn]}>
@@ -1451,10 +1559,36 @@ function MessageBubble({
             </View>
           )}
         </Pressable>
+        {item.reactions.length > 0 && (
+          <ReactionPills
+            reactions={item.reactions}
+            currentUser={currentUser}
+            align={isOwn ? 'right' : 'left'}
+            onToggle={(emoji) => onReact(item, emoji)}
+          />
+        )}
         </Animated.View>
       </GestureDetector>
     </View>
   );
+}
+
+// A preview row shaped as a thread message so the same bubble draws it.
+function previewToMessage(m: ChannelPreviewMessage): PrivateMessage {
+  return {
+    id: m.id, conversation_id: '', sender_id: m.sender_id, content: m.content,
+    edited_at: null, deleted_at: null, created_at: m.created_at, metadata: null,
+    reply_to_message_id: null, reply_to: null, reactions: [],
+  };
+}
+
+function uniqueAuthors(rows: ChannelPreviewMessage[]): { id: string; name: string; avatarUrl: string | null }[] {
+  const seen = new Map<string, { id: string; name: string; avatarUrl: string | null }>();
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const r = rows[i]!;
+    if (!seen.has(r.sender_id)) seen.set(r.sender_id, { id: r.sender_id, name: r.display_name, avatarUrl: r.avatar_url });
+  }
+  return [...seen.values()];
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
@@ -1478,10 +1612,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   messageRow: { flexDirection: 'row' },
   messageLeft: { justifyContent: 'flex-start' },
   messageRight: { justifyContent: 'flex-end' },
-  firstInGroup: { marginTop: spacing.sm + 4 },
-  midInGroup: { marginTop: 2 },
+  // Air between bubbles (Scott 2026-10-24): 6 inside one person's run,
+  // 16 when the author changes.
+  firstInGroup: { marginTop: 16 },
+  midInGroup: { marginTop: 6 },
   avatarSlot: { width: 34, justifyContent: 'flex-end' },
-  bubbleCol: { maxWidth: '78%' },
+  bubbleCol: { maxWidth: '70%' },
   // Shared-outing card claims near-full width (minus the avatar gutter) so the
   // hero + meta read comfortably — it's a card, not a chat bubble.
   sharedActivityCol: { flex: 1, maxWidth: '92%' },
@@ -1706,11 +1842,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     padding: spacing.md, gap: spacing.xs,
     borderTopWidth: 1, borderTopColor: colors.surface,
   },
-  channelJoinBar: {
-    alignSelf: 'stretch', margin: spacing.md, backgroundColor: colors.cta,
-    borderRadius: radius.md, paddingVertical: spacing.sm + 3, alignItems: 'center',
-  },
-  channelJoinText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
   channelClosedBar: {
     alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: spacing.xs, padding: spacing.md, borderTopWidth: 1, borderTopColor: colors.surface,
