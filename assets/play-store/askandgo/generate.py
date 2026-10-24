@@ -34,13 +34,16 @@ def sp(k,sz,c='#FFF'): return f'<span class="sp" style="width:{sz}px;height:{sz}
 def pin(k,x,y,label,sub,n=None):
     c=UNI[k]
     return f'''<div class="pin" style="left:{x}px;top:{y}px"><div class="drop" style="background:{c}">{sp(k,30)}{f'<b>{n}</b>' if n else ''}</div><div class="plab" style="color:{c}"><span>{label}</span><small>{sub}</small></div></div>'''
+PHONE_TOP=740; SCALE=0.8
 def callout(x,y,icon_html,title,sub,side='left',w=250):
+    y=int(PHONE_TOP+(y-720)*SCALE)
     al='flex-end;text-align:right' if side=='right' else 'flex-start;text-align:left'
     return f'<div class="co" style="left:{x}px;top:{y}px;width:{w}px;align-items:{al}"><div class="cob">{icon_html}</div><b>{title}</b><span>{sub}</span></div>'
 def tabbar(active=0):
     items=[('map','Carte'),('users','Partenaires'),('msg','Messages'),('menu','Menu')]
     return '<div class="tabs">'+''.join(f'<div class="tab {"on" if i==active else ""}">{li(k,30,GREEN if i==active else SEC)}<span>{t}</span></div>' for i,(k,t) in enumerate(items))+'</div>'
-def screen(title,sub,body,extra='',tilt=-3,top=None,pills=''):
+def screen(title,sub,body,extra='',tilt=-3,top=None,pills='',scale=None):
+    top=top or PHONE_TOP; scale=scale or SCALE
     return f'''<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap">
 <style>
@@ -52,7 +55,7 @@ h1{{position:relative;margin:150px 70px 0;text-align:center;font-size:82px;line-
 .sub{{position:relative;margin:30px 110px 0;text-align:center;font-size:35px;line-height:1.38;color:#4B584D;font-weight:500}}
 .pills{{position:relative;margin:34px auto 0;width:860px;display:flex;flex-direction:column;gap:14px}}
 .pr{{display:flex;align-items:center;gap:18px;font-size:29px;color:#3E4B41}}.pr b{{background:{GREEN};color:#FFF;border-radius:999px;padding:8px 24px;font-size:24px;letter-spacing:1px;font-weight:800}}
-.phone{{position:absolute;left:258px;top:{top or 720}px;width:564px;height:1300px;border-radius:64px;background:{INK};padding:16px;transform:rotate({tilt}deg);box-shadow:0 40px 80px rgba(31,26,21,.28)}}
+.phone{{position:absolute;left:220px;top:{top}px;width:640px;height:1300px;border-radius:64px;background:{INK};padding:16px;transform-origin:50% 0;transform:scale({scale}) rotate({tilt}deg);box-shadow:0 40px 80px rgba(31,26,21,.28)}}
 .scr{{position:relative;width:100%;height:100%;border-radius:50px;overflow:hidden;background:#FFF;display:flex;flex-direction:column}}
 .hd{{display:flex;align-items:center;gap:14px;padding:58px 28px 16px;font-size:34px;font-weight:800}}
 .hd .sm{{font-size:21px;color:{SEC};font-weight:600}}
@@ -114,7 +117,7 @@ body=f'''<div style="position:absolute;inset:0;background:url({MAP}) center/cove
  <div style="width:68px;height:68px;border-radius:50%;background:{GREEN};display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(47,164,106,.45)">{li('plus',34,'#FFF',2.8)}</div></div>
 <div style="position:absolute;left:0;right:0;bottom:0">{tabbar(0)}</div>'''
 extra=callout(26,900,sp('climbing-sport',54,INK),'Quoi','le sport, dans le pin','left',212)+callout(838,1040,li('pin',52,INK),'Où','posé sur le spot exact','right',212)+callout(26,1460,li('cal',50,INK),'Quand','et le niveau attendu','left',212)
-out['1-carte']=screen('Où que tu ailles,<br>vois qui part.','Chaque sortie est posée sur la carte, pile là où ça se passe. Filtre par sport, par date — ou lance la tienne.',body,extra,top=700)
+out['1-carte']=screen('Où que tu ailles,<br>vois qui part.','Chaque sortie est posée sur la carte, pile là où ça se passe. Filtre par sport, par date — ou lance la tienne.',body,extra)
 
 # 2 — sortie
 body=f'''<div class="hd" style="padding-bottom:6px"><div class="av" style="background:#4A7C59;color:#FFF">{sp('climbing-sport',32)}</div><div><div>Grande voie à Ailefroide</div><div class="sm">sam. 26 juil. · 7h30 · 5c → 6a · 3 / 4</div></div></div>
@@ -125,9 +128,11 @@ body=f'''<div class="hd" style="padding-bottom:6px"><div class="av" style="backg
  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px"><span class="chip ok">{li('check',18,'#1E6B45',3)}Corde 60 m · Léa</span><span class="chip ok">{li('check',18,'#1E6B45',3)}12 dégaines · Sam</span><span class="chip ok">{li('check',18,'#1E6B45',3)}Casque · toi</span><span class="chip miss">Jeu de friends · manque 1</span></div></div>
 <div class="card alt"><div class="sec">{li('msg',24,GREEN)}Discussion · 4</div>
  <div style="display:flex;flex-direction:column"><div class="bub"><span class="who">Sam B.</span>Je serai 10 min en retard, commencez sans moi.</div><div class="bub own">Pas de souci, on t'attend au parking. Pense à ton casque !</div><div class="bub"><span class="who">Léa M.</span>J'ai mis la trace GPX, 650 m de D+ 👍</div></div></div>
+<div class="card alt"><div class="sec">{li('pin',24,GREEN)}Rendez-vous</div>
+ <div class="row"><div class="av" style="background:#FFF">{li('route',26,GREEN)}</div><div class="t"><b>Parking du Pré de Madame Carle</b><small>7h30 · trace GPX · 650 m D+ · 5 h</small></div><span class="chip">Itinéraire</span></div></div>
 {tabbar(2)}'''
 pills=f'<div class="pills"><div class="pr"><b>TRANSPORT</b>qui conduit, qui monte, d\'où</div><div class="pr"><b>MATÉRIEL</b>qui apporte quoi, ce qui manque</div><div class="pr"><b>DISCUSSION</b>les participants, et personne d\'autre</div></div>'
-out['2-sortie']=screen('Dedans, tout<br>s\'organise.','Qui conduit, qui apporte la corde, qui est en retard : tout le monde le voit au même endroit. Personne ne relance personne.',body,'',top=880,pills=pills)
+out['2-sortie']=screen('Dedans, tout<br>s\'organise.','Qui conduit, qui apporte la corde, qui est en retard : tout le monde le voit au même endroit. Personne ne relance personne.',body,'',top=830,pills=pills,scale=0.78)
 
 # 3 — partenaires
 def dispo(ini,name,sports,when,zone,bg='#DCE5D3',fg='#3F7A56'):
@@ -146,7 +151,7 @@ body=f'''<div class="hd">Partenaires</div>
 {dispo('PL','Pierre-Yves L.',['climbing-sport'],'sam. après-midi','Briançon · 35 km')}
 {tabbar(1)}'''
 extra=callout(26,1000,li('cal',50,INK),'Quand','ton créneau, pas ton agenda','left',212)+callout(838,1180,li('pin',50,INK),'Où','ta zone, jamais ton adresse','right',212)
-out['3-partenaires']=screen('Dis quand<br>tu es dispo.','Pour quels sports, dans quelle zone — et vois qui cherche la même chose. Un message, et vous partez ensemble.',body,extra,top=720)
+out['3-partenaires']=screen('Dis quand<br>tu es dispo.','Pour quels sports, dans quelle zone — et vois qui cherche la même chose. Un message, et vous partez ensemble.',body,extra)
 
 # 4 — canaux
 def tile(k,sk,sport,name,place,n,tag):
@@ -154,12 +159,13 @@ def tile(k,sk,sport,name,place,n,tag):
 body=f'''<div class="hd">Discussions<span class="sm" style="margin-left:auto">{li('search',26,SEC)}</span></div>
 {tile(4,'climbing-sport','Escalade','Grimpe au soleil à Céüse','Gap',128,'Membre')}
 {tile(1,'ski-touring','Ski de rando','Peaux de phoque & poudreuse','Briançon',87,'Rejoindre')}
-{tile(2,'canyoning','Canyoning','Les mouillés de la Haute-Durance',"L'Argentière",64,'Rejoindre')}
 <div class="card alt" style="margin-top:4px"><div style="display:flex;align-items:center;gap:12px"><div class="av">TB</div><div style="font-size:19px;color:{SEC}"><b style="color:{INK}">Thomas B.</b> a proposé une sortie</div></div>
  <div style="margin-top:12px;background:#FFF;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px"><div class="av" style="background:#4A7C59;color:#FFF;width:44px;height:44px">{sp('climbing-sport',26)}</div><div style="flex:1"><b style="font-size:22px">Rocher Baron, samedi 9h</b><div style="font-size:18px;color:{SEC}">Villar-Saint-Pancrace · 5c à 6a · 2 places</div></div>{li('chev',24,SEC)}</div></div>
+{tile(2,'canyoning','Canyoning','Les mouillés de la Haute-Durance',"L'Argentière",64,'Rejoindre')}
+{tile(6,'paragliding','Parapente','Thermiques & décos du Gapençais','Gap',41,'Rejoindre')}
 {tabbar(1)}'''
 extra=callout(26,1060,sp('ski-touring',54,INK),'Par sport','et par vallée','left',212)+callout(838,1430,li('msg',50,INK),'Et dedans','les sorties se lancent','right',212)
-out['4-canaux']=screen('Des discussions qui<br>finissent dehors.','Conditions du jour, binômes, matos, sorties proposées : chaque vallée a ses canaux, ouverts à qui passe par là.',body,extra,top=720)
+out['4-canaux']=screen('Des discussions qui<br>finissent dehors.','Conditions du jour, binômes, matos, sorties proposées : chaque vallée a ses canaux, ouverts à qui passe par là.',body,extra)
 
 # 5 — confiance
 body=f'''<div class="hd"><div class="av" style="width:72px;height:72px;font-size:26px">LM</div><div><div>Léa M.</div><div class="sm">Membre depuis mars 2026 · Briançon</div></div></div>
@@ -177,7 +183,7 @@ body=f'''<div class="hd"><div class="av" style="width:72px;height:72px;font-size
  <div style="display:flex;gap:10px;margin-top:16px">{"".join(f'<div style="flex:1;background:#FFF;border-radius:16px;padding:12px;text-align:center"><div style="font-size:30px">{e}</div><div style="font-size:17px;font-weight:700;margin-top:4px">{t}</div></div>' for e,t in [('🏔️','Encordée ×25'),('🌅','Lève-tôt'),('🧭','Organisatrice')])}</div></div>
 {tabbar(3)}'''
 extra=callout(26,960,li('pin',50,INK),'Présence','vérifiée sur place, sortie après sortie','left',212)+callout(838,1240,li('users',50,INK),'Niveau','confirmé par ceux qui ont grimpé avec elle','right',212)
-out['5-confiance']=screen('Des inconnus, oui.<br>Des inconnus fiables.','Pas de notes, pas de classement. Une fiabilité qui se construit dehors, et des niveaux confirmés par les partenaires.',body,extra,top=720)
+out['5-confiance']=screen('Des inconnus, oui.<br>Des inconnus fiables.','Pas de notes, pas de classement. Une fiabilité qui se construit dehors, et des niveaux confirmés par les partenaires.',body,extra)
 
 # 6 — pros
 body=f'''<div style="height:290px;background:url({PH(9)}) center/cover;position:relative"><div style="position:absolute;left:24px;top:66px;width:50px;height:50px;border-radius:50%;background:#FFF;display:flex;align-items:center;justify-content:center;font-size:28px">‹</div>
@@ -193,7 +199,7 @@ body=f'''<div style="height:290px;background:url({PH(9)}) center/cover;position:
 <div class="card alt"><div class="row" style="margin:0"><div class="av" style="background:#4A7C59;color:#FFF">{sp('via-ferrata',30)}</div><div class="t"><b>Via ferrata des Vigneaux</b><small>mer. 30 juil. · 14h · 3 h · dès 12 ans</small></div><div style="text-align:right"><b style="font-size:26px">45 €</b><div style="font-size:16px;color:{SEC}">/ pers</div></div></div></div>
 {tabbar(0)}'''
 extra=callout(26,1000,'<div style="width:60px;height:60px;border-radius:50%;background:#FFF;border:4px solid #2563EB;display:flex;align-items:center;justify-content:center;color:#2563EB">'+sp('canyoning',34,'#2563EB')+'</div>','Épinglés','sur la même carte que les sorties entre passionnés','left',212)+callout(838,1300,li('cal',50,INK),'Réserve','dans l\'app, à la date qui t\'arrange','right',212)
-out['6-pros']=screen('Guides et moniteurs,<br>sur la même carte.','Leurs sorties encadrées, avec photos, tarifs et agenda. Tu choisis l\'activité, tu dis où tu seras, tu réserves.',body,extra,top=720)
+out['6-pros']=screen('Guides et moniteurs,<br>sur la même carte.','Leurs sorties encadrées, avec photos, tarifs et agenda. Tu choisis l\'activité, tu dis où tu seras, tu réserves.',body,extra)
 
 for k,h in out.items(): open(f'{S}/out/{k}.html','w').write(h)
 print(' '.join(out))
