@@ -1776,8 +1776,8 @@
     "qrHint": "This code stays valid for 30 minutes",
     "scanTitle": "Scan the QR",
     "scanSubtitle": "Point the camera at the organizer's QR",
-    "cameraPermission": "Allow camera access to scan",
-    "grantCamera": "Allow",
+    "cameraPermission": "To scan the organiser's QR code, askandgo needs the camera, only to read the code: no photo is taken.",
+    "grantCamera": "Allow the camera",
     "inMinutes_one": "in {{count}} minute",
     "inMinutes_other": "in {{count}} minutes",
     "inHours_one": "in {{count}} hour",
@@ -2345,5 +2345,28 @@
     "sun": "S",
     "prevMonth": "Previous month",
     "nextMonth": "Next month"
+  },
+  "permAsk": {
+    "allow": "Allow",
+    "later": "Not now",
+    "openSettings": "Open settings",
+    "blocked": "You turned it down earlier: it now changes in your phone's settings.",
+    "location": {
+      "title": "Your location",
+      "locate": "To centre the map on you and see the outings around, askandgo needs your location. It is never shown to others.",
+      "aroundMe": "To find the discussions around you, askandgo needs your location. It is never shown to others.",
+      "checkin": "To confirm you are there, askandgo checks your location once. Or you can scan the organiser's QR code."
+    },
+    "notifications": {
+      "title": "Hear about it at the right time",
+      "join": "For reminders before the outing and the group's messages, turn on notifications.",
+      "joinRequest": "To know as soon as the organiser accepts your request, turn on notifications.",
+      "create": "To know as soon as someone wants to join your outing, turn on notifications.",
+      "contact": "To know as soon as they reply, turn on notifications."
+    },
+    "camera": {
+      "title": "Scan a QR code",
+      "scan": "askandgo only uses the camera to read the QR code. No photo is taken or sent."
+    }
   }
 }

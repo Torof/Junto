@@ -1776,8 +1776,8 @@
     "qrHint": "Der Code bleibt 30 Minuten gültig",
     "scanTitle": "QR scannen",
     "scanSubtitle": "Richte die Kamera auf den QR-Code des Organisators",
-    "cameraPermission": "Erlaube den Kamerazugriff zum Scannen",
-    "grantCamera": "Erlauben",
+    "cameraPermission": "Um den QR-Code der Organisation zu scannen, braucht askandgo die Kamera, nur zum Lesen des Codes: Es wird kein Foto aufgenommen.",
+    "grantCamera": "Kamera erlauben",
     "inMinutes_one": "in {{count}} Minute",
     "inMinutes_other": "in {{count}} Minuten",
     "inHours_one": "in {{count}} Stunde",
@@ -2345,5 +2345,28 @@
     "sun": "S",
     "prevMonth": "Vormonat",
     "nextMonth": "Nächster Monat"
+  },
+  "permAsk": {
+    "allow": "Erlauben",
+    "later": "Später",
+    "openSettings": "Einstellungen öffnen",
+    "blocked": "Du hattest es abgelehnt: Das lässt sich jetzt in den Einstellungen des Telefons ändern.",
+    "location": {
+      "title": "Dein Standort",
+      "locate": "Um die Karte auf dich zu zentrieren und Touren in der Nähe zu sehen, braucht askandgo deinen Standort. Er wird anderen nie angezeigt.",
+      "aroundMe": "Um Diskussionen in deiner Nähe zu finden, braucht askandgo deinen Standort. Er wird anderen nie angezeigt.",
+      "checkin": "Um zu bestätigen, dass du vor Ort bist, prüft askandgo deinen Standort ein einziges Mal. Oder du scannst den QR-Code der Organisation."
+    },
+    "notifications": {
+      "title": "Im richtigen Moment Bescheid wissen",
+      "join": "Für Erinnerungen vor der Tour und die Nachrichten der Gruppe, aktiviere die Benachrichtigungen.",
+      "joinRequest": "Um sofort zu erfahren, wenn deine Anfrage angenommen wird, aktiviere die Benachrichtigungen.",
+      "create": "Um sofort zu erfahren, wenn jemand bei deiner Tour mitmachen will, aktiviere die Benachrichtigungen.",
+      "contact": "Um sofort zu erfahren, wenn dir jemand antwortet, aktiviere die Benachrichtigungen."
+    },
+    "camera": {
+      "title": "QR-Code scannen",
+      "scan": "askandgo nutzt die Kamera nur, um den QR-Code zu lesen. Es wird kein Foto aufgenommen oder gesendet."
+    }
   }
 }

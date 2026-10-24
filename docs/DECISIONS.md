@@ -505,3 +505,9 @@ Règles verrouillées :
 **Contexte :** l'app s'affichait dans la police du système (Montserrat et Inter étaient déclarées mais jamais chargées). Scott veut une vraie police par défaut et pouvoir en changer facilement, à condition qu'un changement de police ne casse aucune mise en page.
 
 **Décision :** six familles Google (Outfit, Plus Jakarta Sans, Manrope, Inter, DM Sans, Archivo) + Système, au choix dans Personnalisation, rangé sur l'appareil. Chaque famille est ramenée à la largeur de Roboto, graisse par graisse (mesuré sur du vrai texte d'interface français), et ses hauteurs de ligne imposées sont relevées au minimum qui garde les accents entiers. **Outfit par défaut** : c'est déjà la largeur de Roboto (aucune correction) et la même hauteur sur une ligne. Ajouter une police = ses cinq fichiers + ses mesures dans `constants/font-families.ts`.
+
+## 2026-10-24 — Autorisations : au moment où elles servent, toujours expliquées
+
+**Contexte :** la localisation était demandée dès le premier lancement (avant même la connexion, sans explication, texte iOS hors sujet), les notifications à l'arrivée sur la carte par-dessus le tutoriel, la localisation redemandée par 11 écrans et toutes les 30 s sur une sortie en cours, la caméra dès l'ouverture du scanner.
+
+**Décision (Scott) :** rien au lancement. Une carte dans l'app explique d'abord, en une phrase, puis « Autoriser » ouvre la fenêtre système (`lib/permissions.ts` → `components/permission-prompt.tsx`). Localisation : « me localiser », « Autour de moi », pointage de présence. Notifications : après avoir rejoint / demandé à rejoindre / publié une sortie ou envoyé une demande de contact (« Plus tard » respecté 3 jours, rien si refusé pour de bon). Caméra : au toucher, écran explicatif d'abord. La carte s'ouvre sur la zone IP tant que la position n'est pas accordée. Textes des fenêtres iOS réécrits et traduits dans les 5 langues (`locales/ios/`) — Android impose les siens, la carte explique.

@@ -22,6 +22,7 @@ import { FilterSheet } from '@/components/filter-sheet';
 import { CreateButton } from '@/components/create-button';
 import { MapStyleButton } from '@/components/map-style-button';
 import { RecenterButton } from '@/components/recenter-button';
+import { askPermission } from '@/lib/permissions';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
 import { useNearbyPros } from '@/hooks/use-nearby-pros';
@@ -106,6 +107,16 @@ export default function CarteScreen() {
   // otherwise on my position (GPS, or IP fallback via useInitialLocation).
   const [searchPlace, setSearchPlace] = useState<PlaceResult | null>(null);
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
+  // « Me localiser » without the permission: ask (lib/permissions), then fly
+  // as soon as the first fix lands.
+  const [pendingLocate, setPendingLocate] = useState(false);
+  useEffect(() => {
+    if (!pendingLocate || !currentLocation) return;
+    setPendingLocate(false);
+    setFlyTarget(currentLocation);
+    setFlyOffset(undefined);
+    setFlyToKey((k) => k + 1);
+  }, [pendingLocate, currentLocation]);
   const [flyOffset, setFlyOffset] = useState<{ x?: number; y?: number } | undefined>(undefined);
   const [flyZoom, setFlyZoom] = useState<number | undefined>(undefined);
   const [tappedPoint, setTappedPoint] = useState<{ lng: number; lat: number } | null>(null);
@@ -330,7 +341,13 @@ export default function CarteScreen() {
         {!previewOpen && (
           <>
             <CreateButton />
-            <RecenterButton onPress={() => { setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1); }} />
+            <RecenterButton onPress={async () => {
+              if (!currentLocation) {
+                if (await askPermission('location', 'locate')) setPendingLocate(true);
+                return;
+              }
+              setFlyTarget(null); setFlyOffset(undefined); setFlyToKey((k) => k + 1);
+            }} />
             <CompassButton heading={heading} onPress={() => setResetBearingKey((k) => k + 1)} />
           </>
         )}

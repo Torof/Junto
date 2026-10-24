@@ -19,6 +19,7 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
 import { BackgroundLocationPrompt, shouldAskForBackgroundLocation } from './background-location-prompt';
+import { askPermission } from '@/lib/permissions';
 import { PresenceScannerModal } from './presence-scanner-modal';
 import { LeaveActivityModal } from './leave-activity-modal';
 import { CancelActivityModal } from './cancel-activity-modal';
@@ -445,11 +446,10 @@ export function ActivityDetail({
 
     const checkPosition = async () => {
       try {
+        // Only checks — never asks every 30 s (Scott 2026-10-24): without the
+        // permission the banner below offers the settings or the QR.
         const { status } = await Location.getForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          const req = await Location.requestForegroundPermissionsAsync();
-          if (req.status !== 'granted') return;
-        }
+        if (status !== 'granted') return;
         const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         if (cancelled) return;
         if (isMockedFix(pos)) return;
@@ -577,14 +577,7 @@ export function ActivityDetail({
   const handleCheckIn = async () => {
     setIsConfirming(true);
     try {
-      const { status } = await Location.getForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        const req = await Location.requestForegroundPermissionsAsync();
-        if (req.status !== 'granted') {
-          Alert.alert(t('auth.error'), t('presence.locationPermissionDenied'));
-          return;
-        }
-      }
+      if (!(await askPermission('location', 'checkin'))) return;
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       if (isMockedFix(pos)) {
         Alert.alert(t('auth.error'), t('errors.confirmPresence'));
@@ -636,7 +629,10 @@ export function ActivityDetail({
       // approval request — they may never be accepted. And never blocking: the
       // join has already gone through before we ask.
       if (!isApproval && requiresPresence && await shouldAskForBackgroundLocation()) {
-        setShowBgPrompt(true);
+        setShowBgPrompt(true); // notifications are offered when it closes
+      } else {
+        // The moment notifications start to matter: acceptance, reminders.
+        void askPermission('notifications', isApproval ? 'joinRequest' : 'join');
       }
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'joinActivity'));
@@ -1560,7 +1556,7 @@ export function ActivityDetail({
       </Modal>
 
       <PresenceQrModal visible={showQrModal} activityId={activity.id} onClose={() => setShowQrModal(false)} />
-      <BackgroundLocationPrompt visible={showBgPrompt} onClose={() => setShowBgPrompt(false)} />
+      <BackgroundLocationPrompt visible={showBgPrompt} onClose={() => { setShowBgPrompt(false); void askPermission('notifications', 'join'); }} />
       <PresenceScannerModal visible={showScanner} onClose={() => setShowScanner(false)} />
       <LeaveActivityModal
         visible={showLeaveModal}

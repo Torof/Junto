@@ -13,6 +13,7 @@ import { conversationService } from '@/services/conversation-service';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { SportIcon } from '@/components/sport-icon';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { askPermission } from '@/lib/permissions';
 
 // Contact / invite a Découverte match — shared by the lists and the full card.
 // The ['discovery-cards'] cache is the source of truth: on success it is
@@ -46,6 +47,7 @@ export function useDiscoveryActions() {
       await conversationService.sendContactRequest(userId, t('discovery.contactMessage', { defaultValue: 'Salut ! On matche sur Découverte — ça te dit une sortie ?' }), 'discovery');
       markPending(userId);
       Burnt.toast({ title: t('discovery.contactSent', { defaultValue: 'Demande envoyée' }), preset: 'done' });
+      void askPermission('notifications', 'contact');
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
     finally { setSendingTo(null); }
   };

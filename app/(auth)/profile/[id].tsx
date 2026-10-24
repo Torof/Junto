@@ -26,6 +26,7 @@ import { BadgeDisplay } from '@/components/badge-display';
 import { ReportModal } from '@/components/report-modal';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
 import { supabase } from '@/services/supabase';
+import { askPermission } from '@/lib/permissions';
 
 
 export default function PublicProfileScreen() {
@@ -345,6 +346,7 @@ export default function PublicProfileScreen() {
                 await queryClient.invalidateQueries({ queryKey: ['conversations'] });
                 setShowRequestModal(false);
                 Burnt.toast({ title: t('publicProfile.requestSent'), preset: 'done' });
+                void askPermission('notifications', 'contact');
               } catch (err) {
                 Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
               } finally {

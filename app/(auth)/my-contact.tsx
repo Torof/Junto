@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Pressable, StyleSheet, Share, Alert } from 'react-native';
+import { View, Pressable, StyleSheet, Share } from 'react-native';
 import { AppText } from '@/components/app-text';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,7 @@ import type { AppColors } from '@/constants/colors';
 import { supabase } from '@/services/supabase';
 import { contactService } from '@/services/contact-service';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { askPermission } from '@/lib/permissions';
 
 const WEB_HOST = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
 // Only Junto contact links: getjunto.app/u/<uuid> or junto://profile/<uuid>,
@@ -34,7 +35,7 @@ export default function MyContactScreen() {
   const insets = useSafeAreaInsets();
 
   const [scanning, setScanning] = useState(false);
-  const [permission, requestPermission] = useCameraPermissions();
+  const [permission] = useCameraPermissions();
   // onBarcodeScanned fires every frame — latch so one QR pushes exactly once.
   const handledRef = useRef(false);
 
@@ -86,13 +87,7 @@ export default function MyContactScreen() {
   };
 
   const openScanner = async () => {
-    if (!permission?.granted) {
-      const res = await requestPermission();
-      if (!res.granted) {
-        Alert.alert(t('contactShare.cameraDeniedTitle', { defaultValue: 'Caméra refusée' }), t('contactShare.cameraDeniedBody', { defaultValue: 'Autorise la caméra pour scanner un contact.' }));
-        return;
-      }
-    }
+    if (!permission?.granted && !(await askPermission('camera', 'scan'))) return;
     handledRef.current = false;
     setScanning(true);
   };

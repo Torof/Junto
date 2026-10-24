@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, FlatList, ScrollView, StyleSheet, Modal, Pressable } from 'react-native';
 import { AppText, AppTextInput } from '@/components/app-text';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -21,6 +21,7 @@ import { CollapsibleSection } from '@/components/collapsible-section';
 import { ChannelTile } from '@/components/partners/channel-tile';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { UNIVERSES, type Universe } from '@/constants/discovery-vibes';
+import { askPermission } from '@/lib/permissions';
 
 // « Tout voir » — discussions: search, filters as pills (place, universes, a
 // precise sport in the sheet), full-width tiles (channel photo, else the
@@ -57,8 +58,19 @@ export default function PartnersDiscussionsScreen() {
     [channels, universe, categoryOf],
   );
 
-  const useMyLocation = () => {
-    if (!currentLocation) return;
+  // Without the permission, « Autour de moi » asks for it (lib/permissions)
+  // and applies as soon as the first fix lands.
+  const [pendingNear, setPendingNear] = useState(false);
+  useEffect(() => {
+    if (!pendingNear || !currentLocation) return;
+    setPendingNear(false);
+    setNear({ lng: currentLocation[0], lat: currentLocation[1], label: t('channels.myLocation', { defaultValue: 'Ma position' }) });
+  }, [pendingNear, currentLocation, t]);
+  const useMyLocation = async () => {
+    if (!currentLocation) {
+      if (await askPermission('location', 'aroundMe')) setPendingNear(true);
+      return;
+    }
     setNear({ lng: currentLocation[0], lat: currentLocation[1], label: t('channels.myLocation', { defaultValue: 'Ma position' }) });
   };
 
@@ -105,11 +117,9 @@ export default function PartnersDiscussionsScreen() {
           ) : null}
         </View>
         <View style={styles.shortcuts}>
-          {currentLocation ? (
-            <PressableScale style={styles.shortcut} onPress={useMyLocation}>
-              <AppText style={styles.shortcutText}>{t('partenaires.aroundMe', { defaultValue: 'Autour de moi' })}</AppText>
-            </PressableScale>
-          ) : null}
+          <PressableScale style={styles.shortcut} onPress={useMyLocation}>
+            <AppText style={styles.shortcutText}>{t('partenaires.aroundMe', { defaultValue: 'Autour de moi' })}</AppText>
+          </PressableScale>
           {mine ? (
             <PressableScale style={styles.shortcut} onPress={() => setNear({ lng: mine.base_lng, lat: mine.base_lat, label: mine.base_label })}>
               <AppText style={styles.shortcutText}>{t('partenaires.aroundMyDispo', { defaultValue: 'Autour de ma dispo' })}</AppText>
@@ -173,12 +183,10 @@ export default function PartnersDiscussionsScreen() {
                 </View>
               )}
               <PlaceSearchBar onSelect={(p) => setNear({ lng: p.lng, lat: p.lat, label: p.label })} />
-              {currentLocation && (
-                <Pressable style={styles.myPos} onPress={useMyLocation}>
-                  <MapPin size={15} color={colors.cta} strokeWidth={2.4} />
-                  <AppText style={styles.myPosText}>{t('channels.useMyLocation', { defaultValue: 'Autour de ma position' })}</AppText>
-                </Pressable>
-              )}
+              <Pressable style={styles.myPos} onPress={useMyLocation}>
+                <MapPin size={15} color={colors.cta} strokeWidth={2.4} />
+                <AppText style={styles.myPosText}>{t('channels.useMyLocation', { defaultValue: 'Autour de ma position' })}</AppText>
+              </Pressable>
             </CollapsibleSection>
             <CollapsibleSection title={t('channels.filterSport', { defaultValue: 'Sport' })} summary={sportKey ? t(`sports.${sportKey}`, { defaultValue: sportKey }) : null}>
               <SportDropdown selected={sportKey ? [sportKey] : []} onSelect={(k) => setSportKey((prev) => (prev === k ? null : k))} label={t('map.sportLabel')} />

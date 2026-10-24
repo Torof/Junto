@@ -23,6 +23,7 @@ import { invitationService } from '@/services/invitation-service';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { haptic } from '@/lib/haptics';
 import { formatMeetingLabel } from '@/utils/meeting-label';
+import { askPermission } from '@/lib/permissions';
 
 export default function CreateStep4() {
   const colors = useColors();
@@ -82,6 +83,8 @@ export default function CreateStep4() {
       resetForm();
       setShareTo(null);
       Burnt.toast({ title: t('toast.activityCreated'), preset: 'done' });
+      // Join requests will arrive: the moment notifications serve.
+      void askPermission('notifications', 'create');
 
       // Proposed from a channel → post the outing card into that conversation
       // (best-effort; the activity already exists) and land there.

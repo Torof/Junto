@@ -1776,8 +1776,8 @@
     "qrHint": "Le code reste valide 30 minutes",
     "scanTitle": "Scanner le QR",
     "scanSubtitle": "Pointe la caméra vers le QR de l'organisateur",
-    "cameraPermission": "Autorise l'accès à la caméra pour scanner",
-    "grantCamera": "Autoriser",
+    "cameraPermission": "Pour scanner le QR de l'organisateur, askandgo a besoin de la caméra, seulement pour lire le code : aucune photo n'est prise.",
+    "grantCamera": "Autoriser la caméra",
     "inMinutes_one": "dans {{count}} minute",
     "inMinutes_other": "dans {{count}} minutes",
     "inHours_one": "dans {{count}} heure",
@@ -2345,5 +2345,28 @@
     "sun": "D",
     "prevMonth": "Mois précédent",
     "nextMonth": "Mois suivant"
+  },
+  "permAsk": {
+    "allow": "Autoriser",
+    "later": "Plus tard",
+    "openSettings": "Ouvrir les réglages",
+    "blocked": "Tu l'avais refusé : ça se change maintenant dans les réglages du téléphone.",
+    "location": {
+      "title": "Ta position",
+      "locate": "Pour centrer la carte sur toi et voir les sorties autour, askandgo a besoin de ta position. Elle n'est jamais montrée aux autres.",
+      "aroundMe": "Pour trouver les discussions autour de toi, askandgo a besoin de ta position. Elle n'est jamais montrée aux autres.",
+      "checkin": "Pour confirmer que tu es bien sur place, askandgo vérifie ta position, une seule fois. Sinon, tu peux scanner le QR de l'organisateur."
+    },
+    "notifications": {
+      "title": "Être prévenu au bon moment",
+      "join": "Pour les rappels avant la sortie et les messages du groupe, active les notifications.",
+      "joinRequest": "Pour savoir dès que l'organisateur accepte ta demande, active les notifications.",
+      "create": "Pour savoir dès que quelqu'un veut rejoindre ta sortie, active les notifications.",
+      "contact": "Pour savoir dès qu'on te répond, active les notifications."
+    },
+    "camera": {
+      "title": "Scanner un QR code",
+      "scan": "askandgo utilise la caméra seulement pour lire le QR code. Aucune photo n'est prise ni envoyée."
+    }
   }
 }

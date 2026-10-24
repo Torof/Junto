@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
-import Constants from 'expo-constants';
 import { useRouter, useRootNavigationState } from 'expo-router';
-import { supabase } from '@/services/supabase';
-import { getOrCreateDeviceId } from '@/utils/device-id';
-import { colors } from '@/constants/theme';
+import { registerPushToken } from '@/lib/push-token';
 
 // Module-level so hook remounts (auth changes) never re-route the same tap.
 let lastRoutedResponseId: string | null = null;
@@ -19,40 +14,6 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
-
-// Returns the push token on success, or one of two distinct "no
-// token" reasons so the caller can decide whether to revoke a
-// previously-registered token.
-type RegisterResult =
-  | { kind: 'token'; token: string }
-  | { kind: 'denied' } // OS-level permission denied
-  | { kind: 'skip' };  // not a real device or no projectId — nothing to revoke
-
-async function registerForPushAsync(): Promise<RegisterResult> {
-  if (!Device.isDevice) return { kind: 'skip' };
-
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.DEFAULT,
-      lightColor: colors.cta,
-    });
-  }
-
-  const { status: existing } = await Notifications.getPermissionsAsync();
-  let finalStatus = existing;
-  if (existing !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-  if (finalStatus !== 'granted') return { kind: 'denied' };
-
-  const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-  if (!projectId) return { kind: 'skip' };
-
-  const token = await Notifications.getExpoPushTokenAsync({ projectId });
-  return { kind: 'token', token: token.data };
-}
 
 export function usePushNotifications(enabled: boolean) {
   const router = useRouter();
@@ -70,24 +31,10 @@ export function usePushNotifications(enabled: boolean) {
     if (!enabled || registered.current) return;
     registered.current = true;
 
-    (async () => {
-      const result = await registerForPushAsync();
-      if (result.kind === 'token') {
-        const deviceId = await getOrCreateDeviceId();
-        await supabase.rpc('register_push_token', {
-          p_token: result.token,
-          p_device_id: deviceId,
-        });
-      } else if (result.kind === 'denied') {
-        // Audit 2026-10-01: we used to revoke the token here. Display
-        // permission and data delivery are different things — a data-only push
-        // is what wakes the headless task that starts on-site presence
-        // detection, and it doesn't need POST_NOTIFICATIONS. Revoking threw
-        // away the arming channel because we'd lost the ability to *show*
-        // anything. The token stays; the user simply sees nothing.
-      }
-      // 'skip': not a real device or no projectId — nothing to revoke.
-    })();
+    // Registers the token WITHOUT the OS dialog: lib/permissions.ts asks for
+    // notifications after joining / publishing / a contact request, never on
+    // launch (Scott 2026-10-24).
+    void registerPushToken();
   }, [enabled]);
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as Location from 'expo-location';
 import { geolocationService } from '@/services/geolocation-service';
+import { usePermissionPromptStore } from '@/store/permission-prompt-store';
 
 // GPS gives a local view; the IP address only gives the area, so it opens a
 // little wider; with neither (or while waiting), the whole of France.
@@ -16,7 +17,11 @@ const IP_ZOOM = 9;
 const CACHE_MAX_AGE_MS = 60_000;
 const CACHE_REQUIRED_ACCURACY_M = 100;
 
+// Never ASKS for the permission (Scott 2026-10-24): it only checks. Without
+// it the map opens on the IP area; the moment lib/permissions.ts gets it
+// (« me localiser », « Autour de moi »…), every mounted copy starts locating.
 export function useInitialLocation() {
+  const locationGranted = usePermissionPromptStore((s) => s.locationGranted);
   const [center, setCenter] = useState<[number, number]>(FRANCE_CENTER);
   const [zoom, setZoom] = useState(FRANCE_ZOOM);
   const [currentLocation, setCurrentLocation] = useState<[number, number] | null>(null);
@@ -38,11 +43,12 @@ export function useInitialLocation() {
 
     (async () => {
       try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
+        const { status } = await Location.getForegroundPermissionsAsync();
         if (status !== 'granted') {
           await applyIpCenter();
           return;
         }
+        usePermissionPromptStore.getState().setLocationGranted(true);
 
         // Fast path: if the OS has a recent enough cached fix, render
         // with it immediately so the user sees the map populated. This
@@ -99,7 +105,7 @@ export function useInitialLocation() {
       watcherRef.current?.remove();
       watcherRef.current = null;
     };
-  }, []);
+  }, [locationGranted]);
 
   return { center, zoom, currentLocation, isLoading };
 }

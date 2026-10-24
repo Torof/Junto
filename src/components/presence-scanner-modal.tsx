@@ -27,11 +27,10 @@ export function PresenceScannerModal({ visible, onClose }: Props) {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   useEffect(() => {
-    if (visible && permission && !permission.granted) {
-      requestPermission();
-    }
+    // No automatic camera request (Scott 2026-10-24): the screen explains,
+    // the OS dialog opens on « Autoriser la caméra ».
     if (visible) lockRef.current = false;
-  }, [visible, permission, requestPermission]);
+  }, [visible]);
 
   const parseToken = (raw: string): string | null => {
     const match = raw.match(/token=([a-f0-9]+)/i);

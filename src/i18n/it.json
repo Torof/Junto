@@ -1776,8 +1776,8 @@
     "qrHint": "Il codice resta valido 30 minuti",
     "scanTitle": "Scansiona il QR",
     "scanSubtitle": "Punta la fotocamera verso il QR dell'organizzatore",
-    "cameraPermission": "Autorizza l'accesso alla fotocamera per scansionare",
-    "grantCamera": "Autorizza",
+    "cameraPermission": "Per scansionare il QR dell'organizzatore, askandgo ha bisogno della fotocamera, solo per leggere il codice: nessuna foto viene scattata.",
+    "grantCamera": "Consenti la fotocamera",
     "inMinutes_one": "tra {{count}} minuto",
     "inMinutes_other": "tra {{count}} minuti",
     "inHours_one": "tra {{count}} ora",
@@ -2345,5 +2345,28 @@
     "sun": "D",
     "prevMonth": "Mese precedente",
     "nextMonth": "Mese successivo"
+  },
+  "permAsk": {
+    "allow": "Consenti",
+    "later": "Più tardi",
+    "openSettings": "Apri le impostazioni",
+    "blocked": "L'avevi rifiutato: ora si cambia nelle impostazioni del telefono.",
+    "location": {
+      "title": "La tua posizione",
+      "locate": "Per centrare la mappa su di te e vedere le uscite intorno, askandgo ha bisogno della tua posizione. Non viene mai mostrata agli altri.",
+      "aroundMe": "Per trovare le discussioni intorno a te, askandgo ha bisogno della tua posizione. Non viene mai mostrata agli altri.",
+      "checkin": "Per confermare che sei sul posto, askandgo controlla la tua posizione una sola volta. Altrimenti puoi scansionare il QR dell'organizzatore."
+    },
+    "notifications": {
+      "title": "Essere avvisato al momento giusto",
+      "join": "Per i promemoria prima dell'uscita e i messaggi del gruppo, attiva le notifiche.",
+      "joinRequest": "Per sapere subito quando l'organizzatore accetta la tua richiesta, attiva le notifiche.",
+      "create": "Per sapere subito quando qualcuno vuole unirsi alla tua uscita, attiva le notifiche.",
+      "contact": "Per sapere subito quando ti rispondono, attiva le notifiche."
+    },
+    "camera": {
+      "title": "Scansiona un codice QR",
+      "scan": "askandgo usa la fotocamera solo per leggere il codice QR. Nessuna foto viene scattata né inviata."
+    }
   }
 }

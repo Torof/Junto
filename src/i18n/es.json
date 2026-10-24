@@ -1776,8 +1776,8 @@
     "qrHint": "El código es válido durante 30 minutos",
     "scanTitle": "Escanear el QR",
     "scanSubtitle": "Apunta con la cámara al QR del organizador",
-    "cameraPermission": "Autoriza el acceso a la cámara para escanear",
-    "grantCamera": "Autorizar",
+    "cameraPermission": "Para escanear el QR del organizador, askandgo necesita la cámara, solo para leer el código: no se toma ninguna foto.",
+    "grantCamera": "Permitir la cámara",
     "inMinutes_one": "dentro de {{count}} minuto",
     "inMinutes_other": "dentro de {{count}} minutos",
     "inHours_one": "dentro de {{count}} hora",
@@ -2345,5 +2345,28 @@
     "sun": "D",
     "prevMonth": "Mes anterior",
     "nextMonth": "Mes siguiente"
+  },
+  "permAsk": {
+    "allow": "Permitir",
+    "later": "Más tarde",
+    "openSettings": "Abrir ajustes",
+    "blocked": "Lo rechazaste antes: ahora se cambia en los ajustes del teléfono.",
+    "location": {
+      "title": "Tu ubicación",
+      "locate": "Para centrar el mapa en ti y ver las salidas cercanas, askandgo necesita tu ubicación. Nunca se muestra a los demás.",
+      "aroundMe": "Para encontrar las conversaciones cerca de ti, askandgo necesita tu ubicación. Nunca se muestra a los demás.",
+      "checkin": "Para confirmar que estás en el lugar, askandgo comprueba tu ubicación una sola vez. Si no, puedes escanear el QR del organizador."
+    },
+    "notifications": {
+      "title": "Enterarte en el momento justo",
+      "join": "Para los recordatorios antes de la salida y los mensajes del grupo, activa las notificaciones.",
+      "joinRequest": "Para saber en cuanto el organizador acepte tu solicitud, activa las notificaciones.",
+      "create": "Para saber en cuanto alguien quiera unirse a tu salida, activa las notificaciones.",
+      "contact": "Para saber en cuanto te respondan, activa las notificaciones."
+    },
+    "camera": {
+      "title": "Escanear un código QR",
+      "scan": "askandgo solo usa la cámara para leer el código QR. No se toma ni se envía ninguna foto."
+    }
   }
 }

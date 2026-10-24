@@ -24,6 +24,7 @@ import { useFontStore } from '@/store/font-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { ThemeProvider, useResolvedTheme } from '@/components/theme-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { PermissionPrompt } from '@/components/permission-prompt';
 import { useColors } from '@/hooks/use-theme';
 
 const queryClient = new QueryClient({
@@ -130,6 +131,7 @@ function AuthGate() {
     <>
       <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
       <Slot />
+      <PermissionPrompt />
       {/* The font gate keeps the first screen from flashing in the system font. */}
       {(isLoading || !isReady || !fontReady) && (
         <View style={{
