@@ -8,7 +8,7 @@ const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: IS_PREVIEW ? 'askandgo (dev)' : 'askandgo',
+  name: IS_PREVIEW ? 'Askandgo (dev)' : 'Askandgo',
   slug: 'junto',
   version: '0.1.3',
   orientation: 'portrait',

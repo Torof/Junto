@@ -21,7 +21,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 - [x] **Pin de la carte** : liseré blanc + ombre en deux couches (2026-10-23).
 - [x] **Paramètres → section « Personnalisation »** : Thème, Couleur d'accent, Police, Grappes colorées (2026-10-23).
 - [x] **Site, version téléphone** : pin et étiquette de l'app, carrousels, carte de profil (2026-10-23) ; reste un peu la version ordinateur.
-- [ ] **Nom askandgo — prochaine build** : le nom sous l'icône doit être « Askandgo » (majuscule, plus pro) — `name` dans app.config.ts ; le reste de la marque reste en minuscules.
+- [x] **Nom askandgo — prochaine build** (fait 2026-10-24, build production) : le nom sous l'icône doit être « Askandgo » (majuscule, plus pro) — `name` dans app.config.ts ; le reste de la marque reste en minuscules.
 - [ ] **Tutoriel** : à revoir (état des lieux en cours, 2026-10-24).
 - [ ] **Demandes d'autorisation** : trop rapides et agressives au premier lancement — à étaler et expliquer.
 - [ ] **Domaine + adresses e-mail askandgo** : quand Scott aura choisi le domaine (site, liens d'e-mail, expéditeur, support@ des pages légales).
