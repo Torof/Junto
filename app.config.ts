@@ -52,6 +52,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
   },
+  // Native permission texts per language (iOS shows them in its dialogs;
+  // Android's dialogs are fixed by the system — the in-app card explains).
+  locales: {
+    fr: './locales/ios/fr.json',
+    en: './locales/ios/en.json',
+    it: './locales/ios/it.json',
+    es: './locales/ios/es.json',
+    de: './locales/ios/de.json',
+  },
   ios: {
     supportsTablet: false,
     bundleIdentifier: IS_PREVIEW ? 'app.getjunto.preview' : 'app.getjunto',
@@ -59,8 +68,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     infoPlist: {
       // Required strings for "Always" location permission so background
       // geofencing can fire when the app is closed.
-      NSLocationWhenInUseUsageDescription: 'askandgo uses your location to validate your presence at activities.',
-      NSLocationAlwaysAndWhenInUseUsageDescription: 'askandgo auto-validates your presence when you arrive at an activity, even when the app is closed.',
+      // English base; locales/ios/<lang>.json translate them (and the camera
+      // one) into every app language (Scott 2026-10-24).
+      NSLocationWhenInUseUsageDescription: 'Your location centres the map on you, finds the outings and discussions around, and confirms your presence on the day of an outing. It is never shown to others.',
+      NSLocationAlwaysAndWhenInUseUsageDescription: 'In the background, askandgo only looks at your location in the 24 hours before an outing you joined, to confirm your arrival without you opening the app.',
       UIBackgroundModes: ['location', 'fetch'],
     },
   },
@@ -90,13 +101,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-camera',
       {
-        cameraPermission: 'askandgo needs camera access to scan presence QR codes.',
+        cameraPermission: 'The camera is only used to scan QR codes (presence, contacts). No photo is taken.',
       },
     ],
     [
       'expo-location',
       {
-        locationAlwaysAndWhenInUsePermission: 'askandgo auto-validates your presence when you arrive at an activity, even when the app is closed.',
+        locationAlwaysAndWhenInUsePermission: 'In the background, askandgo only looks at your location in the 24 hours before an outing you joined, to confirm your arrival without you opening the app.',
         isAndroidBackgroundLocationEnabled: true,
         isIosBackgroundLocationEnabled: true,
       },

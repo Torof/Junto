@@ -1,0 +1,6 @@
+{
+  "NSLocationWhenInUseUsageDescription": "La tua posizione serve a centrare la mappa su di te, a trovare le uscite e le discussioni intorno e a confermare la tua presenza il giorno di un'uscita. Non viene mai mostrata agli altri.",
+  "NSLocationAlwaysAndWhenInUseUsageDescription": "In background, askandgo guarda la tua posizione solo nelle 24 ore prima di un'uscita a cui partecipi, per confermare il tuo arrivo senza che tu debba aprire l'app.",
+  "NSLocationAlwaysUsageDescription": "In background, askandgo guarda la tua posizione solo nelle 24 ore prima di un'uscita a cui partecipi, per confermare il tuo arrivo senza che tu debba aprire l'app.",
+  "NSCameraUsageDescription": "La fotocamera serve solo a scansionare i codici QR (presenza, contatti). Nessuna foto viene scattata."
+}

@@ -1,0 +1,6 @@
+{
+  "NSLocationWhenInUseUsageDescription": "Your location centres the map on you, finds the outings and discussions around, and confirms your presence on the day of an outing. It is never shown to others.",
+  "NSLocationAlwaysAndWhenInUseUsageDescription": "In the background, askandgo only looks at your location in the 24 hours before an outing you joined, to confirm your arrival without you opening the app.",
+  "NSLocationAlwaysUsageDescription": "In the background, askandgo only looks at your location in the 24 hours before an outing you joined, to confirm your arrival without you opening the app.",
+  "NSCameraUsageDescription": "The camera is only used to scan QR codes (presence, contacts). No photo is taken."
+}
