@@ -597,7 +597,9 @@
     "channels": "Discussions",
     "mesActivites": "My outings",
     "proSpace": "Pro space",
-    "myBookings": "My bookings"
+    "myBookings": "My bookings",
+    "discover": "Discover the app",
+    "discoverSub": "The tour in 1 minute"
   },
   "errors": {
     "code": {
@@ -963,38 +965,43 @@
   "intro": {
     "skip": "Skip",
     "next": "Next",
-    "start": "Get started",
+    "start": "Let's go",
     "replay": "Replay the intro",
+    "offer": "Discover askandgo · 1 min",
+    "offerClose": "Close",
     "welcome": {
-      "tagline": "Sport is better together.",
-      "body": "askandgo brings together people near you who want to get moving. Find a partner for your next outing, organize everything in one place — carpooling, gear, meeting point — and meet up for real."
+      "title": "Go out, even when your friends aren't free.",
+      "body": "Wherever you are — on holiday, passing through, or at home — find an outing that suits you, or start your own, with people at your level.",
+      "tagline": "Outdoor outings among enthusiasts"
     },
-    "pins": {
-      "title": "Activities on the map",
-      "ua": "A member's outing. Its colour tells you when:",
-      "upcoming": "Upcoming",
-      "soon": "Soon",
-      "inProgress": "In progress",
-      "ra": "A pro's outing.",
-      "pp": "A pro's page."
+    "map": {
+      "title": "It all happens on the map.",
+      "body": "Each pin is an outing: its colour tells the sport. Orange, it starts soon; green, it's under way. Tap one to see everything.",
+      "chipSport": "colour = sport",
+      "chipSoon": "soon",
+      "chipLive": "under way"
     },
-    "join": {
-      "title": "Join an outing",
-      "tap": "Tap a pin, then \"See more\" to open the outing.",
-      "inside": "You'll find it all inside: info, carpooling, gear and the group chat. Joining takes one tap."
+    "outing": {
+      "title": "Join an outing, or start your own.",
+      "body": "Tap a pin: the essentials show up, then « See the outing » to join — carpool, gear and the group chat are inside. To start yours, it's the + button."
     },
-    "create": {
-      "title": "Create your outing",
-      "body": "Tap the + button, pick your sport, the spot and the date — and publish. Others can join you.",
-      "sports": "Across dozens of outdoor sports"
+    "partners": {
+      "title": "Find partners.",
+      "body": "Say when you're free and for which sports: you see who's looking for the same thing, around you or where you're heading. And discussions by place and by sport.",
+      "myDispo": "Your availability · online",
+      "matching": "Matching availabilities"
     },
-    "alert": {
-      "title": "Never miss out",
-      "body": "Create an alert and get notified the moment an outing matches near you."
+    "menu": {
+      "title": "And in the menu: alerts.",
+      "body": "Say what you're looking for — a sport, an area, dates — and askandgo lets you know as soon as an outing matches. The menu also keeps your past and upcoming outings, your GPX traces, your bookings and your favourites.",
+      "alertsSub": "Told as soon as an outing matches"
     },
-    "profile": {
-      "title": "Your profile",
-      "body": "Your reliability score and badges tell others you're someone they can count on."
+    "reliability": {
+      "title": "Your reliability is your reputation.",
+      "body": "On the day, your presence is confirmed on site, by QR code or automatically. That's what reassures your future partners — no ratings, no stars.",
+      "presences": "20 confirmed presences",
+      "qr": "Scan the organiser's QR",
+      "auto": "Or automatically, on arrival"
     }
   },
   "search": {

@@ -597,7 +597,9 @@
     "channels": "Diskussionen",
     "mesActivites": "Meine Touren",
     "proSpace": "Pro-Bereich",
-    "myBookings": "Meine Buchungen"
+    "myBookings": "Meine Buchungen",
+    "discover": "App entdecken",
+    "discoverSub": "Die Tour in 1 Minute"
   },
   "errors": {
     "network": "Verbindungsproblem — prüf deine Internetverbindung.",
@@ -965,36 +967,41 @@
     "next": "Weiter",
     "start": "Los geht's",
     "replay": "Intro erneut ansehen",
+    "offer": "askandgo entdecken · 1 Min.",
+    "offerClose": "Schließen",
     "welcome": {
-      "tagline": "Sport ist gemeinsam besser.",
-      "body": "askandgo bringt Leute in deiner Nähe zusammen, die Lust haben, sich zu bewegen. Finde einen Partner für deine nächste Tour, organisiere alles an einem Ort — Mitfahrt, Ausrüstung, Treffpunkt — und trefft euch im echten Leben."
+      "title": "Raus, auch wenn deine Freunde keine Zeit haben.",
+      "body": "Wo immer du bist — im Urlaub, auf der Durchreise oder zu Hause — finde eine Tour, die zu dir passt, oder starte deine eigene, mit Leuten auf deinem Niveau.",
+      "tagline": "Outdoor-Touren unter Begeisterten"
     },
-    "pins": {
-      "title": "Die Aktivitäten auf der Karte",
-      "ua": "Die Tour eines Mitglieds. Die Farbe zeigt den Zeitpunkt:",
-      "upcoming": "Geplant",
-      "soon": "Bald",
-      "inProgress": "Läuft",
-      "ra": "Die Tour eines Pros.",
-      "pp": "Die Seite eines Pros."
+    "map": {
+      "title": "Alles passiert auf der Karte.",
+      "body": "Jede Nadel ist eine Tour: Ihre Farbe zeigt den Sport. Orange: es geht bald los; grün: läuft gerade. Tippe eine an, um alles zu sehen.",
+      "chipSport": "Farbe = Sport",
+      "chipSoon": "bald",
+      "chipLive": "läuft"
     },
-    "join": {
-      "title": "Bei einer Tour mitmachen",
-      "tap": "Tipp auf einen Pin, dann auf „Mehr anzeigen“, um die Tour zu öffnen.",
-      "inside": "Dort findest du alles: Infos, Mitfahrt, Ausrüstung und den Gruppenchat. Mitmachen geht mit einem Tipp."
+    "outing": {
+      "title": "Mach bei einer Tour mit, oder starte deine.",
+      "body": "Tippe eine Nadel an: Das Wichtigste erscheint, dann « Tour ansehen », um mitzumachen — Fahrgemeinschaft, Ausrüstung und Gruppenchat sind drin. Für deine eigene: der +-Knopf."
     },
-    "create": {
-      "title": "Erstelle deine Tour",
-      "body": "Tipp auf den Button +, wähle Sportart, Ort und Datum — und veröffentliche. Die anderen können mitmachen.",
-      "sports": "Aus Dutzenden Outdoor-Sportarten"
+    "partners": {
+      "title": "Finde Partner.",
+      "body": "Sag, wann du Zeit hast und für welche Sportarten: Du siehst, wer dasselbe sucht, in deiner Nähe oder dort, wo du hinfährst. Und Diskussionen nach Ort und Sport.",
+      "myDispo": "Deine Verfügbarkeit · online",
+      "matching": "Passende Verfügbarkeiten"
     },
-    "alert": {
-      "title": "Verpass nichts mehr",
-      "body": "Erstelle einen Alarm und erhalte eine Mitteilung, sobald eine passende Tour in deiner Nähe auftaucht."
+    "menu": {
+      "title": "Und im Menü: die Alarme.",
+      "body": "Sag, was du suchst — eine Sportart, eine Gegend, Daten — und askandgo meldet sich, sobald eine Tour passt. Das Menü bewahrt auch deine vergangenen und kommenden Touren, deine GPX-Tracks, Buchungen und Favoriten auf.",
+      "alertsSub": "Benachrichtigt, sobald eine Tour passt"
     },
-    "profile": {
-      "title": "Dein Profil",
-      "body": "Dein Zuverlässigkeitswert und deine Badges zeigen den anderen, dass auf dich Verlass ist."
+    "reliability": {
+      "title": "Deine Zuverlässigkeit ist dein Ruf.",
+      "body": "Am Tag der Tour wird deine Anwesenheit vor Ort bestätigt, per QR-Code oder automatisch. Das beruhigt deine künftigen Partner — keine Noten, keine Sterne.",
+      "presences": "20 bestätigte Anwesenheiten",
+      "qr": "Scan des QR-Codes der Organisation",
+      "auto": "Oder automatisch, bei Ankunft"
     }
   },
   "search": {

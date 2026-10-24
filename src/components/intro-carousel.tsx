@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, type ReactNode } from 'react';
 import {
   View,
   Image,
+  ImageBackground,
   Pressable,
   StyleSheet,
   FlatList,
@@ -9,60 +10,49 @@ import {
   useWindowDimensions,
   type ListRenderItemInfo,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { AppText } from '@/components/app-text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
-import { Plus, BellRing, Clock, Backpack, ShieldCheck, type LucideIcon } from 'lucide-react-native';
+import {
+  Plus, Calendar, BarChart2, Users, Car, Route, Map, UserSearch, MessageCircle, Menu, CalendarDays, Radar,
+  CalendarCheck, Bookmark, Settings, QrCode, MapPinCheck, Clock, Package, type LucideIcon,
+} from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { fontSizes, spacing, radius } from '@/constants/theme';
+import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
+import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
+import { RELIABILITY_EXCELLENT_COLOR } from '@/utils/reliability-color';
 import { ActivityPin } from './activity-pin';
-import { ProOfferingPin } from './pro-offering-pin';
-import { ProPin } from './pro-pin';
-import { ActivityPopup } from './activity-popup';
-import { ReliabilityRing } from './reliability-ring';
-import { UserAvatar } from './user-avatar';
+import { SportIcon } from './sport-icon';
 import type { NearbyActivity } from '@/services/activity-service';
-import type { ProOffering } from '@/services/pro-offering-service';
 
-// First-run intro shown once on the map (gated by users.tutorial_seen_at).
-// A pure next-tap carousel — NO element anchoring, NO interaction beyond
-// paging — so it can't break or trap a user when the UI changes (unlike
-// the coach-mark tutorial it replaces). Visuals are LIVE components (the
-// real pins, popup, reliability ring…) so the intro always matches the
-// app; explanatory copy lives in i18n, never baked into an image.
+// The tour of the app (Scott 2026-10-24, board « Tutoriel askandgo »): no
+// longer forced on arrival — opened from the « Découvrir askandgo » button on
+// the map or the menu entry, and from Settings. A pure next-tap carousel, no
+// anchoring, so it can't trap anyone when the UI changes. Each page is one
+// picture made of the app's own pieces (real pins, the outing sheet's
+// grammar, the menu, the reliability ring), a title and a sentence or two.
+// Picture props are pointerEvents none: they never catch a swipe.
 
-// Display-only stubs. The components read only the fields below, so a
-// minimal cast is enough to render them live. All heroes are
-// pointerEvents:none so they never catch a swipe.
-const DEMO_RA = { sport_key: 'paragliding' } as unknown as ProOffering;
-const DEMO_POPUP = {
-  id: 'intro-demo',
-  title: 'Couenne au Saix',
-  sport_key: 'climbing-sport',
-  starts_at: '2030-06-15T09:00:00.000Z',
-  status: 'published',
-  visibility: 'public',
-  max_participants: 6,
-  participant_count: 3,
-  level: '6a',
-  level_max: '7a',
-  distance_km: null,
-  elevation_gain_m: null,
-  objective_name: 'Le Saix',
-  lng: 0,
-  lat: 0,
-} as unknown as NearbyActivity;
+const MOUNTAIN = SPORT_CATEGORY_COLORS.mountain ?? '#4A7C59';
 
-const SPORT_EMOJIS = ['🧗', '🥾', '🚵', '⛷️', '🪂', '🛶'];
+function demoPin(sport_key: string, sport_category: string, when: 'upcoming' | 'soon' | 'live'): NearbyActivity {
+  return {
+    sport_key,
+    sport_category,
+    visibility: 'public',
+    status: when === 'live' ? 'in_progress' : 'published',
+    starts_at: when === 'soon' ? dayjs().add(1, 'hour').toISOString() : dayjs().add(3, 'day').toISOString(),
+  } as unknown as NearbyActivity;
+}
 
 interface IntroPage {
+  key: string;
+  picture: ReactNode;
   title: string;
-  welcome?: { tagline: string; body: string };
-  body?: ReactNode; // bespoke page content (pins states + types)
-  hero?: ReactNode; // big single hero
-  caption?: string;
+  body: string;
 }
 
 interface IntroCarouselProps {
@@ -70,116 +60,174 @@ interface IntroCarouselProps {
 }
 
 export function IntroCarousel({ onDone }: IntroCarouselProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { width } = useWindowDimensions();
   const listRef = useRef<FlatList<IntroPage>>(null);
   const [index, setIndex] = useState(0);
 
-  // The activity pin colors itself from time-status: regular (upcoming) →
-  // frame, < 2h to start → yellow, in-progress → green. Demo one of each.
-  const stateDemos = useMemo(() => {
-    const base = { sport_key: 'climbing-sport' };
-    return {
-      regular: { ...base, status: 'published', starts_at: '2030-06-15T10:00:00.000Z' } as unknown as NearbyActivity,
-      soon: { ...base, status: 'published', starts_at: dayjs().add(1, 'hour').toISOString() } as unknown as NearbyActivity,
-      inProgress: { ...base, status: 'in_progress', starts_at: '2030-06-15T10:00:00.000Z' } as unknown as NearbyActivity,
-    };
-  }, []);
-
-  const pages = useMemo<IntroPage[]>(
-    () => [
+  const pages = useMemo<IntroPage[]>(() => {
+    const demoDate = dayjs().add(3, 'day').hour(9).minute(0).locale(i18n.language);
+    return [
       {
-        title: '',
-        welcome: {
-          tagline: t('intro.welcome.tagline'),
-          body: t('intro.welcome.body'),
-        },
-      },
-      {
-        title: t('intro.pins.title'),
-        body: (
-          <View style={styles.pinsBody}>
-            <AppText style={styles.pinsLead}>{t('intro.pins.ua')}</AppText>
-            <View style={styles.stateRow}>
-              <StatePin activity={stateDemos.regular} label={t('intro.pins.upcoming')} styles={styles} />
-              <StatePin activity={stateDemos.soon} label={t('intro.pins.soon')} styles={styles} />
-              <StatePin activity={stateDemos.inProgress} label={t('intro.pins.inProgress')} styles={styles} />
-            </View>
-            <View style={styles.pinTypeRow}>
-              <View style={styles.pinTypeVisual}><ProOfferingPin offering={DEMO_RA} /></View>
-              <AppText style={styles.pinTypeText}>{t('intro.pins.ra')}</AppText>
-            </View>
-            <View style={styles.pinTypeRow}>
-              <View style={styles.pinTypeVisual}><ProPin displayName="M" pinIcon={null} /></View>
-              <AppText style={styles.pinTypeText}>{t('intro.pins.pp')}</AppText>
-            </View>
+        key: 'welcome',
+        title: t('intro.welcome.title'),
+        body: t('intro.welcome.body'),
+        picture: (
+          <View style={[styles.stage, styles.welcomeStage]}>
+            <Svg width="100%" height={130} viewBox="0 0 328 130" preserveAspectRatio="none" style={styles.mountains}>
+              <Path d="M0 130 L70 60 L110 86 L180 20 L240 78 L280 50 L328 90 L328 130 Z" fill="#2C3B30" />
+              <Path d="M0 130 L90 90 L150 108 L220 64 L290 102 L328 86 L328 130 Z" fill="#33463A" />
+            </Svg>
+            <Image source={require('../../assets/askandgo_icon_square.png')} style={styles.welcomeLogo} />
+            <AppText style={styles.welcomeName}>askandgo</AppText>
+            <AppText style={styles.welcomeTagline}>{t('intro.welcome.tagline')}</AppText>
           </View>
         ),
       },
       {
-        title: t('intro.join.title'),
-        hero: (
-          <View style={styles.joinHero}>
-            <ActivityPopup activity={DEMO_POPUP} onPress={() => {}} />
-            <View style={styles.rejoindreBtn}>
-              <AppText style={styles.rejoindreBtnText}>{t('activity.join')}</AppText>
+        key: 'map',
+        title: t('intro.map.title'),
+        body: t('intro.map.body'),
+        picture: (
+          <ImageBackground source={require('../../assets/intro-map.jpg')} style={styles.stage} imageStyle={styles.stageImage}>
+            <View style={styles.chipsRow}>
+              <MapChip color={MOUNTAIN} label={t('intro.map.chipSport')} styles={styles} />
+              <MapChip color="#F97316" label={t('intro.map.chipSoon')} styles={styles} />
+              <MapChip color={colors.success} label={t('intro.map.chipLive')} styles={styles} />
             </View>
-          </View>
+            <View style={[styles.pinAt, { left: '12%', top: '30%' }]}><ActivityPin activity={demoPin('climbing-sport', 'mountain', 'upcoming')} /></View>
+            <View style={[styles.pinAt, { left: '50%', top: '22%' }]}><ActivityPin activity={demoPin('canyoning', 'water', 'upcoming')} /></View>
+            <View style={[styles.pinAt, { left: '72%', top: '40%' }]}><ActivityPin activity={demoPin('hiking', 'on-foot', 'soon')} /></View>
+            <View style={[styles.pinAt, { left: '30%', top: '50%' }]}><ActivityPin activity={demoPin('trail-running', 'on-foot', 'live')} /></View>
+            <View style={[styles.pinAt, { left: '62%', top: '62%' }]}><ActivityPin activity={demoPin('paragliding', 'air', 'upcoming')} /></View>
+            <MiniTabBar active="carte" styles={styles} colors={colors} t={t} />
+          </ImageBackground>
         ),
-        caption: `${t('intro.join.tap')}\n\n${t('intro.join.inside')}`,
       },
       {
-        title: t('intro.create.title'),
-        hero: (
-          <View style={styles.createHero}>
-            <View style={styles.fabDemo}>
-              <Plus size={26} color="#FFFFFF" strokeWidth={2.6} />
+        key: 'outing',
+        title: t('intro.outing.title'),
+        body: t('intro.outing.body'),
+        picture: (
+          <ImageBackground source={require('../../assets/intro-map.jpg')} style={styles.stage} imageStyle={styles.stageImage}>
+            <View style={[styles.pinAt, { left: '42%', top: '6%' }]}><ActivityPin activity={demoPin('climbing-sport', 'mountain', 'upcoming')} /></View>
+            <View style={styles.fab}><Plus size={22} color={colors.onCta} strokeWidth={3} /></View>
+            <View style={styles.sheet}>
+              <View style={styles.grabber} />
+              <View style={[styles.sportChip, { borderColor: MOUNTAIN, backgroundColor: MOUNTAIN + '18' }]}>
+                <SportIcon sportKey="climbing-sport" size={13} color={MOUNTAIN} />
+                <AppText style={[styles.sportChipText, { color: MOUNTAIN }]}>{t('sports.climbing-sport', { defaultValue: 'Escalade' })}</AppText>
+              </View>
+              <AppText style={[styles.kindLine, { color: MOUNTAIN }]}>{t('map.peerOuting')}</AppText>
+              <AppText style={styles.sheetTitle}>Couenne au Saix</AppText>
+              <InfoRow icon={Calendar} text={demoDate.format(t('format.dateTimeAt', { defaultValue: 'ddd D MMM [à] H[h]mm' }))} styles={styles} />
+              <InfoRow icon={BarChart2} text="6a – 7a" styles={styles} extra={(
+                <View style={[styles.gpxPill, { borderColor: MOUNTAIN, backgroundColor: MOUNTAIN + '18' }]}>
+                  <Route size={10} color={MOUNTAIN} strokeWidth={2.6} />
+                  <AppText style={[styles.gpxPillText, { color: MOUNTAIN }]}>GPX</AppText>
+                </View>
+              )} />
+              <InfoRow icon={Users} text={t('map.spotsLeft', { n: 3, count: 3 })} styles={styles} />
+              <InfoRow icon={Car} text={`${t('map.carpoolSeats', { n: 2, count: 2 })} · ${t('map.carpoolFrom')} Briançon`} styles={styles} />
+              <View style={[styles.sheetCta, { backgroundColor: MOUNTAIN }]}>
+                <AppText style={styles.sheetCtaText}>{t('map.seeActivity')} →</AppText>
+              </View>
             </View>
-            <View style={styles.sportsEmojiRow}>
-              {SPORT_EMOJIS.map((e, i) => (
-                <AppText key={i} style={styles.sportsEmoji}>{e}</AppText>
-              ))}
-            </View>
-            <AppText style={styles.sportsCount}>{t('intro.create.sports')}</AppText>
-          </View>
+          </ImageBackground>
         ),
-        caption: t('intro.create.body'),
       },
       {
-        title: t('intro.alert.title'),
-        hero: (
-          <View style={styles.alertDemo}>
-            <View style={styles.alertBell}>
-              <BellRing size={20} color={colors.cta} strokeWidth={2.2} />
+        key: 'partners',
+        title: t('intro.partners.title'),
+        body: t('intro.partners.body'),
+        picture: (
+          <View style={[styles.stage, styles.plainStage]}>
+            <View style={styles.partnersInner}>
+              <AppText style={styles.screenTitle}>{t('tabs.partenaires')}</AppText>
+              <View style={styles.dispoStrip}>
+                <AppText style={styles.dispoStripTitle}>{t('intro.partners.myDispo')}</AppText>
+                <AppText style={styles.dispoStripSub}>Grande voie, Trail</AppText>
+              </View>
+              <AppText style={styles.sectionLine}>{t('intro.partners.matching')} <AppText style={{ color: colors.cta }}>8</AppText></AppText>
+              <View style={styles.dispoCard}>
+                <View style={styles.dispoHead}>
+                  <View style={[styles.dispoAvatar, { borderColor: RELIABILITY_EXCELLENT_COLOR }]}><AppText style={styles.dispoInitials}>ML</AppText></View>
+                  <View>
+                    <AppText style={styles.dispoName}>Marie L.</AppText>
+                    <AppText style={[styles.dispoTier, { color: RELIABILITY_EXCELLENT_COLOR }]}>{t('reliability.tier.excellent')}</AppText>
+                  </View>
+                </View>
+                <View style={styles.pills}>
+                  <SportPill sportKey="climbing-multipitch" color={MOUNTAIN} label={t('sports.climbing-multipitch', { defaultValue: 'Grande voie' })} styles={styles} />
+                  <SportPill sportKey="trail-running" color={SPORT_CATEGORY_COLORS['on-foot'] ?? '#E11D48'} label={t('sports.trail-running', { defaultValue: 'Trail' })} styles={styles} />
+                </View>
+              </View>
             </View>
-            <View style={styles.alertChip}>
-              <AppText style={styles.alertChipText}>Escalade · 30 km</AppText>
-            </View>
+            <MiniTabBar active="partenaires" styles={styles} colors={colors} t={t} />
           </View>
         ),
-        caption: t('intro.alert.body'),
       },
       {
-        title: t('intro.profile.title'),
-        hero: (
-          <View style={styles.profileHero}>
-            <ReliabilityRing score={82} size={118} strokeWidth={11} showLabel>
-              <UserAvatar name="M" avatarUrl={null} size={76} />
-            </ReliabilityRing>
-            <View style={styles.badgeRow}>
-              <SampleBadge icon={Clock} label={t('badges.short.punctual', { defaultValue: 'Ponctuel' })} color={colors.success} styles={styles} />
-              <SampleBadge icon={Backpack} label={t('badges.short.prepared', { defaultValue: 'Équipé' })} color={colors.cta} styles={styles} />
-              <SampleBadge icon={ShieldCheck} label={t('badges.short.prudent', { defaultValue: 'Prudent' })} color="#4B7CB8" styles={styles} />
+        key: 'menu',
+        title: t('intro.menu.title'),
+        body: t('intro.menu.body'),
+        picture: (
+          <ImageBackground source={require('../../assets/intro-map.jpg')} style={styles.stage} imageStyle={styles.stageImage}>
+            <View style={styles.dim} />
+            <View style={styles.menuSheet}>
+              <View style={styles.grabber} />
+              <MenuRow icon={CalendarDays} label={t('menu.mesActivites')} accent styles={styles} colors={colors} />
+              <MenuRow icon={Radar} label={t('menu.alerts')} sub={t('intro.menu.alertsSub')} highlight styles={styles} colors={colors} />
+              <MenuRow icon={Route} label={t('menu.gpxTraces')} styles={styles} colors={colors} />
+              <MenuRow icon={CalendarCheck} label={t('menu.myBookings')} styles={styles} colors={colors} />
+              <MenuRow icon={Bookmark} label={t('menu.favorites')} styles={styles} colors={colors} />
+              <MenuRow icon={Settings} label={t('menu.settings')} styles={styles} colors={colors} />
+            </View>
+            <MiniTabBar active="menu" styles={styles} colors={colors} t={t} />
+          </ImageBackground>
+        ),
+      },
+      {
+        key: 'reliability',
+        title: t('intro.reliability.title'),
+        body: t('intro.reliability.body'),
+        picture: (
+          <View style={[styles.stage, styles.relStage]}>
+            <View style={styles.relCard}>
+              <View style={styles.relRing}>
+                <Svg width={76} height={76} viewBox="0 0 80 80">
+                  <Path d="M40 2 a38 38 0 1 1 0 76 a38 38 0 1 1 0 -76" fill="none" stroke={colors.surfaceAlt} strokeWidth={4} />
+                  <Path d="M40 2 a38 38 0 1 1 -22.3 6.2" fill="none" stroke={RELIABILITY_EXCELLENT_COLOR} strokeWidth={3.5} strokeLinecap="round" />
+                </Svg>
+                <View style={styles.relDisc}><AppText style={styles.relDiscText}>96%</AppText></View>
+              </View>
+              <View style={{ flex: 1 }}>
+                <AppText style={styles.relLabel}>{t('reliability.label').toUpperCase()}</AppText>
+                <AppText style={[styles.relTier, { color: RELIABILITY_EXCELLENT_COLOR }]}>{t('reliability.tier.excellent')}</AppText>
+                <AppText style={styles.relSub}>{t('intro.reliability.presences')}</AppText>
+              </View>
+            </View>
+            <View style={styles.relTiles}>
+              <View style={styles.relTile}>
+                <QrCode size={30} color={colors.textPrimary} strokeWidth={2} />
+                <AppText style={styles.relTileText}>{t('intro.reliability.qr')}</AppText>
+              </View>
+              <View style={styles.relTile}>
+                <MapPinCheck size={30} color={colors.cta} strokeWidth={2} />
+                <AppText style={styles.relTileText}>{t('intro.reliability.auto')}</AppText>
+              </View>
+            </View>
+            <View style={styles.traits}>
+              <View style={styles.trait}><Clock size={13} color="#9DA9B5" strokeWidth={2.2} /><AppText style={styles.traitText}>{t('badges.punctual', { defaultValue: 'Ponctuel' })}</AppText><AppText style={[styles.traitCount, { color: '#9DA9B5' }]}>12</AppText></View>
+              <View style={styles.trait}><Package size={13} color="#B87333" strokeWidth={2.2} /><AppText style={styles.traitText}>{t('badges.prepared', { defaultValue: 'Préparé' })}</AppText><AppText style={[styles.traitCount, { color: '#B87333' }]}>7</AppText></View>
             </View>
           </View>
         ),
-        caption: t('intro.profile.body'),
       },
-    ],
-    [t, colors, styles, stateDemos],
-  );
+    ];
+  }, [t, i18n.language, colors, styles]);
 
   const isLast = index === pages.length - 1;
 
@@ -193,35 +241,14 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
     setIndex(next);
   };
 
-  const renderPage = ({ item }: ListRenderItemInfo<IntroPage>) => {
-    // Each page is a vertical ScrollView: content centres when it fits and
-    // scrolls when it doesn't, so nothing is clipped on small screens
-    // (Scott's tester report, 2026-07-11).
-    if (item.welcome) {
-      return (
-        <ScrollView style={{ width }} contentContainerStyle={[styles.pageScroll, styles.welcomePage]} showsVerticalScrollIndicator={false}>
-          <Image source={require('../../assets/askandgo_icon_square.png')} style={styles.welcomeLogo} />
-          <AppText style={styles.welcomeTagline}>{item.welcome.tagline}</AppText>
-          <AppText style={styles.welcomeBody}>{item.welcome.body}</AppText>
-        </ScrollView>
-      );
-    }
-    if (item.body) {
-      return (
-        <ScrollView style={{ width }} contentContainerStyle={styles.pageScroll} showsVerticalScrollIndicator={false}>
-          <AppText style={styles.pageTitle}>{item.title}</AppText>
-          <View style={styles.bodyStage} pointerEvents="none">{item.body}</View>
-        </ScrollView>
-      );
-    }
-    return (
-      <ScrollView style={{ width }} contentContainerStyle={styles.pageScroll} showsVerticalScrollIndicator={false}>
-        <AppText style={styles.pageTitle}>{item.title}</AppText>
-        <View style={styles.heroStage} pointerEvents="none">{item.hero}</View>
-        {item.caption && <AppText style={styles.caption}>{item.caption}</AppText>}
-      </ScrollView>
-    );
-  };
+  // Each page scrolls vertically when it does not fit (small screens).
+  const renderPage = ({ item }: ListRenderItemInfo<IntroPage>) => (
+    <ScrollView style={{ width }} contentContainerStyle={styles.pageScroll} showsVerticalScrollIndicator={false}>
+      <View pointerEvents="none">{item.picture}</View>
+      <AppText style={styles.pageTitle}>{item.title}</AppText>
+      <AppText style={styles.pageBody}>{item.body}</AppText>
+    </ScrollView>
+  );
 
   return (
     <View style={styles.overlay}>
@@ -235,20 +262,18 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
         <FlatList
           ref={listRef}
           data={pages}
-          keyExtractor={(_, i) => `intro-${i}`}
+          keyExtractor={(p) => p.key}
           renderItem={renderPage}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
-          onMomentumScrollEnd={(e) =>
-            setIndex(Math.round(e.nativeEvent.contentOffset.x / width))
-          }
+          onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
         />
 
         <View style={styles.dots}>
-          {pages.map((_, i) => (
-            <View key={i} style={[styles.dot, i === index && styles.dotActive]} />
+          {pages.map((p, i) => (
+            <View key={p.key} style={[styles.dot, i === index && styles.dotActive]} />
           ))}
         </View>
 
@@ -260,43 +285,79 @@ export function IntroCarousel({ onDone }: IntroCarouselProps) {
   );
 }
 
-function StatePin({
-  activity,
-  label,
-  styles,
-}: {
-  activity: NearbyActivity;
-  label: string;
-  styles: ReturnType<typeof createStyles>;
-}) {
+type Styles = ReturnType<typeof createStyles>;
+type T = (k: string, o?: Record<string, unknown>) => string;
+
+function MapChip({ color, label, styles }: { color: string; label: string; styles: Styles }) {
   return (
-    <View style={styles.statePinCol}>
-      <ActivityPin activity={activity} />
-      <AppText style={styles.statePinLabel}>{label}</AppText>
+    <View style={styles.mapChip}>
+      <View style={[styles.mapChipDot, { backgroundColor: color }]} />
+      <AppText style={[styles.mapChipText, { color }]}>{label}</AppText>
     </View>
   );
 }
 
-function SampleBadge({
-  icon: Icon,
-  label,
-  color,
-  styles,
-}: {
-  icon: LucideIcon;
-  label: string;
-  color: string;
-  styles: ReturnType<typeof createStyles>;
-}) {
+function InfoRow({ icon: Icon, text, extra, styles }: { icon: LucideIcon; text: string; extra?: ReactNode; styles: Styles }) {
   return (
-    <View style={styles.badgeChip}>
-      <View style={[styles.badgeMedal, { backgroundColor: color + '22', borderColor: color }]}>
-        <Icon size={16} color={color} strokeWidth={2.2} />
-      </View>
-      <AppText style={styles.badgeLabel} numberOfLines={1}>{label}</AppText>
+    <View style={styles.infoRow}>
+      <Icon size={14} color={MOUNTAIN} strokeWidth={2.2} />
+      <AppText style={styles.infoText} numberOfLines={1}>{text}</AppText>
+      {extra}
     </View>
   );
 }
+
+function SportPill({ sportKey, color, label, styles }: { sportKey: string; color: string; label: string; styles: Styles }) {
+  return (
+    <View style={[styles.sportPill, { backgroundColor: color + '1A' }]}>
+      <SportIcon sportKey={sportKey} size={12} color={color} />
+      <AppText style={[styles.sportPillText, { color }]}>{label}</AppText>
+    </View>
+  );
+}
+
+function MenuRow({
+  icon: Icon, label, sub, accent, highlight, styles, colors,
+}: { icon: LucideIcon; label: string; sub?: string; accent?: boolean; highlight?: boolean; styles: Styles; colors: AppColors }) {
+  return (
+    <View style={[styles.menuRow, highlight && styles.menuRowHighlight]}>
+      <View style={[styles.menuIcon, accent && { backgroundColor: colors.cta }]}>
+        <Icon size={17} color={accent ? colors.onCta : colors.textPrimary} strokeWidth={2.2} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <AppText style={styles.menuLabel}>{label}</AppText>
+        {sub ? <AppText style={styles.menuSub}>{sub}</AppText> : null}
+      </View>
+    </View>
+  );
+}
+
+const TABS: { key: string; icon: LucideIcon }[] = [
+  { key: 'carte', icon: Map },
+  { key: 'partenaires', icon: UserSearch },
+  { key: 'messagerie', icon: MessageCircle },
+  { key: 'menu', icon: Menu },
+];
+
+function MiniTabBar({ active, styles, colors, t }: { active: string; styles: Styles; colors: AppColors; t: T }) {
+  return (
+    <View style={styles.tabBar}>
+      {TABS.map(({ key, icon: Icon }) => {
+        const on = key === active;
+        return (
+          <View key={key} style={styles.tab}>
+            <View style={[styles.tabPill, on && { backgroundColor: colors.cta + '24' }]}>
+              <Icon size={18} color={on ? colors.cta : colors.textSecondary} strokeWidth={on ? 2.4 : 2} />
+            </View>
+            <AppText style={[styles.tabLabel, on && { color: colors.textPrimary }]} numberOfLines={1}>{t(`tabs.${key}`)}</AppText>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+const STAGE_H = 340;
 
 const createStyles = (colors: AppColors) =>
   StyleSheet.create({
@@ -305,95 +366,107 @@ const createStyles = (colors: AppColors) =>
     topBar: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: spacing.md, paddingTop: spacing.sm },
     skipBtn: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
     skipText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
-    pageScroll: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingVertical: spacing.xl, justifyContent: 'center' },
+    pageScroll: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.md },
+    pageTitle: { color: colors.textPrimary, fontSize: 25, fontWeight: '800', letterSpacing: -0.6, lineHeight: 29, marginTop: spacing.lg },
+    pageBody: { color: colors.textSecondary, fontSize: fontSizes.md - 1, lineHeight: 22, marginTop: spacing.sm },
 
-    // Opening manifesto page.
-    welcomePage: { alignItems: 'center' },
-    welcomeLogo: { width: 104, height: 104, borderRadius: 26, marginBottom: spacing.xl },
-    welcomeTagline: {
-      color: colors.textPrimary, fontSize: fontSizes.xxl, fontWeight: '800',
-      letterSpacing: 0.2, lineHeight: 38, textAlign: 'center', marginBottom: spacing.lg,
-    },
-    welcomeBody: { color: colors.textSecondary, fontSize: fontSizes.md, lineHeight: 24, textAlign: 'center' },
+    stage: { height: STAGE_H, borderRadius: radius.xl, overflow: 'hidden', backgroundColor: '#DCE5D3' },
+    stageImage: { borderRadius: radius.xl },
+    plainStage: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
+    pinAt: { position: 'absolute' },
 
-    pageTitle: {
-      color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '800',
-      letterSpacing: 0.3, marginBottom: spacing.xl, textAlign: 'center',
-    },
+    // 1 — welcome
+    welcomeStage: { backgroundColor: colors.heroInk, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+    mountains: { position: 'absolute', left: 0, right: 0, bottom: 0 },
+    welcomeLogo: { width: 92, height: 92, borderRadius: 26, marginBottom: spacing.xs },
+    welcomeName: { color: '#FFFFFF', fontSize: 36, fontWeight: '800', letterSpacing: -1.2 },
+    welcomeTagline: { color: 'rgba(255,255,255,0.8)', fontSize: fontSizes.sm + 1, fontWeight: '600' },
 
-    // Big hero stage — the live component sits on this outlined stage.
-    heroStage: {
-      alignSelf: 'stretch', minHeight: 220, borderRadius: radius.lg,
-      borderWidth: 1, borderColor: colors.borderMuted, backgroundColor: colors.surfaceAlt,
-      paddingVertical: spacing.xl, paddingHorizontal: spacing.lg,
-      alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xl,
-    },
-    caption: {
-      color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22,
-      textAlign: 'center', paddingHorizontal: spacing.sm,
-    },
+    // 2 — map
+    chipsRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6, paddingTop: spacing.sm, paddingHorizontal: spacing.sm },
+    mapChip: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#FFFFFF', borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 5, ...shadows.card },
+    mapChipDot: { width: 7, height: 7, borderRadius: 4 },
+    mapChipText: { fontSize: 11, fontWeight: '700' },
 
-    // Pins page — states + types on a stage.
-    bodyStage: {
-      borderRadius: radius.lg, borderWidth: 1, borderColor: colors.borderMuted,
-      backgroundColor: colors.surfaceAlt, padding: spacing.lg, gap: spacing.lg,
+    // 3 — outing sheet (the app's activity-sheet grammar)
+    fab: {
+      position: 'absolute', right: 14, top: 18, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.cta,
+      alignItems: 'center', justifyContent: 'center', ...shadows.raised,
     },
-    pinsLead: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
-    pinsBody: { gap: spacing.lg },
-    stateRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-start' },
-    statePinCol: { alignItems: 'center', gap: 6, width: 92 },
-    statePinLabel: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700', textAlign: 'center' },
-    pinTypeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-    pinTypeVisual: { width: 64, alignItems: 'center', justifyContent: 'center' },
-    pinTypeText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22 },
+    sheet: {
+      position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: colors.surface,
+      borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, paddingHorizontal: spacing.md, paddingBottom: spacing.md, gap: 5,
+    },
+    grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: colors.textMuted, marginTop: 8, marginBottom: 4 },
+    sportChip: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, borderWidth: 1 },
+    sportChipText: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
+    kindLine: { fontSize: 11.5, fontWeight: '700' },
+    sheetTitle: { color: colors.textPrimary, fontSize: 20, fontWeight: '800', letterSpacing: -0.4 },
+    infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    infoText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '600' },
+    gpxPill: { flexDirection: 'row', alignItems: 'center', gap: 3, borderWidth: 1, borderRadius: radius.full, paddingHorizontal: 6, paddingVertical: 1 },
+    gpxPillText: { fontSize: 10, fontWeight: '800' },
+    sheetCta: { marginTop: 4, borderRadius: radius.lg, paddingVertical: 10, alignItems: 'center' },
+    sheetCtaText: { color: '#FFFFFF', fontSize: fontSizes.sm + 1, fontWeight: '800' },
 
-    // Join page — popup + the real Rejoindre CTA.
-    joinHero: { alignItems: 'center', gap: spacing.md },
-    rejoindreBtn: {
-      backgroundColor: colors.cta, borderRadius: radius.sm,
-      paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.xl + spacing.lg, alignItems: 'center',
-    },
-    rejoindreBtnText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+    // 4 — partners
+    partnersInner: { padding: spacing.md, gap: spacing.sm },
+    screenTitle: { color: colors.textPrimary, fontSize: 19, fontWeight: '800' },
+    dispoStrip: { backgroundColor: colors.heroInk, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 9, gap: 2 },
+    dispoStripTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
+    dispoStripSub: { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
+    sectionLine: { color: colors.textPrimary, fontSize: 14, fontWeight: '800' },
+    dispoCard: { backgroundColor: colors.surface, borderRadius: 18, padding: 12, gap: 8, ...shadows.cardFirm },
+    dispoHead: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+    dispoAvatar: { width: 38, height: 38, borderRadius: 19, borderWidth: 2.5, backgroundColor: '#DCE5D3', alignItems: 'center', justifyContent: 'center' },
+    dispoInitials: { color: '#3F7A56', fontSize: 12, fontWeight: '800' },
+    dispoName: { color: colors.textPrimary, fontSize: 14, fontWeight: '700' },
+    dispoTier: { fontSize: 11, fontWeight: '600' },
+    pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+    sportPill: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 4 },
+    sportPillText: { fontSize: 11, fontWeight: '600' },
 
-    // Create page — small + FAB, a teaser of sports, the count.
-    createHero: { alignItems: 'center', gap: spacing.md },
-    fabDemo: {
-      width: 52, height: 52, borderRadius: 26, backgroundColor: colors.cta,
-      alignItems: 'center', justifyContent: 'center',
-      shadowColor: '#0A0F1A', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 6,
+    // 5 — menu
+    dim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,20,16,0.35)' },
+    menuSheet: {
+      position: 'absolute', left: 0, right: 0, bottom: 56, backgroundColor: colors.surface,
+      borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, paddingHorizontal: spacing.md, paddingBottom: spacing.sm,
     },
-    sportsEmojiRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
-    sportsEmoji: { fontSize: 24 },
-    sportsCount: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
+    menuRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 5 },
+    menuRowHighlight: { backgroundColor: colors.cta + '14', borderRadius: 14, borderWidth: 2, borderColor: colors.cta, marginHorizontal: -8, paddingHorizontal: 6, marginVertical: 2 },
+    menuIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
+    menuLabel: { color: colors.textPrimary, fontSize: 14, fontWeight: '600' },
+    menuSub: { color: colors.cta, fontSize: 11, fontWeight: '600' },
 
-    // Alert page — small bell + a sample criteria chip.
-    alertDemo: { alignItems: 'center', gap: spacing.sm },
-    alertBell: {
-      width: 44, height: 44, borderRadius: 22, backgroundColor: colors.cta + '1F',
-      borderWidth: 1, borderColor: colors.cta, alignItems: 'center', justifyContent: 'center',
-    },
-    alertChip: {
-      backgroundColor: colors.surface, borderRadius: radius.full, borderWidth: 1, borderColor: colors.borderMuted,
-      paddingHorizontal: spacing.md, paddingVertical: 6,
-    },
-    alertChipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+    // 6 — reliability
+    relStage: { backgroundColor: colors.surfaceAlt, padding: spacing.md, gap: spacing.md, justifyContent: 'center' },
+    relCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.surface, borderRadius: 18, padding: 14, ...shadows.card },
+    relRing: { width: 76, height: 76, alignItems: 'center', justifyContent: 'center' },
+    relDisc: { position: 'absolute', width: 62, height: 62, borderRadius: 31, backgroundColor: '#DCE5D3', alignItems: 'center', justifyContent: 'center' },
+    relDiscText: { color: '#3F7A56', fontSize: 16, fontWeight: '800' },
+    relLabel: { color: colors.textSecondary, fontSize: 10, fontWeight: '600', letterSpacing: 1.2 },
+    relTier: { fontSize: 24, fontWeight: '800', letterSpacing: -0.6 },
+    relSub: { color: colors.textMuted, fontSize: 11 },
+    relTiles: { flexDirection: 'row', gap: spacing.sm },
+    relTile: { flex: 1, alignItems: 'center', gap: 6, backgroundColor: colors.surface, borderRadius: 16, padding: 12, ...shadows.card },
+    relTileText: { color: colors.textPrimary, fontSize: 12, fontWeight: '700', textAlign: 'center' },
+    traits: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
+    trait: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.surface, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 },
+    traitText: { color: colors.textPrimary, fontSize: 12.5, fontWeight: '600' },
+    traitCount: { fontSize: 12.5, fontWeight: '700', marginLeft: 2 },
 
-    // Profile page — reliability ring + sample badges.
-    profileHero: { alignItems: 'center', gap: spacing.lg },
-    badgeRow: { flexDirection: 'row', gap: spacing.md, justifyContent: 'center' },
-    badgeChip: { alignItems: 'center', gap: 5, width: 64 },
-    badgeMedal: {
-      width: 40, height: 40, borderRadius: 20, borderWidth: 1.5,
-      alignItems: 'center', justifyContent: 'center',
-    },
-    badgeLabel: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', textAlign: 'center' },
+    // Mini tab bar at the bottom of a picture
+    tabBar: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 56, backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4 },
+    tab: { flex: 1, alignItems: 'center', gap: 2 },
+    tabPill: { height: 26, width: 50, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+    tabLabel: { color: colors.textSecondary, fontSize: 9.5, fontWeight: '700' },
 
     dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, paddingVertical: spacing.md },
     dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.borderMuted },
     dotActive: { backgroundColor: colors.cta, width: 20 },
     nextBtn: {
-      backgroundColor: colors.cta, borderRadius: radius.sm, paddingVertical: spacing.sm + 4,
+      backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 6,
       alignItems: 'center', marginHorizontal: spacing.lg, marginBottom: spacing.sm,
     },
-    nextText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },
+    nextText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   });

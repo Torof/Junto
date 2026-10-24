@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
-import { CalendarCheck, Radar, Briefcase, Settings, ChevronRight, LogOut, Route, Bookmark, CalendarDays } from 'lucide-react-native';
+import { Sparkles, CalendarCheck, Radar, Briefcase, Settings, ChevronRight, LogOut, Route, Bookmark, CalendarDays } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -20,6 +20,8 @@ import { isClientConversation } from '@/utils/client-conversation';
 import { authService } from '@/services/auth-service';
 import { UserAvatar } from './user-avatar';
 import { SettingsDrawer } from './settings-drawer';
+import { HaloSquare } from './intro-offer-button';
+import { useIntroStore } from '@/store/intro-store';
 
 // The "Menu" tab's deployable sheet (Scott, 2026-07-06): absorbs the
 // low-frequency destinations so the bar stays at 4 tabs — identity row →
@@ -38,6 +40,8 @@ export function MenuSheet({ open, onClose }: Props) {
   const modalRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const introOffer = useIntroStore((st) => st.offerVisible);
+  const requestReplay = useIntroStore((st) => st.requestReplay);
   const { session } = useAuth();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -128,6 +132,24 @@ export function MenuSheet({ open, onClose }: Props) {
           </Pressable>
 
           <View style={styles.divider} />
+
+          {/* The tour, offered while it stands (first week, not yet seen —
+              carte.tsx decides); a soft halo, calmer than the map pill. */}
+          {introOffer && (
+            <MenuItem
+              icon={<Sparkles size={20} color={colors.onCta} strokeWidth={2.2} />}
+              halo
+              label={t('menu.discover')}
+              sub={t('menu.discoverSub')}
+              onPress={() => {
+                modalRef.current?.dismiss();
+                router.navigate('/(auth)/(tabs)/carte' as never);
+                requestReplay();
+              }}
+              styles={styles}
+              colors={colors}
+            />
+          )}
 
           <MenuItem
             icon={<CalendarDays size={20} color={colors.onCta} strokeWidth={2.2} />}
@@ -247,6 +269,7 @@ function MenuItem({
   sub,
   badge,
   accent,
+  halo,
   labelColor,
   onPress,
   styles,
@@ -257,14 +280,15 @@ function MenuItem({
   sub?: string;
   badge?: string | null;
   accent?: boolean;
+  halo?: boolean;
   labelColor?: string;
   onPress: () => void;
   styles: ReturnType<typeof createStyles>;
   colors: AppColors;
 }) {
   return (
-    <Pressable style={styles.item} onPress={onPress}>
-      <View style={[styles.itemIcon, accent && styles.itemIconAccent]}>{icon}</View>
+    <Pressable style={[styles.item, halo && styles.itemHalo]} onPress={onPress}>
+      {halo ? <HaloSquare>{icon}</HaloSquare> : <View style={[styles.itemIcon, accent && styles.itemIconAccent]}>{icon}</View>}
       <View style={{ flex: 1, minWidth: 0 }}>
         <AppText style={[styles.itemLabel, labelColor ? { color: labelColor } : null]}>{label}</AppText>
         {sub ? <AppText style={styles.itemSub} numberOfLines={1}>{sub}</AppText> : null}
@@ -320,6 +344,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // 2026-10-23, options G + C — one colour per entry read as a rainbow).
   itemIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
   itemIconAccent: { backgroundColor: colors.cta },
+  itemHalo: {
+    backgroundColor: colors.cta + '14',
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: colors.cta,
+    marginHorizontal: -8,
+    paddingHorizontal: 6,
+    marginBottom: 4,
+  },
   itemLabel: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '600' },
   itemSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
   itemBadge: {

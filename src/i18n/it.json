@@ -597,7 +597,9 @@
     "channels": "Discussioni",
     "mesActivites": "Le mie uscite",
     "proSpace": "Spazio pro",
-    "myBookings": "Le mie prenotazioni"
+    "myBookings": "Le mie prenotazioni",
+    "discover": "Scopri l'app",
+    "discoverSub": "Il giro in 1 minuto"
   },
   "errors": {
     "network": "Problema di connessione — controlla la tua rete.",
@@ -963,38 +965,43 @@
   "intro": {
     "skip": "Salta",
     "next": "Avanti",
-    "start": "Inizia",
-    "replay": "Rivedi l'intro",
+    "start": "Si parte",
+    "replay": "Rivedi l'introduzione",
+    "offer": "Scopri askandgo · 1 min",
+    "offerClose": "Chiudi",
     "welcome": {
-      "tagline": "Lo sport è meglio insieme.",
-      "body": "askandgo riunisce le persone vicino a te che hanno voglia di muoversi. Trova un partner per la tua prossima uscita, organizza tutto in un unico posto — passaggi, attrezzatura, ritrovo — e incontratevi dal vivo."
+      "title": "Esci, anche quando i tuoi amici non sono liberi.",
+      "body": "Ovunque tu sia — in vacanza, di passaggio o a casa — trova un'uscita che ti somiglia, o lanciane una tua, con persone del tuo livello.",
+      "tagline": "Uscite outdoor tra appassionati"
     },
-    "pins": {
-      "title": "Le attività sulla mappa",
-      "ua": "L'uscita di un membro. Il colore indica il momento:",
-      "upcoming": "In programma",
-      "soon": "A breve",
-      "inProgress": "In corso",
-      "ra": "L'uscita di un pro.",
-      "pp": "La pagina di un pro."
+    "map": {
+      "title": "Tutto succede sulla mappa.",
+      "body": "Ogni spillo è un'uscita: il colore dice lo sport. Arancione, inizia presto; verde, è in corso. Toccane uno per vedere tutto.",
+      "chipSport": "colore = sport",
+      "chipSoon": "presto",
+      "chipLive": "in corso"
     },
-    "join": {
-      "title": "Partecipa a un'uscita",
-      "tap": "Tocca un pin, poi « Mostra di più » per aprire l'uscita.",
-      "inside": "Ci trovi tutto: info, passaggi, attrezzatura e la chat del gruppo. Partecipare richiede un tocco."
+    "outing": {
+      "title": "Unisciti a un'uscita, o lanciane una tua.",
+      "body": "Tocca uno spillo: compare l'essenziale, poi « Vedi l'uscita » per unirti — car pooling, materiale e chat del gruppo sono dentro. Per lanciare la tua, c'è il pulsante +."
     },
-    "create": {
-      "title": "Crea la tua uscita",
-      "body": "Tocca il pulsante +, scegli lo sport, il luogo e la data — e pubblica. Gli altri possono unirsi a te.",
-      "sports": "Tra decine di sport outdoor"
+    "partners": {
+      "title": "Trova compagni.",
+      "body": "Di' quando sei libero e per quali sport: vedi chi cerca la stessa cosa, intorno a te o dove vai. E discussioni per luogo e per sport.",
+      "myDispo": "La tua disponibilità · online",
+      "matching": "Disponibilità compatibili"
     },
-    "alert": {
-      "title": "Non perderti più niente",
-      "body": "Crea un avviso e ricevi una notifica appena un'uscita corrisponde vicino a te."
+    "menu": {
+      "title": "E nel menu: gli avvisi.",
+      "body": "Di' cosa cerchi — uno sport, una zona, delle date — e askandgo ti avvisa appena un'uscita corrisponde. Il menu conserva anche le tue uscite passate e future, le tracce GPX, le prenotazioni e i preferiti.",
+      "alertsSub": "Avvisato appena un'uscita corrisponde"
     },
-    "profile": {
-      "title": "Il tuo profilo",
-      "body": "Il tuo punteggio di affidabilità e i tuoi badge dicono agli altri che sei una persona seria."
+    "reliability": {
+      "title": "La tua affidabilità è la tua reputazione.",
+      "body": "Il giorno dell'uscita, la tua presenza viene confermata sul posto, con il codice QR o automaticamente. È questo che rassicura i tuoi futuri compagni — niente voti, niente stelle.",
+      "presences": "20 presenze confermate",
+      "qr": "Scansione del QR dell'organizzatore",
+      "auto": "O automaticamente, all'arrivo"
     }
   },
   "search": {

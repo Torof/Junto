@@ -34,6 +34,7 @@ import { type NearbyActivity } from '@/services/activity-service';
 import { useCreateStore } from '@/store/create-store';
 import { IntroCarousel } from '@/components/intro-carousel';
 import { useIntroStore } from '@/store/intro-store';
+import { IntroOfferButton } from '@/components/intro-offer-button';
 import { supabase } from '@/services/supabase';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
@@ -72,6 +73,9 @@ function panDistance(lat1: number, lng1: number, lat2: number, lng2: number): nu
   const dlng = lng2 - lng1;
   return Math.sqrt(dlat * dlat + dlng * dlng);
 }
+
+// The « Découvrir askandgo » offer stands during the account's first week.
+const INTRO_OFFER_DAYS = 7;
 
 export default function CarteScreen() {
   const colors = useColors();
@@ -126,6 +130,8 @@ export default function CarteScreen() {
   const [showIntro, setShowIntro] = useState(false);
   const replayRequested = useIntroStore((s) => s.replayRequested);
   const clearReplay = useIntroStore((s) => s.clearReplay);
+  const offerVisible = useIntroStore((s) => s.offerVisible);
+  const setOfferVisible = useIntroStore((s) => s.setOfferVisible);
 
   const [clusterFilter, setClusterFilter] = useState<NearbyActivity[] | null>(null);
   const clusterFilterAnchor = useRef<MapBounds | null>(null);
@@ -265,8 +271,9 @@ export default function CarteScreen() {
     }
   }, [searchBounds, doSearch, scheduleSearch, clusterFilter]);
 
-  // First-run intro: show the one-time carousel if the user hasn't seen it.
-  // No element anchoring or step machinery — it's a self-contained overlay.
+  // The tour is OFFERED, never forced (Scott 2026-10-24): during the account's
+  // first week, until it was opened or closed, a « Découvrir askandgo » pill
+  // sits under the search bar and the menu shows « Découvrir l'app ».
   useEffect(() => {
     if (introChecked.current) return;
     introChecked.current = true;
@@ -275,24 +282,31 @@ export default function CarteScreen() {
       if (!uid) return;
       const { data: userRow } = await supabase
         .from('users')
-        .select('tutorial_seen_at')
+        .select('tutorial_seen_at, created_at')
         .eq('id', uid)
-        .single() as { data: { tutorial_seen_at: string | null } | null };
-      if (!userRow?.tutorial_seen_at) setShowIntro(true);
+        .single() as { data: { tutorial_seen_at: string | null; created_at: string } | null };
+      if (!userRow || userRow.tutorial_seen_at) return;
+      const ageMs = Date.now() - new Date(userRow.created_at).getTime();
+      if (ageMs < INTRO_OFFER_DAYS * 24 * 60 * 60 * 1000) setOfferVisible(true);
     })();
-  }, []);
+  }, [setOfferVisible]);
 
-  const dismissIntro = useCallback(async () => {
-    setShowIntro(false);
+  // Opened or closed, the tour counts as seen: the offer goes for good.
+  const markIntroSeen = useCallback(async () => {
+    setOfferVisible(false);
     // Must await (or .then) — supabase builders are lazy and don't fire
-    // the request otherwise, so the "seen" flag never persisted and the
-    // intro re-showed on every launch.
+    // the request otherwise.
     try {
       await supabase.rpc('mark_tutorial_seen');
     } catch {
-      // Non-fatal: worst case the intro shows again next launch.
+      // Non-fatal: worst case the offer shows again next launch.
     }
-  }, []);
+  }, [setOfferVisible]);
+
+  const dismissIntro = useCallback(() => {
+    setShowIntro(false);
+    void markIntroSeen();
+  }, [markIntroSeen]);
 
   // Replay requested from the settings drawer ("Revoir l'intro").
   useEffect(() => {
@@ -372,6 +386,11 @@ export default function CarteScreen() {
               <MapStyleButton />
               <EntityTypeToggles />
             </View>
+            {offerVisible && !showIntro && (
+              <View style={[styles.introOffer, { top: insets.top + spacing.xs + 104 }]} pointerEvents="box-none">
+                <IntroOfferButton onOpen={() => setShowIntro(true)} onClose={() => void markIntroSeen()} />
+              </View>
+            )}
           </>
         )}
 
@@ -639,6 +658,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  introOffer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
   topControls: {
     position: 'absolute',

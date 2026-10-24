@@ -511,3 +511,9 @@ Règles verrouillées :
 **Contexte :** la localisation était demandée dès le premier lancement (avant même la connexion, sans explication, texte iOS hors sujet), les notifications à l'arrivée sur la carte par-dessus le tutoriel, la localisation redemandée par 11 écrans et toutes les 30 s sur une sortie en cours, la caméra dès l'ouverture du scanner.
 
 **Décision (Scott) :** rien au lancement. Une carte dans l'app explique d'abord, en une phrase, puis « Autoriser » ouvre la fenêtre système (`lib/permissions.ts` → `components/permission-prompt.tsx`). Localisation : « me localiser », « Autour de moi », pointage de présence. Notifications : après avoir rejoint / demandé à rejoindre / publié une sortie ou envoyé une demande de contact (« Plus tard » respecté 3 jours, rien si refusé pour de bon). Caméra : au toucher, écran explicatif d'abord. La carte s'ouvre sur la zone IP tant que la position n'est pas accordée. Textes des fenêtres iOS réécrits et traduits dans les 5 langues (`locales/ios/`) — Android impose les siens, la carte explique.
+
+## 2026-10-24 — Le tutoriel est proposé, plus imposé
+
+**Contexte :** le tutoriel s'ouvrait de lui-même à la première arrivée sur la carte — un mur avant même d'avoir vu une sortie (Scott : « un peu agressif »). Son contenu datait (ni Partenaires, ni présence, alertes introuvables).
+
+**Décision (Scott) :** six pages refaites sur l'app d'aujourd'hui (accueil, carte, aperçu de sortie + bouton +, Partenaires, menu avec les alertes en avant, fiabilité — canevas « Tutoriel askandgo »). Il ne s'ouvre plus seul : la première semaine du compte, un bouton « Découvrir askandgo · 1 min » sous la recherche de la carte (il saute et brille toutes les 3 s, une croix pour le fermer) et l'entrée « Découvrir l'app » en tête du menu (halo qui pulse). Ouvert ou fermé, il compte comme vu et les deux disparaissent ; « Revoir l'intro » reste dans les Paramètres. Mouvements coupés si le téléphone demande de réduire les animations.
