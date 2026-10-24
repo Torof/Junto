@@ -1,6 +1,8 @@
 {
-  "NSLocationWhenInUseUsageDescription": "Dein Standort zentriert die Karte auf dich, findet Touren und Diskussionen in der Nähe und bestätigt am Tag einer Tour, dass du da bist. Er wird anderen nie angezeigt.",
-  "NSLocationAlwaysAndWhenInUseUsageDescription": "Im Hintergrund schaut askandgo nur in den 24 Stunden vor einer Tour, der du beigetreten bist, auf deinen Standort, um deine Ankunft zu bestätigen, ohne dass du die App öffnen musst.",
-  "NSLocationAlwaysUsageDescription": "Im Hintergrund schaut askandgo nur in den 24 Stunden vor einer Tour, der du beigetreten bist, auf deinen Standort, um deine Ankunft zu bestätigen, ohne dass du die App öffnen musst.",
-  "NSCameraUsageDescription": "Die Kamera wird nur zum Scannen von QR-Codes genutzt (Anwesenheit, Kontakte). Es wird kein Foto aufgenommen."
+  "ios": {
+    "NSLocationWhenInUseUsageDescription": "Dein Standort zentriert die Karte auf dich, findet Touren und Diskussionen in der Nähe und bestätigt am Tag einer Tour, dass du da bist. Er wird anderen nie angezeigt.",
+    "NSLocationAlwaysAndWhenInUseUsageDescription": "Im Hintergrund schaut askandgo nur in den 24 Stunden vor einer Tour, der du beigetreten bist, auf deinen Standort, um deine Ankunft zu bestätigen, ohne dass du die App öffnen musst.",
+    "NSLocationAlwaysUsageDescription": "Im Hintergrund schaut askandgo nur in den 24 Stunden vor einer Tour, der du beigetreten bist, auf deinen Standort, um deine Ankunft zu bestätigen, ohne dass du die App öffnen musst.",
+    "NSCameraUsageDescription": "Die Kamera wird nur zum Scannen von QR-Codes genutzt (Anwesenheit, Kontakte). Es wird kein Foto aufgenommen."
+  }
 }

@@ -1,6 +1,8 @@
 {
-  "NSLocationWhenInUseUsageDescription": "Tu ubicación sirve para centrar el mapa en ti, encontrar las salidas y conversaciones cercanas y confirmar tu presencia el día de una salida. Nunca se muestra a los demás.",
-  "NSLocationAlwaysAndWhenInUseUsageDescription": "En segundo plano, askandgo solo mira tu ubicación en las 24 horas previas a una salida a la que te has unido, para confirmar tu llegada sin que tengas que abrir la app.",
-  "NSLocationAlwaysUsageDescription": "En segundo plano, askandgo solo mira tu ubicación en las 24 horas previas a una salida a la que te has unido, para confirmar tu llegada sin que tengas que abrir la app.",
-  "NSCameraUsageDescription": "La cámara solo se usa para escanear códigos QR (presencia, contactos). No se toma ninguna foto."
+  "ios": {
+    "NSLocationWhenInUseUsageDescription": "Tu ubicación sirve para centrar el mapa en ti, encontrar las salidas y conversaciones cercanas y confirmar tu presencia el día de una salida. Nunca se muestra a los demás.",
+    "NSLocationAlwaysAndWhenInUseUsageDescription": "En segundo plano, askandgo solo mira tu ubicación en las 24 horas previas a una salida a la que te has unido, para confirmar tu llegada sin que tengas que abrir la app.",
+    "NSLocationAlwaysUsageDescription": "En segundo plano, askandgo solo mira tu ubicación en las 24 horas previas a una salida a la que te has unido, para confirmar tu llegada sin que tengas que abrir la app.",
+    "NSCameraUsageDescription": "La cámara solo se usa para escanear códigos QR (presencia, contactos). No se toma ninguna foto."
+  }
 }
