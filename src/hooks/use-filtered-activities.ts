@@ -86,5 +86,5 @@ export function useFilteredActivities(
     }
 
     return sorted;
-  }, [activities, filters.sportKeys, filters.dateMode, filters.specificDate, filters.rangeFrom, filters.rangeTo, filters.levelTiers, filters.visibilities, filters.radiusKm, filters.sortBy, filters.sortDir, userLocation]);
+  }, [activities, filters, userLocation]);
 }

@@ -109,7 +109,7 @@ function AuthGate() {
       transitionRan.current = true;
       void queryClient.invalidateQueries({ queryKey: ['activities'] });
     }
-  }, [isLoading, isAuthenticated, needsOnboarding, segments, router]);
+  }, [isLoading, isAuthenticated, isSuspended, needsOnboarding, segments, router]);
 
   // Refresh statuses when the app returns to foreground (the server moves them).
   useEffect(() => {

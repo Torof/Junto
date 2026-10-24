@@ -1,5 +1,6 @@
 import expoConfig from 'eslint-config-expo/flat.js';
 import prettierConfig from 'eslint-config-prettier';
+import globals from 'globals';
 
 export default [
   ...expoConfig,
@@ -13,6 +14,11 @@ export default [
       // (and its width normalisation) reaches every string.
       'no-restricted-imports': ['error', { paths: [{ name: 'react-native', importNames: ['Text'], message: 'Use AppText from @/components/app-text.' }] }],
     },
+  },
+  {
+    // Node scripts (db tests, catalog diff, push templates).
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { globals: globals.node },
   },
   {
     files: ['src/components/app-text.tsx'],

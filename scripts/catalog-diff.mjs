@@ -54,7 +54,7 @@ END $selftest$;`;
   return JSON.parse(Buffer.from(m[1], 'base64').toString('utf8'));
 }
 
-const [cmd, a, b] = process.argv.slice(2);
+const [cmd, a] = process.argv.slice(2);
 if (cmd === 'selftest') {
   const base = snapshot();
   const mutated = mutatedSnapshot();

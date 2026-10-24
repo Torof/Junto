@@ -156,7 +156,7 @@ export default function PublicProfileScreen() {
           </Pressable>
         ),
     });
-  }, [navigation, isOwnProfile, profile?.display_name, colors]);
+  }, [navigation, isOwnProfile, profile?.display_name, colors, t]);
 
   const handleBlock = () => {
     Alert.alert(t('publicProfile.blockConfirmTitle'), t('publicProfile.blockConfirmMessage'), [

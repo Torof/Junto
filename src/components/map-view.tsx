@@ -439,6 +439,9 @@ export function JuntoMapView({
         animationMode: 'flyTo',
       });
     }
+    // Runs once per request: `key` is bumped by the caller for every flyTo,
+    // and the camera must not re-fly when the zoom or the object identity move.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flyTo?.key]);
 
   // Reset the map to north when the custom compass button is tapped.

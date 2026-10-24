@@ -83,7 +83,10 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
       return data as { starts_at: string } | null;
     },
   });
-  const activityStartsAt = activityRow?.starts_at ? new Date(activityRow.starts_at) : null;
+  const activityStartsAt = useMemo(
+    () => (activityRow?.starts_at ? new Date(activityRow.starts_at) : null),
+    [activityRow?.starts_at],
+  );
 
   // Used by openEditor to prefill from the user's existing transport,
   // and by openRequestSheet's default-pickup-city fallback. TanStack
