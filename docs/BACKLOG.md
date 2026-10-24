@@ -50,6 +50,14 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 
 ## P3 — Chantiers (plus de réflexion / d'impact)
 
+### Page pro — refonte (décidée 2026-10-25, voir DECISIONS) — maquette d'abord, corps à décider
+- [ ] Pleine page (plus de tiroir depuis le pin), barre de statut cachée sur cet écran.
+- [ ] En-tête validé : photo (hauteur actuelle) + PRO / favori / partage / croix en haut ; nom, métier · lieu, labels, note · avis, tagline sur la photo (voile ≈ 46 %) ; actions Appeler · Contacter · Site web · Itinéraire dessous.
+- [ ] Champ `profession` (liste fermée, whitelist, formulaire pro, i18n ×5) + filtre carte par métier.
+- [ ] Tagline : limite 80 caractères dans le formulaire (120 en base aujourd'hui), deux lignes max à l'affichage.
+- [ ] Photos : 4 vignettes + « Voir tout » → page grille (pro puis communauté) ; fin du carrousel.
+- [ ] À décider : corps (sorties / avis, ordre et forme) ; avis réservés à qui a réservé (proposé, non tranché) ; sort de l'onglet Catalogue.
+
 ### Matériel nécessaire (conçu 2026-07-09, PARKÉ — spec : `docs/GEAR_NEEDS.md` ; déclencheur : conversations « il manque X » observées sur les murs post-lancement)
 Besoins de matériel **collaboratifs** (tout participant, pas de rôle organisateur) + quantités absolues ou « /pers » → la page Matériel devient un tableau de couverture (✓ couvert · ◐ partiel · à prévoir + « Je l'apporte »). **Junto compte, ne juge jamais** — résout le blocage qui avait fait parker l'ancienne feature gear-requests (mig 00194). Opt-in de fait (zéro besoin = page actuelle). Avant dev : présenter la chaîne d'autorisation (`upsert_gear_need`/`remove_gear_need`, table `activity_gear_needs`) + compléter SECURITY.md.
 
