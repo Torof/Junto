@@ -18,9 +18,13 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 La base est migrée, la production (version 14, tests internes Google Play) tourne sur le nouveau projet.
 
-- [ ] **Pin de la carte** : il est bien, mais se fond trop dans le fond de carte — mieux le détacher (contour, ombre, contraste), sans changer son identité.
-- [ ] **Paramètres → section « Personnalisation »** : regrouper Grappes colorées, Couleur d'accent et Thème dans une section à part.
-- [ ] **Site, version téléphone** : petits ajustements ; puis un peu la version ordinateur.
+- [x] **Pin de la carte** : liseré blanc + ombre en deux couches (2026-10-23).
+- [x] **Paramètres → section « Personnalisation »** : Thème, Couleur d'accent, Police, Grappes colorées (2026-10-23).
+- [x] **Site, version téléphone** : pin et étiquette de l'app, carrousels, carte de profil (2026-10-23) ; reste un peu la version ordinateur.
+- [ ] **Nom askandgo — prochaine build** : le nom sous l'icône doit être « Askandgo » (majuscule, plus pro) — `name` dans app.config.ts ; le reste de la marque reste en minuscules.
+- [ ] **Tutoriel** : à revoir (état des lieux en cours, 2026-10-24).
+- [ ] **Demandes d'autorisation** : trop rapides et agressives au premier lancement — à étaler et expliquer.
+- [ ] **Domaine + adresses e-mail askandgo** : quand Scott aura choisi le domaine (site, liens d'e-mail, expéditeur, support@ des pages légales).
 - [ ] **Site, données réelles** : vérifier que l'accueil (prochaines sorties, offres) et les pages partagées affichent et mettent en avant les vraies données dès qu'il y en aura (le site n'avait jamais été relié à la base avant le 2026-10-23).
 - [ ] **Fiche Google Play** : 4 nouvelles captures (les actuelles montrent les anciennes versions), textes à revoir.
 - [ ] **Fiche App Store** : à refaire (à préciser : iOS n'est pas encore publié).
