@@ -109,6 +109,10 @@ export function ProPage({ pro, isOwner }: Props) {
   const tint = sportCategoryColor(sportKeys[0]?.category, colors.cta);
   const featured: ProOffering | undefined =
     offerings.find((o) => o.id === pro.featured_offering_id) ?? offerings[0];
+  // Two on the page (Scott 2026-10-25): the featured one, then the next in order.
+  const shownOfferings: ProOffering[] = featured
+    ? [featured, ...offerings.filter((o) => o.id !== featured.id)].slice(0, 2)
+    : [];
   const allPhotos = [...photos.map((p) => p.photo_url), ...communityPhotos.map((c) => c.photo_url)];
   const hasRating = !!reviewStats && reviewStats.review_count > 0;
 
@@ -149,7 +153,8 @@ export function ProPage({ pro, isOwner }: Props) {
         ) : null}
         <View style={[StyleSheet.absoluteFill, styles.veil]} />
 
-        <View style={[styles.topRow, { top: Math.max(insets.top, 8) + 4 }]}>
+        {/* High in the corner: the status bar is hidden, only a camera cutout can push it down. */}
+        <View style={[styles.topRow, { top: Math.max(10, insets.top - 14) }]}>
           <View style={styles.proBadge}><AppText style={styles.proBadgeText}>PRO</AppText></View>
           <View style={{ flex: 1 }} />
           {isOwner ? (
@@ -211,39 +216,39 @@ export function ProPage({ pro, isOwner }: Props) {
       {/* ===== One featured outing + the catalogue banner ===== */}
       <View style={styles.head}>
         <AppText style={styles.sec}>{t('pro.page.outings', { defaultValue: 'Sorties encadrées' })}</AppText>
-        {featured && offerings.length > 1 ? <AppText style={styles.sub}>{t('pro.page.featured', { defaultValue: 'mise en avant' })}</AppText> : null}
+
       </View>
-      {featured ? (
-        <Pressable style={styles.card} onPress={() => openOffering(featured)} accessibilityRole="button">
+      {shownOfferings.length > 0 ? shownOfferings.map((o) => (
+        <Pressable key={o.id} style={styles.card} onPress={() => openOffering(o)} accessibilityRole="button">
           <View style={styles.cardTop}>
-            <View style={[styles.sportDisc, { backgroundColor: sportCategoryColor(featured.sport_category, colors.cta) }]}>
-              <SportIcon sportKey={featured.sport_key} size={20} color={WHITE} />
+            <View style={[styles.sportDisc, { backgroundColor: sportCategoryColor(o.sport_category, colors.cta) }]}>
+              <SportIcon sportKey={o.sport_key} size={20} color={WHITE} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <AppText style={styles.cardTitle} numberOfLines={2}>{featured.title}</AppText>
+              <AppText style={styles.cardTitle} numberOfLines={2}>{o.title}</AppText>
               <AppText style={styles.sub} numberOfLines={1}>
-                {[formatDuration(featured.duration), featured.level, featured.location_name].filter(Boolean).join(' · ')}
+                {[formatDuration(o.duration), o.level, o.location_name].filter(Boolean).join(' · ')}
               </AppText>
             </View>
-            {featured.price_eur != null ? (
+            {o.price_eur != null ? (
               <View style={{ alignItems: 'flex-end' }}>
-                <AppText style={styles.price}>{Number(featured.price_eur)} €</AppText>
-                <AppText style={styles.priceUnit}>{featured.price_unit === 'group' ? t('booking.perGroup', { defaultValue: '/groupe' }) : t('booking.perPerson', { defaultValue: '/pers' })}</AppText>
+                <AppText style={styles.price}>{Number(o.price_eur)} €</AppText>
+                <AppText style={styles.priceUnit}>{o.price_unit === 'group' ? t('booking.perGroup', { defaultValue: '/groupe' }) : t('booking.perPerson', { defaultValue: '/pers' })}</AppText>
               </View>
             ) : null}
           </View>
           <View style={styles.cardBottom}>
-            {featured.max_participants ? (
-              <View style={styles.okChip}><AppText style={styles.okChipText}>{t('pro.page.upTo', { defaultValue: "jusqu'à {{count}} pers.", count: featured.max_participants })}</AppText></View>
+            {o.max_participants ? (
+              <View style={styles.okChip}><AppText style={styles.okChipText}>{t('pro.page.upTo', { defaultValue: "jusqu'à {{count}} pers.", count: o.max_participants })}</AppText></View>
             ) : <View />}
             {!isOwner ? (
-              <PressableScale style={[styles.book, glow(colors.cta)]} onPress={() => book(featured)} accessibilityRole="button">
+              <PressableScale style={[styles.book, glow(colors.cta)]} onPress={() => book(o)} accessibilityRole="button">
                 <AppText style={styles.bookText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</AppText>
               </PressableScale>
             ) : null}
           </View>
         </Pressable>
-      ) : isOwner ? (
+      )) : isOwner ? (
         <PressableScale style={styles.banner} onPress={() => router.push('/(auth)/pro/offering/edit')} accessibilityRole="button">
           <Plus size={18} color={colors.textPrimary} strokeWidth={2.6} />
           <AppText style={styles.bannerText}>{t('pro.page.firstOuting', { defaultValue: 'Ajoute ta première sortie' })}</AppText>
@@ -251,7 +256,7 @@ export function ProPage({ pro, isOwner }: Props) {
       ) : (
         <AppText style={[styles.sub, styles.inset]}>{t('pro.page.noOutings', { defaultValue: "Pas encore de sortie au catalogue." })}</AppText>
       )}
-      {offerings.length > 1 ? (
+      {offerings.length > 2 ? (
         <PressableScale style={styles.banner} onPress={() => openTab('catalog')} accessibilityRole="button">
           <AppText style={styles.bannerText}>{t('pro.page.seeOutings', { defaultValue: 'Voir les {{count}} sorties', count: offerings.length })}</AppText>
           <ChevronRight size={18} color={colors.textPrimary} strokeWidth={2.6} />
@@ -399,7 +404,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sub: { color: colors.textSecondary, fontSize: fontSizes.xs },
   link: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
   inset: { paddingHorizontal: spacing.md + 2 },
-  card: { marginHorizontal: spacing.md, backgroundColor: colors.surfaceAlt, borderRadius: 18, padding: spacing.sm + 6, gap: 10 },
+  card: { marginHorizontal: spacing.md, marginBottom: spacing.sm + 2, backgroundColor: colors.surfaceAlt, borderRadius: 18, padding: spacing.sm + 6, gap: 10 },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   sportDisc: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   cardTitle: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800', lineHeight: 19 },
@@ -410,7 +415,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   okChipText: { color: '#1E6B45', fontSize: fontSizes.sm - 1, fontWeight: '700' },
   book: { backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: 14, paddingVertical: 8 },
   bookText: { color: colors.onCta, fontSize: fontSizes.sm - 1, fontWeight: '800' },
-  banner: { marginHorizontal: spacing.md, marginTop: spacing.sm + 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.surfaceAlt, borderRadius: radius.full, paddingVertical: 13 },
+  banner: { marginHorizontal: spacing.md, marginTop: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.surfaceAlt, borderRadius: radius.full, paddingVertical: 13 },
   bannerText: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },
   ratingBlock: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: spacing.md + 2, paddingBottom: spacing.sm + 4 },
   ratingBig: { color: colors.textPrimary, fontSize: 30, fontWeight: '800', letterSpacing: -0.5, lineHeight: 34 },
