@@ -288,3 +288,17 @@ Ordre :
 - Live position partagée pendant l'activité (V2)
 - iOS-specific polish (Sign in with Apple, etc.) — différé jusqu'à user base
 - In-app distance feedback ("tu es à 220m de la zone") sur l'écran d'activité
+
+## Pro — page du pro et fiche de sortie : « quelqu'un » et « quelque chose à réserver » (2026-10-25)
+
+Les deux pages partagent le même modèle (pleine page, photo à hauteur fixe avec l'essentiel posé dessus, barre de statut cachée, sections courtes, plus d'onglets). Pour qu'on sache en une seconde laquelle on regarde, chacune porte des signes que l'autre **n'a jamais** :
+
+| | Page du pro — *quelqu'un* | Fiche de sortie — *quelque chose à réserver* |
+|---|---|---|
+| Coin haut gauche de la photo | **PRO** (bleu) | la **pastille du sport** (couleur d'univers) |
+| Sur la photo | **l'avatar** du pro (rond, liseré blanc) + nom, métier · lieu, labels, note · avis, tagline | **le titre** de la sortie + **le prix** en étiquette blanche — ni note, ni lieu, ni avatar |
+| Sous la photo | les actions de contact : Appeler · Contacter · Site web · Itinéraire | la bande **« par … »** (petit avatar, métier, lieu, note) vers la page du pro, puis les **faits en grille** (durée, niveau, âge, groupe) |
+| Bas de l'écran | rien de collé | la barre collée **prix + Réserver** |
+| Bandeau | un seul : « Voir les N sorties › » | aucun |
+
+Règles : un prix n'apparaît sur la page du pro que dans la carte de la sortie mise en avant ; un avatar n'apparaît sur la fiche de sortie que dans la bande « par » ; les deux pages ne portent jamais de dates — le jour se choisit derrière Réserver, dans les demi-journées libres du pro. Maquettes : canevas « Page pro — la sortie d'abord », https://claude.ai/artifact/SSa7sG4Scr8CE9LXA6UENa.
