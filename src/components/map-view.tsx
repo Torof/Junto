@@ -45,9 +45,10 @@ const LABEL_DETAIL_ZOOM = 11.0;
 const truncate = (s: string, n: number) =>
   s.length > n ? `${s.slice(0, n).trimEnd()}…` : s;
 
-// The rating line of a pro label (Scott 2026-10-25): five real star images —
-// gold ones for the rounded rating, pale ones for the rest, no halo since
-// images take none — then « · N avis » in ink. Empty when there is no review.
+// The rating line of a pro label (Scott 2026-10-25): « N avis » in ink, then
+// five real star images with a thin ink border — gold ones for the rounded
+// rating, pale ones for the rest, no halo since images take none. Empty when
+// there is no review.
 type StarImage = 'star-full' | 'star-empty' | '';
 const ratingParts = (
   avg: number | null | undefined,
@@ -56,7 +57,7 @@ const ratingParts = (
   if (!count || avg == null) return { stars: ['', '', '', '', ''], rtext: '' };
   const filled = Math.max(0, Math.min(5, Math.round(Number(avg))));
   const stars = [1, 2, 3, 4, 5].map((i) => (i <= filled ? 'star-full' : 'star-empty')) as [StarImage, StarImage, StarImage, StarImage, StarImage];
-  return { stars, rtext: ` · ${i18n.t('pro.page.reviewCount', { count, defaultValue: '{{count}} avis' })}` };
+  return { stars, rtext: `${i18n.t('pro.page.reviewCount', { count, defaultValue: '{{count}} avis' })} ` };
 };
 
 // Secondary-line text style (smaller, regular, neutral black) — shared by
@@ -381,7 +382,7 @@ export function JuntoMapView({
       let d2icon = '';      // inline icon leading d2: 'cal' | ''
       let lvl = '';         // UA difficulty signal (km · D+ / level range)
       let lvlicon = '';     // 'lvl' icon before lvl, or ''
-      let rtext = '';       // « · N avis » after the stars, or ''
+      let rtext = '';       // « N avis » before the stars, or ''
       let stars: [StarImage, StarImage, StarImage, StarImage, StarImage] = ['', '', '', '', ''];
       let color: string = colors.cta;
       const kind = p.type;
@@ -647,12 +648,12 @@ export function JuntoMapView({
               ['format',
                 ['get', 'name'], { 'text-color': ['get', 'color'] },
                 ['case', ['>', ['length', ['get', 'rtext']], 0], '\n', ''], {},
+                ['get', 'rtext'], SEC,
                 ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's1']], ''], IMG,
                 ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's2']], ''], IMG,
                 ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's3']], ''], IMG,
                 ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's4']], ''], IMG,
                 ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's5']], ''], IMG,
-                ['get', 'rtext'], SEC,
               ],
               LABEL_DETAIL_ZOOM,
               // At DETAIL: title (colour) / ★rating on its own line / details
@@ -662,12 +663,12 @@ export function JuntoMapView({
                 ['get', 'name'], { 'text-color': ['get', 'color'] },
                 // the star line DIRECTLY under the title (Scott 2026-09-29)
                 ['case', ['>', ['length', ['get', 'rtext']], 0], '\n', ''], {},
+                ['get', 'rtext'], SEC,
                 ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's1']], ''], IMG,
                 ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's2']], ''], IMG,
                 ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's3']], ''], IMG,
                 ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's4']], ''], IMG,
                 ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's5']], ''], IMG,
-                ['get', 'rtext'], SEC,
                 '\n', {},
                 // then: 📅 when / schedule (RA may wrap; UA when stays short)
                 ['match', ['get', 'd2icon'], 'cal', ['image', 'cal'], ''], IMG,
