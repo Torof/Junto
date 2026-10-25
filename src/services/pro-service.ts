@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { MAP_FETCH_CAP } from '@/constants/map-query';
+import type { ProProfession } from '@/constants/professions';
 
 export interface ProProfile {
   user_id: string;
@@ -21,6 +22,10 @@ export interface ProProfile {
   pin_image_url: string | null;
   pin_icon: string | null;
   status: 'pending' | 'approved' | 'rejected';
+  // 00554: declared profession (closed list, constants/professions) and the
+  // outing featured on the page — both public columns.
+  profession: ProProfession | null;
+  featured_offering_id: string | null;
   rejection_reason?: string | null;
   last_location_change_at: string;
   created_at: string;
@@ -41,14 +46,19 @@ export interface RegisterAsProInput {
   phone?: string | null;
   instagram?: string | null;
   facebook?: string | null;
+  profession?: ProProfession | null;
 }
 
 // Optional fields the pro may blank out. The RPC keeps a NULL param as
 // "unchanged", so a cleared field must be named explicitly (00444).
 export type ClearableProField =
-  | 'tagline' | 'description' | 'website' | 'email' | 'phone' | 'instagram' | 'facebook';
+  | 'tagline' | 'description' | 'website' | 'email' | 'phone' | 'instagram' | 'facebook'
+  | 'profession' | 'featured_offering_id';
 
-export type UpdateProProfileInput = Partial<RegisterAsProInput> & { clear?: ClearableProField[] };
+export type UpdateProProfileInput = Partial<RegisterAsProInput> & {
+  featured_offering_id?: string | null;
+  clear?: ClearableProField[];
+};
 
 export interface PendingProApplication {
   user_id: string;
@@ -98,7 +108,7 @@ export const proService = {
     const { data, error } = await supabase
       .from('pro_profiles')
       .select(
-        'user_id, display_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, pin_icon, status, last_location_change_at, created_at, updated_at',
+        'user_id, display_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, pin_icon, status, last_location_change_at, created_at, updated_at, profession, featured_offering_id',
       )
       .eq('user_id', userId)
       .maybeSingle();
@@ -130,6 +140,7 @@ export const proService = {
       p_primary_lng: input.primary_lng,
       p_primary_lat: input.primary_lat,
       p_primary_location_name: input.primary_location_name,
+      p_profession: input.profession ?? undefined,
     });
     if (error) throw error;
   },
@@ -150,6 +161,8 @@ export const proService = {
       p_primary_lat: input.primary_lat ?? undefined,
       p_primary_location_name: input.primary_location_name ?? undefined,
       p_clear: input.clear && input.clear.length > 0 ? input.clear : undefined,
+      p_profession: input.profession ?? undefined,
+      p_featured_offering_id: input.featured_offering_id ?? undefined,
     });
     if (error) throw error;
   },

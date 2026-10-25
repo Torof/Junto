@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { CalendarDays, MessagesSquare, Mountain, Eye, Phone, MessageCircle, Plus } from 'lucide-react-native';
+import { CalendarDays, MessagesSquare, Mountain, Eye, Phone, MessageCircle, Plus, ChevronRight } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { proOfferingService } from '@/services/pro-offering-service';
 import { conversationService } from '@/services/conversation-service';
@@ -188,6 +188,14 @@ export default function ProSpaceScreen() {
         <AppText style={styles.newOutingText}>{t('booking.newOuting', { defaultValue: 'Nouvelle sortie' })}</AppText>
       </PressableScale>
 
+      {/* 00554: the profession feeds the map filter — ask once, discreetly. */}
+      {proProfile && !proProfile.profession && (
+        <PressableScale style={styles.nudge} onPress={() => router.push('/(auth)/pro/edit')} accessibilityRole="button">
+          <AppText style={styles.nudgeText}>{t('pro.professionNudge', { defaultValue: 'Ajoute ton métier : les clients pourront te trouver par filtre.' })}</AppText>
+          <ChevronRight size={16} color={colors.cta} strokeWidth={2.6} />
+        </PressableScale>
+      )}
+
       <AppText style={styles.eyebrow}>
         {t('booking.today', { defaultValue: 'Aujourd’hui' })} · {dayjs().format('ddd D MMM')}
       </AppText>
@@ -339,6 +347,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   newOutingText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   headName: { color: colors.textPrimary, fontSize: fontSizes.md + 1, fontWeight: '800' },
   headSub: { color: colors.cta, fontSize: fontSizes.xs + 1, marginTop: 1, fontWeight: '600' },
+  nudge: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    backgroundColor: colors.cta + '14', borderRadius: radius.card, paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 4,
+    marginTop: spacing.md,
+  },
+  nudgeText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600', lineHeight: 19 },
   eyebrow: {
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.8, marginTop: spacing.md + 2, marginBottom: spacing.sm,

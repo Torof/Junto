@@ -718,6 +718,8 @@
       "pro_location_cooldown": "Dein Standort wurde vor weniger als 30 Tagen verschoben — versuch es später noch mal.",
       "pro_profession_invalid": "Wähle einen Beruf aus der Liste.",
       "review_requires_booking": "Eine Bewertung ist möglich, sobald die Tour stattgefunden hat (angenommene Buchung, Datum vorbei).",
+      "pro_profession_invalid": "Wähle einen Beruf aus der Liste.",
+      "review_requires_booking": "Eine Bewertung ist möglich, sobald die Tour stattgefunden hat (angenommene Buchung, Datum vorbei).",
       "booking_cooldown": "Anfrage erst vor Kurzem erneut gesendet — versuch es in einer Stunde noch mal.",
       "activity_ended_no_remove": "Diese Tour ist beendet — du kannst keine Teilnehmer mehr entfernen.",
       "participant_present_no_remove": "Die Anwesenheit dieses Teilnehmers ist bereits bestätigt und kann nicht mehr gelöscht werden. Du kannst ihn daher nicht mehr aus der Tour entfernen."
@@ -2065,6 +2067,28 @@
     "traceSent": "Track gesendet"
   },
   "pro": {
+    "profession": {
+      "mountain_guide": "Bergführer:in",
+      "mountain_leader": "Wanderführer:in",
+      "climbing_instructor": "Kletterlehrer:in",
+      "canyoning_instructor": "Canyoning-Guide",
+      "whitewater_instructor": "Wildwasser-Guide",
+      "diving_instructor": "Tauchlehrer:in",
+      "surf_instructor": "Surf- / Segellehrer:in",
+      "paragliding_instructor": "Gleitschirmlehrer:in",
+      "ski_instructor": "Skilehrer:in",
+      "mtb_instructor": "Mountainbike-Guide",
+      "wellness_instructor": "Yoga- / Wellness-Lehrer:in",
+      "school_office": "Büro / Schule",
+      "other": "Andere"
+    },
+    "fieldProfession": "Beruf",
+    "professionPick": "Wähle deinen Beruf",
+    "professionPlaceholder": "Wählen…",
+    "featuredSection": "Hervorgehobene Tour",
+    "featuredHelp": "Die Tour, die deine Seite eröffnet. Die anderen stehen hinter « Touren ansehen ».",
+    "featuredFirst": "Die erste",
+    "professionNudge": "Gib deinen Beruf an: Kund:innen finden dich über den Filter.",
     "pageTitle": "Meine Pro-Seite",
     "applicationTitle": "Mein Pro-Antrag",
     "registerSubtitleShort": "Vier Angaben reichen. Der Rest lässt sich später auf deiner Seite ergänzen.",

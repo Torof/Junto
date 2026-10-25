@@ -718,6 +718,8 @@
       "pro_location_cooldown": "Ton emplacement a été déplacé il y a moins de 30 jours — réessaie plus tard.",
       "pro_profession_invalid": "Choisis un métier dans la liste.",
       "review_requires_booking": "Tu pourras laisser un avis une fois la sortie faite (réservation acceptée, date passée).",
+      "pro_profession_invalid": "Choisis un métier dans la liste.",
+      "review_requires_booking": "Tu pourras laisser un avis une fois la sortie faite (réservation acceptée, date passée).",
       "booking_cooldown": "Demande déjà renvoyée il y a peu — réessaie dans une heure.",
       "activity_ended_no_remove": "Cette sortie est terminée — tu ne peux plus en retirer de participant.",
       "participant_present_no_remove": "La présence de ce participant est déjà validée : elle ne peut plus être effacée. Tu ne peux donc plus le retirer de la sortie."
@@ -2065,6 +2067,28 @@
     "traceSent": "Trace envoyée"
   },
   "pro": {
+    "profession": {
+      "mountain_guide": "Guide de haute montagne",
+      "mountain_leader": "Accompagnateur en montagne",
+      "climbing_instructor": "Moniteur d'escalade",
+      "canyoning_instructor": "Moniteur de canyoning",
+      "whitewater_instructor": "Moniteur d'eau vive",
+      "diving_instructor": "Moniteur de plongée",
+      "surf_instructor": "Moniteur de surf / voile",
+      "paragliding_instructor": "Moniteur de parapente",
+      "ski_instructor": "Moniteur de ski",
+      "mtb_instructor": "Moniteur de VTT",
+      "wellness_instructor": "Professeur de yoga / bien-être",
+      "school_office": "Bureau / école",
+      "other": "Autre"
+    },
+    "fieldProfession": "Métier",
+    "professionPick": "Choisis ton métier",
+    "professionPlaceholder": "Choisir…",
+    "featuredSection": "Sortie mise en avant",
+    "featuredHelp": "Celle qui ouvre ta page. Les autres sont derrière « Voir les sorties ».",
+    "featuredFirst": "La première",
+    "professionNudge": "Ajoute ton métier : les clients pourront te trouver par filtre.",
     "pageTitle": "Ma page pro",
     "applicationTitle": "Ma demande pro",
     "registerSubtitleShort": "Quatre infos suffisent. Le reste se complète plus tard, depuis ta page.",

@@ -714,6 +714,8 @@
       "pro_location_cooldown": "Your location was moved less than 30 days ago — try again later.",
       "pro_profession_invalid": "Pick a profession from the list.",
       "review_requires_booking": "You can leave a review once the outing is done (accepted booking, date passed).",
+      "pro_profession_invalid": "Pick a profession from the list.",
+      "review_requires_booking": "You can leave a review once the outing is done (accepted booking, date passed).",
       "booking_cooldown": "You just re-sent this request — try again in an hour.",
       "activity_ended_no_remove": "This outing is over — you can no longer remove participants from it.",
       "participant_present_no_remove": "This participant's presence is already validated and can't be erased, so they can no longer be removed from the outing."
@@ -2065,6 +2067,28 @@
     "traceSent": "Trace sent"
   },
   "pro": {
+    "profession": {
+      "mountain_guide": "Mountain guide",
+      "mountain_leader": "Mountain leader",
+      "climbing_instructor": "Climbing instructor",
+      "canyoning_instructor": "Canyoning instructor",
+      "whitewater_instructor": "Whitewater instructor",
+      "diving_instructor": "Diving instructor",
+      "surf_instructor": "Surf / sailing instructor",
+      "paragliding_instructor": "Paragliding instructor",
+      "ski_instructor": "Ski instructor",
+      "mtb_instructor": "Mountain-bike instructor",
+      "wellness_instructor": "Yoga / wellness teacher",
+      "school_office": "Office / school",
+      "other": "Other"
+    },
+    "fieldProfession": "Profession",
+    "professionPick": "Pick your profession",
+    "professionPlaceholder": "Choose…",
+    "featuredSection": "Featured outing",
+    "featuredHelp": "The one that opens your page. The others sit behind « See the outings ».",
+    "featuredFirst": "The first one",
+    "professionNudge": "Add your profession: clients will find you with the filter.",
     "pageTitle": "My pro page",
     "applicationTitle": "My pro application",
     "registerSubtitleShort": "Four things are enough. The rest can be filled in later, from your page.",

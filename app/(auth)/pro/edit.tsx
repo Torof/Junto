@@ -20,6 +20,8 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius, glow } from '@/constants/theme';
 import { proService, type ClearableProField } from '@/services/pro-service';
+import { proOfferingService } from '@/services/pro-offering-service';
+import { PRO_PROFESSIONS, isProProfession, type ProProfession } from '@/constants/professions';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { pickAndUploadProPinImage } from '@/utils/pro-pin-image-upload';
 import { LogoSpinner } from '@/components/logo-spinner';
@@ -57,6 +59,11 @@ export default function ProEditScreen() {
 
   const isUpdate = !!existing;
   const isApproved = existing?.status === 'approved';
+  const { data: myOfferings } = useQuery({
+    queryKey: ['pro-offerings', existing?.user_id],
+    queryFn: () => proOfferingService.getByProId(existing!.user_id),
+    enabled: !!existing?.user_id && isApproved,
+  });
 
   const [displayName, setDisplayName] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -83,6 +90,10 @@ export default function ProEditScreen() {
   const [showContact, setShowContact] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showLocation, setShowLocation] = useState(false);
+  // 00554: declared profession (required) + the outing featured on the page.
+  const [profession, setProfession] = useState<ProProfession | null>(null);
+  const [showProfessionPicker, setShowProfessionPicker] = useState(false);
+  const [featuredOfferingId, setFeaturedOfferingId] = useState<string | null>(null);
 
   // Once the existing profile loads, hydrate the form.
   useEffect(() => {
@@ -102,6 +113,8 @@ export default function ProEditScreen() {
     setPinLat(existing.primary_lat);
     setPinIcon(existing.pin_icon);
     setPinImageUrl(existing.pin_image_url);
+    setProfession(isProProfession(existing.profession) ? existing.profession : null);
+    setFeaturedOfferingId(existing.featured_offering_id ?? null);
     // An approved pro sees slogan/description open (that is the page), a
     // pending/rejected one sees the application as they sent it.
     setShowAbout(existing.status === 'approved' || !!existing.tagline || !!existing.description);
@@ -167,6 +180,7 @@ export default function ProEditScreen() {
     : false;
   const canSubmit =
     displayName.trim().length >= 1 &&
+    profession !== null &&
     verificationOk &&
     pinLng !== null &&
     pinLat !== null &&
@@ -192,11 +206,12 @@ export default function ProEditScreen() {
         primary_lng: pinLng,
         primary_lat: pinLat,
         primary_location_name: locationName.trim(),
+        profession,
       };
       if (isUpdate) {
         // A field the pro blanked out must be named to the RPC (00444).
         const clear: ClearableProField[] = [];
-        const optional: Record<ClearableProField, string | null> = {
+        const optional: Record<Exclude<ClearableProField, 'profession' | 'featured_offering_id'>, string | null> = {
           tagline: payload.tagline,
           description: payload.description,
           website: payload.website,
@@ -205,12 +220,17 @@ export default function ProEditScreen() {
           instagram: payload.instagram,
           facebook: payload.facebook,
         };
-        (Object.keys(optional) as ClearableProField[]).forEach((k) => {
+        (Object.keys(optional) as (keyof typeof optional)[]).forEach((k) => {
           if (optional[k] === null && existing?.[k]) clear.push(k);
         });
+        // The featured outing: NULL means « the first », named to the RPC when
+        // the pro just unset it (the param itself reads NULL as unchanged).
+        if (featuredOfferingId === null && existing?.featured_offering_id) clear.push('featured_offering_id');
         const base = {
           display_name: payload.display_name,
           ...optional,
+          profession,
+          featured_offering_id: featuredOfferingId,
           clear,
           ...(showVerification ? { company_name: payload.company_name, real_name: payload.real_name } : {}),
         };
@@ -482,6 +502,45 @@ export default function ProEditScreen() {
           />
         </Field>
 
+        <Field label={t('pro.fieldProfession', { defaultValue: 'Métier' })} styles={styles}>
+          <Pressable style={styles.pickRow} onPress={() => setShowProfessionPicker(true)} accessibilityRole="button">
+            <AppText style={[styles.pickRowText, !profession && styles.pickRowPlaceholder]} numberOfLines={1}>
+              {profession
+                ? t(`pro.profession.${profession}`, { defaultValue: profession })
+                : t('pro.professionPlaceholder', { defaultValue: 'Choisir…' })}
+            </AppText>
+            <ChevronDown size={18} color={colors.textMuted} strokeWidth={2.2} />
+          </Pressable>
+        </Field>
+
+        {/* The outing that opens the page (00554) — a choice only once there are two. */}
+        {isApproved && (myOfferings?.length ?? 0) >= 2 && (
+          <Field label={t('pro.featuredSection', { defaultValue: 'Sortie mise en avant' })} styles={styles}>
+            <View style={styles.chipWrap}>
+              <Pressable
+                style={[styles.choiceChip, featuredOfferingId === null && styles.choiceChipSelected]}
+                onPress={() => setFeaturedOfferingId(null)}
+                accessibilityRole="button"
+              >
+                <AppText style={[styles.choiceChipText, featuredOfferingId === null && styles.choiceChipTextSelected]}>
+                  {t('pro.featuredFirst', { defaultValue: 'La première' })}
+                </AppText>
+              </Pressable>
+              {(myOfferings ?? []).map((o) => (
+                <Pressable
+                  key={o.id}
+                  style={[styles.choiceChip, featuredOfferingId === o.id && styles.choiceChipSelected]}
+                  onPress={() => setFeaturedOfferingId(o.id)}
+                  accessibilityRole="button"
+                >
+                  <AppText style={[styles.choiceChipText, featuredOfferingId === o.id && styles.choiceChipTextSelected]} numberOfLines={1}>{o.title}</AppText>
+                </Pressable>
+              ))}
+            </View>
+            <AppText style={styles.helper}>{t('pro.featuredHelp', { defaultValue: 'Celle qui ouvre ta page. Les autres sont derrière « Voir les sorties ».' })}</AppText>
+          </Field>
+        )}
+
         {showVerification && (
           <>
             <Field label={t('pro.fieldCompanyPrivate', { defaultValue: 'Raison sociale · non publique' })} styles={styles}>
@@ -590,6 +649,35 @@ export default function ProEditScreen() {
       </View>
 
       {/* Full-screen map picker — drop the pin anywhere; "Confirmer" promotes it. */}
+      {/* Profession picker — one choice, closed list (00554). */}
+      <Modal visible={showProfessionPicker} animationType="slide" transparent onRequestClose={() => setShowProfessionPicker(false)}>
+        <Pressable style={styles.sheetBackdrop} onPress={() => setShowProfessionPicker(false)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <View style={styles.sheetHandle} />
+            <AppText style={styles.sheetTitle}>{t('pro.professionPick', { defaultValue: 'Choisis ton métier' })}</AppText>
+            <ScrollView style={styles.sheetList} showsVerticalScrollIndicator={false}>
+              {PRO_PROFESSIONS.map((code) => {
+                const selected = profession === code;
+                return (
+                  <Pressable
+                    key={code}
+                    style={styles.sheetRow}
+                    onPress={() => { setProfession(code); setShowProfessionPicker(false); }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                  >
+                    <AppText style={[styles.sheetRowText, selected && styles.sheetRowTextSelected]}>
+                      {t(`pro.profession.${code}`, { defaultValue: code })}
+                    </AppText>
+                    {selected ? <Check size={18} color={colors.cta} strokeWidth={2.6} /> : null}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       <Modal visible={showMapPicker} animationType="slide" onRequestClose={() => setShowMapPicker(false)}>
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
           <JuntoMapView
@@ -696,6 +784,29 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   pinLogoChipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
   pinPreviewWrap: { paddingVertical: spacing.xs, paddingHorizontal: spacing.xs },
   field: { marginBottom: spacing.md },
+  pickRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    backgroundColor: colors.surface, borderRadius: radius.card - 4, borderWidth: 1, borderColor: colors.lineStrong,
+    paddingHorizontal: spacing.sm + 6, paddingVertical: spacing.sm + 4,
+  },
+  pickRowText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md },
+  pickRowPlaceholder: { color: colors.textSecondary },
+  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  choiceChip: {
+    borderRadius: radius.full, paddingHorizontal: spacing.sm + 6, paddingVertical: spacing.sm,
+    backgroundColor: colors.surface, borderWidth: 1.5, borderColor: colors.lineStrong, maxWidth: '100%',
+  },
+  choiceChipSelected: { borderColor: colors.cta, backgroundColor: colors.cta + '14' },
+  choiceChipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
+  choiceChipTextSelected: { color: colors.cta, fontWeight: '700' },
+  sheetBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
+  sheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: spacing.lg, paddingBottom: spacing.xl + 8, maxHeight: '80%' },
+  sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.md, opacity: 0.4 },
+  sheetTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', marginBottom: spacing.sm },
+  sheetList: { flexGrow: 0 },
+  sheetRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm + 4, borderBottomWidth: 1, borderBottomColor: colors.surfaceAlt },
+  sheetRowText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md },
+  sheetRowTextSelected: { color: colors.cta, fontWeight: '700' },
   fieldLabel: {
     color: colors.textPrimary,
     fontSize: fontSizes.sm - 1,

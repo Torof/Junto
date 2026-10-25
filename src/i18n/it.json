@@ -718,6 +718,8 @@
       "pro_location_cooldown": "La tua posizione è stata spostata meno di 30 giorni fa — riprova più tardi.",
       "pro_profession_invalid": "Scegli una professione dall'elenco.",
       "review_requires_booking": "Potrai lasciare una recensione a uscita fatta (prenotazione accettata, data passata).",
+      "pro_profession_invalid": "Scegli una professione dall'elenco.",
+      "review_requires_booking": "Potrai lasciare una recensione a uscita fatta (prenotazione accettata, data passata).",
       "booking_cooldown": "Richiesta già reinviata da poco — riprova tra un'ora.",
       "activity_ended_no_remove": "Questa uscita è conclusa — non puoi più rimuovere partecipanti.",
       "participant_present_no_remove": "La presenza di questo partecipante è già convalidata: non può più essere cancellata. Quindi non puoi più rimuoverlo dall'uscita."
@@ -2065,6 +2067,28 @@
     "traceSent": "Traccia inviata"
   },
   "pro": {
+    "profession": {
+      "mountain_guide": "Guida alpina",
+      "mountain_leader": "Accompagnatore di media montagna",
+      "climbing_instructor": "Istruttore di arrampicata",
+      "canyoning_instructor": "Guida di canyoning",
+      "whitewater_instructor": "Guida di acque vive",
+      "diving_instructor": "Istruttore subacqueo",
+      "surf_instructor": "Istruttore di surf / vela",
+      "paragliding_instructor": "Istruttore di parapendio",
+      "ski_instructor": "Maestro di sci",
+      "mtb_instructor": "Guida di mountain bike",
+      "wellness_instructor": "Insegnante di yoga / benessere",
+      "school_office": "Ufficio / scuola",
+      "other": "Altro"
+    },
+    "fieldProfession": "Professione",
+    "professionPick": "Scegli la tua professione",
+    "professionPlaceholder": "Scegli…",
+    "featuredSection": "Uscita in evidenza",
+    "featuredHelp": "Quella che apre la tua pagina. Le altre sono dietro « Vedi le uscite ».",
+    "featuredFirst": "La prima",
+    "professionNudge": "Aggiungi la tua professione: i clienti ti troveranno con il filtro.",
     "pageTitle": "La mia pagina pro",
     "applicationTitle": "La mia richiesta pro",
     "registerSubtitleShort": "Bastano quattro informazioni. Il resto si completa dopo, dalla tua pagina.",
