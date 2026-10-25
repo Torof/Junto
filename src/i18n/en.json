@@ -712,6 +712,8 @@
       "offering_has_bookings": "Not possible: upcoming bookings still exist.",
       "pro_identity_locked": "Your company and identity were verified: contact us to change them.",
       "pro_location_cooldown": "Your location was moved less than 30 days ago — try again later.",
+      "pro_profession_invalid": "Pick a profession from the list.",
+      "review_requires_booking": "You can leave a review once the outing is done (accepted booking, date passed).",
       "booking_cooldown": "You just re-sent this request — try again in an hour.",
       "activity_ended_no_remove": "This outing is over — you can no longer remove participants from it.",
       "participant_present_no_remove": "This participant's presence is already validated and can't be erased, so they can no longer be removed from the outing."

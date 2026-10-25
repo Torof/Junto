@@ -623,6 +623,9 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('cancel_booking_pro : la réservation passe « annulée par le pro »', format($$SELECT status FROM public.bookings WHERE id = %L$$, pg_temp.id('bk')), 'cancelled_pro');
 
 -- Avis sur la vitrine et sur l'offre.
+PERFORM pg_temp.as_('db');  -- 00554 : avis réservé à qui a réservé
+INSERT INTO public.bookings (offering_id, pro_id, client_id, day, period, party_size, status)
+VALUES (pg_temp.id('off'), pg_temp.id('pro'), pg_temp.id('cli'), current_date - 7, 'am', 1, 'accepted');
 PERFORM pg_temp.as_('cli');
 PERFORM pg_temp.put('rv', pg_temp.ok('fixture : un membre laisse un avis sur le pro', format($$SELECT public.create_pro_review(%L, 4::smallint, 'Bien')::text$$, pg_temp.id('pro'))));
 PERFORM pg_temp.ok('update_pro_review : l''auteur change sa note', format($$SELECT public.update_pro_review(%L, 2::smallint, 'Moyen <b>finalement</b>')::text$$, pg_temp.id('rv')));

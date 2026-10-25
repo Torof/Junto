@@ -2344,6 +2344,7 @@ export type Database = {
           display_name: string
           email: string | null
           facebook: string | null
+          featured_offering_id: string | null
           instagram: string | null
           is_demo: boolean
           last_location_change_at: string
@@ -2354,6 +2355,7 @@ export type Database = {
           primary_lng: number
           primary_location: unknown
           primary_location_name: string
+          profession: string | null
           real_name: string | null
           rejection_reason: string | null
           reviewed_at: string | null
@@ -2371,6 +2373,7 @@ export type Database = {
           display_name: string
           email?: string | null
           facebook?: string | null
+          featured_offering_id?: string | null
           instagram?: string | null
           is_demo?: boolean
           last_location_change_at?: string
@@ -2381,6 +2384,7 @@ export type Database = {
           primary_lng: number
           primary_location: unknown
           primary_location_name: string
+          profession?: string | null
           real_name?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
@@ -2398,6 +2402,7 @@ export type Database = {
           display_name?: string
           email?: string | null
           facebook?: string | null
+          featured_offering_id?: string | null
           instagram?: string | null
           is_demo?: boolean
           last_location_change_at?: string
@@ -2408,6 +2413,7 @@ export type Database = {
           primary_lng?: number
           primary_location?: unknown
           primary_location_name?: string
+          profession?: string | null
           real_name?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
@@ -2419,6 +2425,20 @@ export type Database = {
           website?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pro_profiles_featured_offering_id_fkey"
+            columns: ["featured_offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_profiles_featured_offering_id_fkey"
+            columns: ["featured_offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings_with_coords"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pro_profiles_reviewed_by_fkey"
             columns: ["reviewed_by"]
@@ -4277,6 +4297,7 @@ export type Database = {
           display_name: string
           email: string
           facebook: string
+          featured_offering_id: string
           instagram: string
           last_location_change_at: string
           phone: string
@@ -4285,6 +4306,7 @@ export type Database = {
           primary_lat: number
           primary_lng: number
           primary_location_name: string
+          profession: string
           real_name: string
           rejection_reason: string
           status: string
@@ -4546,6 +4568,7 @@ export type Database = {
           p_primary_lat?: number
           p_primary_lng?: number
           p_primary_location_name?: string
+          p_profession?: string
           p_real_name: string
           p_tagline?: string
           p_website?: string
@@ -4834,11 +4857,13 @@ export type Database = {
           p_display_name?: string
           p_email?: string
           p_facebook?: string
+          p_featured_offering_id?: string
           p_instagram?: string
           p_phone?: string
           p_primary_lat?: number
           p_primary_lng?: number
           p_primary_location_name?: string
+          p_profession?: string
           p_real_name?: string
           p_tagline?: string
           p_website?: string

@@ -716,6 +716,8 @@
       "offering_has_bookings": "Imposible: todavía hay reservas próximas.",
       "pro_identity_locked": "Tu estructura y tu identidad ya han sido verificadas: escríbenos para modificarlas.",
       "pro_location_cooldown": "Tu ubicación se movió hace menos de 30 días — vuelve a intentarlo más tarde.",
+      "pro_profession_invalid": "Elige una profesión de la lista.",
+      "review_requires_booking": "Podrás dejar una opinión cuando la salida se haya hecho (reserva aceptada, fecha pasada).",
       "booking_cooldown": "Solicitud reenviada hace poco — vuelve a intentarlo dentro de una hora.",
       "activity_ended_no_remove": "Esta salida ha terminado — ya no puedes quitar participantes.",
       "participant_present_no_remove": "La presencia de este participante ya está validada: no se puede borrar. Por eso ya no puedes quitarlo de la salida."

@@ -772,6 +772,9 @@ PERFORM pg_temp.denied('D3 pas de photo communautaire chez un pro suspendu (0052
   pg_temp.host() || '/storage/v1/object/public/pro-photos/' || pg_temp.get('pc_c2') || '/c.jpg'), '^Operation not permitted$');
 
 -- D4 — Bloqué par le pro : on ne réécrit pas un ancien avis (00501 PO-4).
+PERFORM pg_temp.as_('db');  -- 00554 : avis réservé à qui a réservé
+INSERT INTO public.bookings (offering_id, pro_id, client_id, day, period, party_size, status)
+VALUES (pg_temp.id('pc_off'), pg_temp.id('pc_pro'), pg_temp.id('pc_c2'), current_date - 7, 'am', 1, 'accepted');
 PERFORM pg_temp.as_('pc_c2');
 PERFORM pg_temp.put('pc_rv', pg_temp.ok('D4 pc_c2 laisse un avis sur le pro', format($$SELECT public.create_pro_review(%L, 4::smallint, 'Bien')::text$$, pg_temp.id('pc_pro'))));
 PERFORM pg_temp.put('pc_orv', pg_temp.ok('D4 pc_c2 laisse un avis sur l''offre', format($$SELECT public.create_offering_review(%L, 4::smallint, 'Bien')::text$$, pg_temp.id('pc_off'))));

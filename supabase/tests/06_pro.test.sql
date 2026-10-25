@@ -116,7 +116,7 @@ PERFORM pg_temp.ok('vider la tagline via p_clear', $$SELECT public.update_pro_pr
 PERFORM pg_temp.po_unlock();
 PERFORM pg_temp.eq('la tagline est vidée', $$SELECT coalesce(tagline, 'null') FROM public.get_my_pro_application()$$, 'null');
 PERFORM pg_temp.denied('p_clear refuse une colonne hors liste blanche', $$SELECT public.update_pro_profile(p_clear := ARRAY['display_name'])::text$$);
-PERFORM pg_temp.denied('p_clear refuse plus de 7 entrées', $$SELECT public.update_pro_profile(p_clear := ARRAY['tagline','tagline','tagline','tagline','tagline','tagline','tagline','tagline'])::text$$);
+PERFORM pg_temp.denied('p_clear refuse plus de 9 entrées (00554 : 9 colonnes vidables)', $$SELECT public.update_pro_profile(p_clear := ARRAY['tagline','tagline','tagline','tagline','tagline','tagline','tagline','tagline','tagline','tagline'])::text$$);
 PERFORM pg_temp.denied('approuvé : déplacement de l''enseigne sous cooldown', $$SELECT public.update_pro_profile(p_primary_lng := 6.0, p_primary_lat := 45.0, p_primary_location_name := 'Ailleurs')::text$$, 'junto.pro_location_cooldown');
 PERFORM pg_temp.denied('déplacement sans nom de lieu refusé', $$SELECT public.update_pro_profile(p_primary_lng := 6.0, p_primary_lat := 45.0)::text$$);
 PERFORM pg_temp.denied('site web en javascript: refusé', $$SELECT public.update_pro_profile(p_website := 'javascript:alert(1)')::text$$, 'junto\.pro_website_invalid');
@@ -380,6 +380,12 @@ PERFORM set_config('junto.bypass_lock', 'true', true);
 UPDATE public.users SET suspended_at = NULL WHERE id IN (pg_temp.id('cli'), pg_temp.id('cli3'));
 PERFORM pg_temp.po_unlock();
 
+-- 00554 : un avis exige une réservation acceptée et passée — fixtures pour les relecteurs.
+PERFORM pg_temp.as_('db');
+INSERT INTO public.bookings (offering_id, pro_id, client_id, day, period, party_size, status) VALUES
+  (pg_temp.id('off'),  pg_temp.id('pro'),  pg_temp.id('cli'),  current_date - 7, 'am', 1, 'accepted'),
+  (pg_temp.id('off2'), pg_temp.id('pro2'), pg_temp.id('cli'),  current_date - 7, 'am', 1, 'accepted'),
+  (pg_temp.id('off2'), pg_temp.id('pro2'), pg_temp.id('cli2'), current_date - 7, 'pm', 1, 'accepted');
 -- ═════ Avis sur la vitrine ═════
 PERFORM pg_temp.as_('cli');
 PERFORM pg_temp.put('rv1', pg_temp.ok('un membre laisse un avis sur le pro', format($$SELECT public.create_pro_review(%L, 4::smallint, '<b>Super</b> guide')::text$$, pg_temp.id('pro'))));

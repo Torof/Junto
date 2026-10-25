@@ -716,6 +716,8 @@
       "offering_has_bookings": "Impossibile: esistono ancora prenotazioni future.",
       "pro_identity_locked": "La tua struttura e la tua identità sono state verificate: scrivici per modificarle.",
       "pro_location_cooldown": "La tua posizione è stata spostata meno di 30 giorni fa — riprova più tardi.",
+      "pro_profession_invalid": "Scegli una professione dall'elenco.",
+      "review_requires_booking": "Potrai lasciare una recensione a uscita fatta (prenotazione accettata, data passata).",
       "booking_cooldown": "Richiesta già reinviata da poco — riprova tra un'ora.",
       "activity_ended_no_remove": "Questa uscita è conclusa — non puoi più rimuovere partecipanti.",
       "participant_present_no_remove": "La presenza di questo partecipante è già convalidata: non può più essere cancellata. Quindi non puoi più rimuoverlo dall'uscita."

@@ -65,7 +65,7 @@ PERFORM pg_temp.eq('S1 carl n''écoute plus le direct de la sortie',
 -- une fonction interne qui apparaît ici (ex. delete_account_as) est une faille.
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.put('sw_auth', $ref$ARRAY[
-  'public.update_pro_profile(p_display_name text, p_tagline text, p_description text, p_website text, p_email text, p_phone text, p_instagram text, p_facebook text, p_primary_lng double precision, p_primary_lat double precision, p_primary_location_name text, p_company_name text, p_real_name text, p_clear text[])',
+  'public.update_pro_profile(p_display_name text, p_tagline text, p_description text, p_website text, p_email text, p_phone text, p_instagram text, p_facebook text, p_primary_lng double precision, p_primary_lat double precision, p_primary_location_name text, p_company_name text, p_real_name text, p_clear text[], p_profession text, p_featured_offering_id uuid)',
   'public.get_group_info(p_conversation_id uuid)',
   'public.rename_group(p_conversation_id uuid, p_name text, p_icon text)',
   'public.get_activity_by_invite_token(p_token uuid)',
@@ -79,7 +79,7 @@ PERFORM pg_temp.put('sw_auth', $ref$ARRAY[
   'public.admin_set_demo_mode(p_on boolean)',
   'public.set_pro_pin_image(p_pin_image_url text)',
   'public.admin_resolve_user(p_user_id uuid)',
-  'public.register_as_pro(p_display_name text, p_company_name text, p_real_name text, p_tagline text, p_description text, p_website text, p_email text, p_phone text, p_instagram text, p_facebook text, p_primary_lng double precision, p_primary_lat double precision, p_primary_location_name text)',
+  'public.register_as_pro(p_display_name text, p_company_name text, p_real_name text, p_tagline text, p_description text, p_website text, p_email text, p_phone text, p_instagram text, p_facebook text, p_primary_lng double precision, p_primary_lat double precision, p_primary_location_name text, p_profession text)',
   'public.set_offering_details(p_offering_id uuid, p_equipment_provided text[], p_equipment_required text[], p_participant_std text[], p_participant_custom text[])',
   'public.get_conversation_peer(p_conversation_id uuid)',
   'public.reject_pro(p_user_id uuid, p_reason text)',

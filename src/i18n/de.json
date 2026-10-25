@@ -716,6 +716,8 @@
       "offering_has_bookings": "Nicht möglich: Es gibt noch bevorstehende Buchungen.",
       "pro_identity_locked": "Dein Betrieb und deine Identität wurden geprüft: Schreib uns, um sie zu ändern.",
       "pro_location_cooldown": "Dein Standort wurde vor weniger als 30 Tagen verschoben — versuch es später noch mal.",
+      "pro_profession_invalid": "Wähle einen Beruf aus der Liste.",
+      "review_requires_booking": "Eine Bewertung ist möglich, sobald die Tour stattgefunden hat (angenommene Buchung, Datum vorbei).",
       "booking_cooldown": "Anfrage erst vor Kurzem erneut gesendet — versuch es in einer Stunde noch mal.",
       "activity_ended_no_remove": "Diese Tour ist beendet — du kannst keine Teilnehmer mehr entfernen.",
       "participant_present_no_remove": "Die Anwesenheit dieses Teilnehmers ist bereits bestätigt und kann nicht mehr gelöscht werden. Du kannst ihn daher nicht mehr aus der Tour entfernen."
