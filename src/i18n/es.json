@@ -2067,6 +2067,20 @@
     "traceSent": "Track enviado"
   },
   "pro": {
+    "page": {
+      "write": "Escribir",
+      "reviewCount_one": "{{count}} opinión",
+      "reviewCount_other": "{{count}} opiniones",
+      "outings": "Salidas guiadas",
+      "featured": "destacada",
+      "upTo": "hasta {{count}} pers.",
+      "firstOuting": "Añade tu primera salida",
+      "noOutings": "Aún no hay salidas en el catálogo.",
+      "seeOutings": "Ver las {{count}} salidas",
+      "seeReviews": "Ver las {{count}} opiniones ›",
+      "reviewsPage": "Ver ›",
+      "noPhotos": "Aún no hay fotos."
+    },
     "profession": {
       "mountain_guide": "Guía de alta montaña",
       "mountain_leader": "Guía de montaña",

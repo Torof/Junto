@@ -2067,6 +2067,20 @@
     "traceSent": "Trace sent"
   },
   "pro": {
+    "page": {
+      "write": "Email",
+      "reviewCount_one": "{{count}} review",
+      "reviewCount_other": "{{count}} reviews",
+      "outings": "Guided outings",
+      "featured": "featured",
+      "upTo": "up to {{count}} people",
+      "firstOuting": "Add your first outing",
+      "noOutings": "No outing in the catalogue yet.",
+      "seeOutings": "See the {{count}} outings",
+      "seeReviews": "See the {{count}} reviews ›",
+      "reviewsPage": "See ›",
+      "noPhotos": "No photo yet."
+    },
     "profession": {
       "mountain_guide": "Mountain guide",
       "mountain_leader": "Mountain leader",

@@ -2067,6 +2067,20 @@
     "traceSent": "Track gesendet"
   },
   "pro": {
+    "page": {
+      "write": "E-Mail",
+      "reviewCount_one": "{{count}} Bewertung",
+      "reviewCount_other": "{{count}} Bewertungen",
+      "outings": "Geführte Touren",
+      "featured": "hervorgehoben",
+      "upTo": "bis zu {{count}} Pers.",
+      "firstOuting": "Füge deine erste Tour hinzu",
+      "noOutings": "Noch keine Tour im Katalog.",
+      "seeOutings": "Alle {{count}} Touren ansehen",
+      "seeReviews": "Alle {{count}} Bewertungen ansehen ›",
+      "reviewsPage": "Ansehen ›",
+      "noPhotos": "Noch kein Foto."
+    },
     "profession": {
       "mountain_guide": "Bergführer:in",
       "mountain_leader": "Wanderführer:in",

@@ -2067,6 +2067,20 @@
     "traceSent": "Trace envoyée"
   },
   "pro": {
+    "page": {
+      "write": "Écrire",
+      "reviewCount_one": "{{count}} avis",
+      "reviewCount_other": "{{count}} avis",
+      "outings": "Sorties encadrées",
+      "featured": "mise en avant",
+      "upTo": "jusqu'à {{count}} pers.",
+      "firstOuting": "Ajoute ta première sortie",
+      "noOutings": "Pas encore de sortie au catalogue.",
+      "seeOutings": "Voir les {{count}} sorties",
+      "seeReviews": "Voir les {{count}} avis ›",
+      "reviewsPage": "Voir ›",
+      "noPhotos": "Pas encore de photo."
+    },
     "profession": {
       "mountain_guide": "Guide de haute montagne",
       "mountain_leader": "Accompagnateur en montagne",

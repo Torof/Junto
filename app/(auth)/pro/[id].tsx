@@ -10,7 +10,9 @@ import { fontSizes, spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { proService } from '@/services/pro-service';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { StatusBar } from 'expo-status-bar';
 import { ProDetail } from '@/components/pro-detail';
+import { ProPage } from '@/components/pro-page';
 import { PageTypeBadge } from '@/components/page-type-badge';
 
 export default function ProPageScreen() {
@@ -31,12 +33,21 @@ export default function ProPageScreen() {
   // Navbar header — small square pin + "Page pro · {display_name}".
   // Matches the map's pin vocabulary so the user knows what kind of
   // page they're on AND which specific pro it is.
+  // The page itself (no tab) is full screen: its own top row sits on the
+  // photo, no navbar, status bar hidden (Scott 2026-10-25). The old tabs
+  // (catalogue, photos, avis) keep the navbar badge.
+  const soloTab = tab === 'catalog' || tab === 'pictures' || tab === 'reviews' ? tab : undefined;
   useLayoutEffect(() => {
+    if (!soloTab) {
+      navigation.setOptions({ headerShown: false });
+      return;
+    }
     if (!pro) return;
     navigation.setOptions({
+      headerShown: true,
       headerTitle: () => <PageTypeBadge type="pro" name={pro.display_name} />,
     });
-  }, [navigation, pro]);
+  }, [navigation, pro, soloTab]);
 
   if (authLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
   if (!isAuthenticated) return <Redirect href="/(visitor)/login" />;
@@ -55,11 +66,19 @@ export default function ProPageScreen() {
 
   const isOwner = session?.user?.id === pro.user_id;
 
+  if (!soloTab) {
+    return (
+      <>
+        <StatusBar hidden />
+        <ProPage pro={pro} isOwner={isOwner} />
+      </>
+    );
+  }
   return (
     <ProDetail
       pro={pro}
       isOwner={isOwner}
-      initialTab={tab === 'catalog' || tab === 'pictures' || tab === 'reviews' ? tab : undefined}
+      initialTab={soloTab}
       onEdit={isOwner ? () => router.push('/(auth)/pro/edit') : undefined}
     />
   );

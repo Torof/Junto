@@ -2067,6 +2067,20 @@
     "traceSent": "Traccia inviata"
   },
   "pro": {
+    "page": {
+      "write": "Scrivi",
+      "reviewCount_one": "{{count}} recensione",
+      "reviewCount_other": "{{count}} recensioni",
+      "outings": "Uscite guidate",
+      "featured": "in evidenza",
+      "upTo": "fino a {{count}} pers.",
+      "firstOuting": "Aggiungi la tua prima uscita",
+      "noOutings": "Nessuna uscita a catalogo per ora.",
+      "seeOutings": "Vedi le {{count}} uscite",
+      "seeReviews": "Vedi le {{count}} recensioni ›",
+      "reviewsPage": "Vedi ›",
+      "noPhotos": "Nessuna foto per ora."
+    },
     "profession": {
       "mountain_guide": "Guida alpina",
       "mountain_leader": "Accompagnatore di media montagna",

@@ -8,7 +8,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, MapPin, Trophy } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivitySheet } from '@/components/activity-sheet';
-import { ProSheet } from '@/components/pro-sheet';
 import { OfferingSheet } from '@/components/offering-sheet';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
 import { FilterButton, EntityTypeToggles } from '@/components/filter-bar';
@@ -91,9 +90,6 @@ export default function CarteScreen() {
   // same pin (or anywhere on the preview card) opens the detail page.
   // Tap on the map elsewhere dismisses. Mutually exclusive with the
   // activity selection — picking one clears the other.
-  // PP drawer is driven by the pro's user id (ProSheet fetches by it), so a
-  // catalogue/host link can open it by id without a NearbyPro object.
-  const [selectedProId, setSelectedProId] = useState<string | null>(null);
   const [selectedOffering, setSelectedOffering] = useState<import('@/services/pro-offering-service').ProOffering | null>(null);
   // Drawer-list "peek" state — when the user taps a card, the matching
   // pin scales up and the card gets a CTA tint. Second tap on the
@@ -234,7 +230,6 @@ export default function CarteScreen() {
         selectionBoundsSpan.current = newSpan;
       } else if (newSpan > selectionBoundsSpan.current * 1.3) {
         setSelectedActivity(null);
-        setSelectedProId(null);
         setSelectedOffering(null);
         selectionBoundsSpan.current = null;
       }
@@ -326,7 +321,7 @@ export default function CarteScreen() {
 
   // A pin tap selects one of the three entity types; each opens its own drawer
   // (ActivitySheet teaser / ProSheet / OfferingSheet).
-  const previewOpen = selectedActivity !== null || selectedProId !== null || selectedOffering !== null;
+  const previewOpen = selectedActivity !== null || selectedOffering !== null;
 
   // Fly to a pin and land it in the upper part of the map (clear of the drawer
   // sliding up), same framing as a pin tap. Used by the cross-drawer links.
@@ -343,7 +338,6 @@ export default function CarteScreen() {
 
   const clearPreview = useCallback(() => {
     setSelectedActivity(null);
-    setSelectedProId(null);
     setSelectedOffering(null);
   }, []);
 
@@ -409,17 +403,14 @@ export default function CarteScreen() {
                 setSelectedActivity(null);
                 setSelectedOffering(null);
                 setHighlightedPinId(null);
-                setFlyTarget([pro.primary_lng, pro.primary_lat]);
-                setFlyOffset({ y: -0.28 });
-                setFlyToKey((k) => k + 1);
-                setSelectedProId(pro.user_id);
+                // The pro page is a full page now (2026-10-25): push it.
+                router.push(`/(auth)/pro/${pro.user_id}`);
               }}
               proOfferings={filteredOfferingsByType}
               onProOfferingPress={(offering) => {
                 suppressMapPressUntil.current = Date.now() + 400;
                 setTappedPoint(null);
                 setSelectedActivity(null);
-                setSelectedProId(null);
                 setHighlightedPinId(null);
                 setFlyTarget([offering.lng, offering.lat]);
                 setFlyOffset({ y: -0.28 });
@@ -472,7 +463,6 @@ export default function CarteScreen() {
               onActivityPress={(a) => {
                 suppressMapPressUntil.current = Date.now() + 400;
                 setTappedPoint(null);
-                setSelectedProId(null);
                 setSelectedOffering(null);
                 setHighlightedPinId(null);
                 // Land the pin in the top third so it's clear of the
@@ -490,7 +480,7 @@ export default function CarteScreen() {
                   return;
                 }
                 // Any open pin preview dismisses on a map press.
-                if (selectedActivity || selectedProId || selectedOffering) {
+                if (selectedActivity || selectedOffering) {
                   clearPreview();
                   return;
                 }
@@ -536,7 +526,6 @@ export default function CarteScreen() {
             }
             // Clear any pin-tap state (mutually exclusive with peek).
             setSelectedActivity(null);
-            setSelectedProId(null);
             setSelectedOffering(null);
             setHighlightedPinId(a.id);
             // Fly the map so the pin lands at ~22% from the top —
@@ -555,7 +544,6 @@ export default function CarteScreen() {
               return;
             }
             setSelectedActivity(null);
-            setSelectedProId(null);
             setSelectedOffering(null);
             setHighlightedPinId(o.id);
             setFlyTarget([o.lng, o.lat]);
@@ -581,17 +569,12 @@ export default function CarteScreen() {
         {/* Always mounted (nullable userId) so the gorhom modal shell never
             unmounts — present()/dismiss() follow the selection. Conditionally
             mounting it corrupted native gesture state on reopen. */}
-        <ProSheet
-          userId={selectedProId}
-          onClose={() => setSelectedProId(null)}
-          onOpenOffering={(o) => { setSelectedProId(null); setSelectedOffering(o); flyToPin([o.lng, o.lat]); }}
-        />
 
         {/* RA offering drawer — same always-mounted modal pattern as ProSheet. */}
         <OfferingSheet
           offering={selectedOffering}
           onClose={() => setSelectedOffering(null)}
-          onOpenPro={(userId, coordinate) => { setSelectedOffering(null); setSelectedProId(userId); flyToPin(coordinate); }}
+          onOpenPro={(userId) => { setSelectedOffering(null); router.push(`/(auth)/pro/${userId}`); }}
         />
 
         <FilterSheet
