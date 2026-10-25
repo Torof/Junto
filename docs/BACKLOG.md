@@ -53,14 +53,14 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 ### Page pro — refonte (décidée 2026-10-25, voir DECISIONS) — maquette d'abord, corps à décider
 - [ ] Pleine page (plus de tiroir depuis le pin), barre de statut cachée sur cet écran.
 - [ ] En-tête validé : photo (hauteur actuelle) + PRO / favori / partage / croix en haut ; nom, métier · lieu, labels, note · avis, tagline sur la photo (voile ≈ 46 %) ; actions Appeler · Contacter · Site web · Itinéraire dessous.
-- [x] Base (2026-10-25, migs 00554-00555, test 16, 2557 verts) : `profession`, `featured_offering_id`, avis réservés à qui a réservé. Reste côté app : sélecteur de métier (formulaire pro, i18n ×5), filtre carte par métier.
+- [x] Base (2026-10-25, migs 00554-00555, test 16, 2557 verts) : `profession`, `featured_offering_id`, avis réservés à qui a réservé.
+- [x] Espace pro (2026-10-25, OTA preview) : sélecteur de métier (obligatoire), pastilles « Sortie mise en avant » (dès deux offres), rappel dans l'espace pro, libellés ×5. Reste : filtre carte par métier.
 - [ ] Couleur pro = or `#F2B705` (DECISIONS 2026-10-25) : liseré or des pins pro (`pin-body` paramétré par le liseré), capsule PRO fond or / texte encre, badge PRO et pastille SORTIE ENCADRÉE sur les pages, pastille « Page pro » de la navbar (`page-type-badge`), visuels Play à mettre en accord.
 - [ ] Tagline : plus sur la photo ; elle ouvre « À propos » (limite 120 inchangée).
 - [ ] Fiche d'une sortie pro sur le même modèle (validée 2026-10-25) : photo + titre + prix, bande « par », faits en grille, à propos, matériel, avis, photos, barre prix + Réserver ; les créneaux derrière Réserver.
 - [x] Avis réservés à qui a réservé — fait en base (00554/00555) ; reste : mention « avis vérifiés » dans l'app, message `errors.code.review_requires_booking` déjà traduit.
 - [ ] Photos : 4 vignettes + « Voir tout » → page grille (pro puis communauté) ; fin du carrousel.
 - [ ] Corps validé 2026-10-25 : une sortie mise en avant + bandeau « Voir les N sorties › » (→ page catalogue = onglet actuel gardé) ; Avis (4,9 + étoiles + « 24 avis », deux avis étoilés, lien discret « Voir les N avis ») ; Photos ; À propos ; coordonnées. Plus d'onglets.
-- [ ] Espace pro : choisir la sortie mise en avant (défaut : première de l'ordre).
 - [ ] À décider : note « 4,9 · 24 avis » sur la photo tapable → section Avis (suggéré).
 
 ### Matériel nécessaire (conçu 2026-07-09, PARKÉ — spec : `docs/GEAR_NEEDS.md` ; déclencheur : conversations « il manque X » observées sur les murs post-lancement)
