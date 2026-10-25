@@ -98,6 +98,9 @@ interface Props {
   isOwner: boolean;
   // Tab to open on (Espace pro › « Mes sorties » lands on the catalog).
   initialTab?: ProTab;
+  // 2026-10-25: render ONLY that tab's content, no header / carousel / tab bar —
+  // the catalogue, reviews and photos as plain pages behind the new pro page.
+  soloTab?: ProTab;
   onEdit?: () => void;
   // When hosted inside the pin drawer (gorhom sheet), the tab bodies must
   // use BottomSheetScrollView so the drag gesture coordinates with the sheet.
@@ -175,7 +178,7 @@ function buildPhotoColumns(photos: ColPhoto[], maxColumns: number) {
   return columns;
 }
 
-export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, onClose, onExpand, onHeaderMeasured, onOpenOffering }: Props) {
+export function ProDetail({ pro, isOwner, initialTab, soloTab, onEdit, inSheet = false, onClose, onExpand, onHeaderMeasured, onOpenOffering }: Props) {
   const openOffering = (o: ProOffering) => (onOpenOffering ? onOpenOffering(o) : router.push(`/(auth)/pro/offering/${o.id}`));
   // Selecting a tab expands the sheet to full height, then (once it settles at
   // the '100%' top snap, where scroll is reliably unlocked) scrolls the header +
@@ -199,7 +202,7 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
   const scrollRef = useRef<ComponentRef<typeof BottomSheetScrollView>>(null);
   const tabBarTopRef = useRef(0);
   const [descExpanded, setDescExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<ProTab>(initialTab ?? 'info');
+  const [activeTab, setActiveTab] = useState<ProTab>(soloTab ?? initialTab ?? 'info');
   const [showFullMap, setShowFullMap] = useState(false);
   // Fullscreen viewer for the header carousel (indexes into galleryPhotos).
   const [carouselViewerIndex, setCarouselViewerIndex] = useState<number | null>(null);
@@ -951,6 +954,17 @@ export function ProDetail({ pro, isOwner, initialTab, onEdit, inSheet = false, o
           {tabBarNode}
           {contentNode}
         </BottomSheetScrollView>
+        {modalsNode}
+      </View>
+    );
+  }
+
+  if (soloTab) {
+    return (
+      <View style={styles.container}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} nestedScrollEnabled>
+          {contentNode}
+        </ScrollView>
         {modalsNode}
       </View>
     );

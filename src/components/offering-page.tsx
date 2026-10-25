@@ -103,6 +103,7 @@ export function OfferingPage({ offering, isOwner }: Props) {
   };
   const openPro = () => router.push(`/(auth)/pro/${offering.pro_id}`);
   const openOld = () => router.push(`/(auth)/pro/offering/${offering.id}?tab=details`);
+  const openReviews = () => router.push(`/(auth)/pro/offering/${offering.id}?tab=reviews`);
   const book = () => router.push(`/(auth)/pro/book/${offering.id}`);
 
   const facts: { key: string; icon: React.ReactNode; label: string; value: string }[] = [
@@ -239,7 +240,7 @@ export function OfferingPage({ offering, isOwner }: Props) {
         {/* ===== Reviews of this outing ===== */}
         <View style={styles.head}>
           <AppText style={styles.sec}>{t('proOffering.tab.reviews', { defaultValue: 'Avis' })}</AppText>
-          <Pressable onPress={openOld} hitSlop={6}>
+          <Pressable onPress={openReviews} hitSlop={6}>
             <AppText style={styles.link}>
               {hasRating
                 ? t('pro.page.seeReviews', { defaultValue: 'Voir les {{count}} avis ›', count: stats!.review_count })

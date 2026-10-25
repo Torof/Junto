@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import dayjs from 'dayjs';
 
 // Reviews — Pro storefront surfaces only (pro page + offerings).
 // Google-Maps model (DECISIONS 2026-06-10): ungated, 1-5 stars +
@@ -116,6 +117,23 @@ export const reviewService = {
   deleteForOffering: async (reviewId: string): Promise<void> => {
     const { error } = await supabase.rpc('delete_offering_review', { p_review_id: reviewId });
     if (error) throw error;
+  },
+
+  // 00554: a review needs a booking of mine, accepted and already past, with
+  // this pro / on this offering. The RPC refuses otherwise; the app hides the
+  // button instead of showing one that fails. Own bookings are readable (RLS).
+  canReview: async (targetType: 'pro' | 'offering', targetId: string, userId: string): Promise<boolean> => {
+    let query = supabase
+      .from('bookings')
+      .select('id')
+      .eq('client_id', userId)
+      .eq('status', 'accepted')
+      .lt('day', dayjs().format('YYYY-MM-DD'))
+      .limit(1);
+    query = targetType === 'pro' ? query.eq('pro_id', targetId) : query.eq('offering_id', targetId);
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data ?? []).length > 0;
   },
 
   // NULL / empty reply clears the slot server-side.

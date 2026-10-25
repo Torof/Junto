@@ -13,7 +13,6 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { StatusBar } from 'expo-status-bar';
 import { ProDetail } from '@/components/pro-detail';
 import { ProPage } from '@/components/pro-page';
-import { PageTypeBadge } from '@/components/page-type-badge';
 
 export default function ProPageScreen() {
   const { id, tab } = useLocalSearchParams<{ id: string; tab?: string }>();
@@ -43,11 +42,13 @@ export default function ProPageScreen() {
       return;
     }
     if (!pro) return;
-    navigation.setOptions({
-      headerShown: true,
-      headerTitle: () => <PageTypeBadge type="pro" name={pro.display_name} />,
-    });
-  }, [navigation, pro, soloTab]);
+    const label = soloTab === 'catalog'
+      ? t('pro.page.outings', { defaultValue: 'Sorties encadrées' })
+      : soloTab === 'reviews'
+        ? t('pro.tab.reviews', { defaultValue: 'Avis' })
+        : t('pro.tab.pictures', { defaultValue: 'Photos' });
+    navigation.setOptions({ headerShown: true, headerTitle: `${label} · ${pro.display_name}` });
+  }, [navigation, pro, soloTab, t]);
 
   if (authLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
   if (!isAuthenticated) return <Redirect href="/(visitor)/login" />;
@@ -78,7 +79,7 @@ export default function ProPageScreen() {
     <ProDetail
       pro={pro}
       isOwner={isOwner}
-      initialTab={soloTab}
+      soloTab={soloTab}
       onEdit={isOwner ? () => router.push('/(auth)/pro/edit') : undefined}
     />
   );

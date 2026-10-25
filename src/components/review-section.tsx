@@ -72,6 +72,11 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
 
   // Community photos on this pro (only pro pages have them), grouped by the
   // review they were posted with so each review renders its own thumbnails.
+  const { data: canReview = false } = useQuery({
+    queryKey: ['can-review', targetType, targetId, currentUserId],
+    queryFn: () => reviewService.canReview(targetType, targetId, currentUserId!),
+    enabled: !!currentUserId && !isOwner,
+  });
   const { data: communityPhotos = [] } = useQuery({
     queryKey: ['community-photos', targetId],
     queryFn: () => proCommunityPhotoService.listByPro(targetId),
@@ -286,7 +291,7 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
         </View>
       )}
 
-      {!isOwner && currentUserId && (
+      {!isOwner && currentUserId && (ownReview || canReview) && (
         <Pressable style={styles.ctaButton} onPress={openComposer}>
           <AppText style={styles.ctaText}>
             {ownReview ? t('reviews.editMine') : t('reviews.writeOne')}
