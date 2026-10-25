@@ -54,6 +54,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 - [ ] Pleine page (plus de tiroir depuis le pin), barre de statut cachée sur cet écran.
 - [ ] En-tête validé : photo (hauteur actuelle) + PRO / favori / partage / croix en haut ; nom, métier · lieu, labels, note · avis, tagline sur la photo (voile ≈ 46 %) ; actions Appeler · Contacter · Site web · Itinéraire dessous.
 - [ ] Champ `profession` (liste fermée, whitelist, formulaire pro, i18n ×5) + filtre carte par métier.
+- [ ] Couleur pro = or `#F2B705` (DECISIONS 2026-10-25) : liseré or des pins pro (`pin-body` paramétré par le liseré), capsule PRO fond or / texte encre, badge PRO et pastille SORTIE ENCADRÉE sur les pages, pastille « Page pro » de la navbar (`page-type-badge`), visuels Play à mettre en accord.
 - [ ] Tagline : plus sur la photo ; elle ouvre « À propos » (limite 120 inchangée).
 - [ ] Fiche d'une sortie pro sur le même modèle (validée 2026-10-25) : photo + titre + prix, bande « par », faits en grille, à propos, matériel, avis, photos, barre prix + Réserver ; les créneaux derrière Réserver.
 - [ ] Avis réservés à qui a réservé (décidé) : `create_pro_review` / `create_offering_review` exigent une réservation acceptée et passée ; mention « avis vérifiés ».
