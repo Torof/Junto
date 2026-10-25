@@ -8,7 +8,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, MapPin, Trophy } from 'lucide-react-native';
 import { JuntoMapView, type MapBounds } from '@/components/map-view';
 import { ActivitySheet } from '@/components/activity-sheet';
-import { OfferingSheet } from '@/components/offering-sheet';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
 import { FilterButton, EntityTypeToggles } from '@/components/filter-bar';
 import { MapToast } from '@/components/map-toast';
@@ -412,10 +411,8 @@ export default function CarteScreen() {
                 setTappedPoint(null);
                 setSelectedActivity(null);
                 setHighlightedPinId(null);
-                setFlyTarget([offering.lng, offering.lat]);
-                setFlyOffset({ y: -0.28 });
-                setFlyToKey((k) => k + 1);
-                setSelectedOffering(offering);
+                // The outing sheet is a full page now (2026-10-25): push it.
+                router.push(`/(auth)/pro/offering/${offering.id}`);
               }}
               userLocation={currentLocation ?? center}
               radiusKm={radiusKm}
@@ -570,12 +567,6 @@ export default function CarteScreen() {
             unmounts — present()/dismiss() follow the selection. Conditionally
             mounting it corrupted native gesture state on reopen. */}
 
-        {/* RA offering drawer — same always-mounted modal pattern as ProSheet. */}
-        <OfferingSheet
-          offering={selectedOffering}
-          onClose={() => setSelectedOffering(null)}
-          onOpenPro={(userId) => { setSelectedOffering(null); router.push(`/(auth)/pro/${userId}`); }}
-        />
 
         <FilterSheet
           visible={showFilters}

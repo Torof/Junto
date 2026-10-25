@@ -1917,6 +1917,14 @@
     "traceDraw": "Dessiner"
   },
   "proOffering": {
+    "page": {
+      "guided": "SORTIE ENCADRÉE",
+      "by": "par {{name}}",
+      "duration": "Durée",
+      "level": "Niveau",
+      "place": "Lieu",
+      "group": "Groupe"
+    },
     "newOutingTitle": "Nouvelle sortie",
     "editOutingTitle": "Modifier la sortie",
     "essentialsHint": "L’essentiel suffit pour publier. Les détails sont optionnels.",

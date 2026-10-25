@@ -1917,6 +1917,14 @@
     "traceDraw": "Disegna"
   },
   "proOffering": {
+    "page": {
+      "guided": "USCITA GUIDATA",
+      "by": "di {{name}}",
+      "duration": "Durata",
+      "level": "Livello",
+      "place": "Luogo",
+      "group": "Gruppo"
+    },
     "newOutingTitle": "Nuova uscita",
     "editOutingTitle": "Modifica l'uscita",
     "essentialsHint": "L'essenziale basta per pubblicare. I dettagli sono facoltativi.",

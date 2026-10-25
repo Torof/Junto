@@ -1917,6 +1917,14 @@
     "traceDraw": "Zeichnen"
   },
   "proOffering": {
+    "page": {
+      "guided": "GEFÜHRTE TOUR",
+      "by": "von {{name}}",
+      "duration": "Dauer",
+      "level": "Niveau",
+      "place": "Ort",
+      "group": "Gruppe"
+    },
     "newOutingTitle": "Neue Tour",
     "editOutingTitle": "Tour bearbeiten",
     "essentialsHint": "Das Wesentliche reicht zum Veröffentlichen. Details sind optional.",

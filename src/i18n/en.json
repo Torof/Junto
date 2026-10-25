@@ -1917,6 +1917,14 @@
     "traceDraw": "Draw"
   },
   "proOffering": {
+    "page": {
+      "guided": "GUIDED OUTING",
+      "by": "by {{name}}",
+      "duration": "Duration",
+      "level": "Level",
+      "place": "Place",
+      "group": "Group"
+    },
     "newOutingTitle": "New outing",
     "editOutingTitle": "Edit the outing",
     "essentialsHint": "The essentials are enough to publish. Details are optional.",

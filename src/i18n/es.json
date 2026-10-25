@@ -1917,6 +1917,14 @@
     "traceDraw": "Dibujar"
   },
   "proOffering": {
+    "page": {
+      "guided": "SALIDA GUIADA",
+      "by": "por {{name}}",
+      "duration": "Duración",
+      "level": "Nivel",
+      "place": "Lugar",
+      "group": "Grupo"
+    },
     "newOutingTitle": "Nueva salida",
     "editOutingTitle": "Editar la salida",
     "essentialsHint": "Con lo esencial basta para publicar. Los detalles son opcionales.",

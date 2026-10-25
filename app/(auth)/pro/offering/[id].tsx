@@ -11,12 +11,17 @@ import { useAuth } from '@/hooks/use-auth';
 import { proOfferingService } from '@/services/pro-offering-service';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { PageTypeBadge } from '@/components/page-type-badge';
+import { StatusBar } from 'expo-status-bar';
 import { OfferingDetail } from '@/components/offering-detail';
+import { OfferingPage } from '@/components/offering-page';
 
 // Deep-link / catalogue page for a pro_offering (RA). Thin wrapper around the
 // shared OfferingDetail so the page and the map drawer are identical.
 export default function ProOfferingDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, tab } = useLocalSearchParams<{ id: string; tab?: string }>();
+  // No tab: the full page (own top row on the photo, no navbar, status bar
+  // hidden). `?tab=details` keeps the old sheet, with its full reviews/photos.
+  const old = tab === 'details';
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -31,11 +36,16 @@ export default function ProOfferingDetailScreen() {
   });
 
   useLayoutEffect(() => {
+    if (!old) {
+      navigation.setOptions({ headerShown: false });
+      return;
+    }
     if (!offering) return;
     navigation.setOptions({
+      headerShown: true,
       headerTitle: () => <PageTypeBadge type="offering" name={offering.title} />,
     });
-  }, [navigation, offering]);
+  }, [navigation, offering, old]);
 
   if (authLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
   if (!isAuthenticated) return <Redirect href="/(visitor)/login" />;
@@ -51,6 +61,14 @@ export default function ProOfferingDetailScreen() {
   }
 
   const isOwner = session?.user?.id === offering.pro_id;
+  if (!old) {
+    return (
+      <>
+        <StatusBar hidden />
+        <OfferingPage offering={offering} isOwner={isOwner} />
+      </>
+    );
+  }
   return (
     <OfferingDetail
       offering={offering}
