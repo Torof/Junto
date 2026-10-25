@@ -19,6 +19,7 @@ import { circlePolygon } from '@/utils/geo';
 import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import dayjs from 'dayjs';
+import i18n from '@/i18n';
 import 'dayjs/locale/fr';
 
 import { useMapStyleStore, MAP_STYLE_URLS, MAP_STYLE_JSONS, MAP_STYLE_ATTRIBUTIONS } from '@/store/map-style-store';
@@ -44,20 +45,19 @@ const LABEL_DETAIL_ZOOM = 11.0;
 const truncate = (s: string, n: number) =>
   s.length > n ? `${s.slice(0, n).trimEnd()}…` : s;
 
-// "5★(1)" — plain text (the ★ is a font character, not an image), so it
-// reads as quietly as the rest of the secondary line. Empty if no reviews.
-const ratingStr = (
+// The rating line of a pro label (Scott 2026-10-25): five real star images —
+// gold ones for the rounded rating, pale ones for the rest, no halo since
+// images take none — then « · N avis » in ink. Empty when there is no review.
+type StarImage = 'star-full' | 'star-empty' | '';
+const ratingParts = (
   avg: number | null | undefined,
   count: number | null | undefined,
-): string => {
-  if (!count || avg == null) return '';
-  const n = Number(avg);
-  const a = Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/, '');
-  return `★ ${a} (${count})`;
+): { stars: [StarImage, StarImage, StarImage, StarImage, StarImage]; rtext: string } => {
+  if (!count || avg == null) return { stars: ['', '', '', '', ''], rtext: '' };
+  const filled = Math.max(0, Math.min(5, Math.round(Number(avg))));
+  const stars = [1, 2, 3, 4, 5].map((i) => (i <= filled ? 'star-full' : 'star-empty')) as [StarImage, StarImage, StarImage, StarImage, StarImage];
+  return { stars, rtext: ` · ${i18n.t('pro.page.reviewCount', { count, defaultValue: '{{count}} avis' })}` };
 };
-
-// Or profond, lisible sur les fonds Mapbox clairs (halo blanc dessous).
-const RATING_GOLD = { 'text-color': '#D99500' };
 
 // Secondary-line text style (smaller, regular, neutral black) — shared by
 // every text section of the detail line.
@@ -381,7 +381,8 @@ export function JuntoMapView({
       let d2icon = '';      // inline icon leading d2: 'cal' | ''
       let lvl = '';         // UA difficulty signal (km · D+ / level range)
       let lvlicon = '';     // 'lvl' icon before lvl, or ''
-      let rtext = '';       // "5★(1)" plain text on its own line, or ''
+      let rtext = '';       // « · N avis » after the stars, or ''
+      let stars: [StarImage, StarImage, StarImage, StarImage, StarImage] = ['', '', '', '', ''];
       let color: string = colors.cta;
       const kind = p.type;
       if (p.type === 'activity') {
@@ -400,7 +401,7 @@ export function JuntoMapView({
         const pr = proMap.get(p.id);
         if (!pr) return [];
         name = pr.display_name;
-        rtext = ratingStr(pr.avg_rating, pr.review_count);
+        ({ stars, rtext } = ratingParts(pr.avg_rating, pr.review_count));
         d2 = pr.tagline ? truncate(pr.tagline, 28) : '';
         color = (pr.pin_icon && SPORT_CATEGORY_COLORS[pr.pin_icon]) || colors.textPrimary;
       } else {
@@ -408,7 +409,7 @@ export function JuntoMapView({
         const o = offeringMap.get(p.id);
         if (!o) return [];
         name = o.title;
-        rtext = ratingStr(o.avg_rating, o.review_count);
+        ({ stars, rtext } = ratingParts(o.avg_rating, o.review_count));
         d2 = o.schedule_text ?? '';
         d2icon = d2 ? 'cal' : '';
         color = SPORT_CATEGORY_COLORS[o.sport_category] ?? colors.cta;
@@ -416,7 +417,7 @@ export function JuntoMapView({
       return [{
         type: 'Feature' as const,
         geometry: { type: 'Point' as const, coordinates: coords },
-        properties: { id: p.id, name, color, kind, rtext, d2, d2icon, lvl, lvlicon },
+        properties: { id: p.id, name, color, kind, rtext, s1: stars[0], s2: stars[1], s3: stars[2], s4: stars[3], s5: stars[4], d2, d2icon, lvl, lvlicon },
       }];
     });
     return { type: 'FeatureCollection' as const, features };
@@ -602,6 +603,8 @@ export function JuntoMapView({
           // Size set by `scale` (font-scale is ignored for inline images
           // natively): scale 2.3 ≈ the secondary-text height.
           cal: { image: require('../../assets/label-cal.png'), scale: 2.3 },
+          'star-full': { image: require('../../assets/label-star-full.png'), scale: 4.2 },
+          'star-empty': { image: require('../../assets/label-star-empty.png'), scale: 4.2 },
           lvl: { image: require('../../assets/label-level.png'), scale: 2.3 },
           // Monochrome teardrop mask (SDF) — tinted per-pin via iconColor in
           // the pinsAsLayers path.
@@ -639,12 +642,17 @@ export function JuntoMapView({
           style={{
             textField: [
               'step', ['zoom'],
-              // Below DETAIL: title + ★rating (gold) — the trust signal shows
+              // Below DETAIL: title + the star line — the trust signal shows
               // as soon as names do (Scott 2026-09-29).
               ['format',
                 ['get', 'name'], { 'text-color': ['get', 'color'] },
                 ['case', ['>', ['length', ['get', 'rtext']], 0], '\n', ''], {},
-                ['get', 'rtext'], RATING_GOLD,
+                ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's1']], ''], IMG,
+                ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's2']], ''], IMG,
+                ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's3']], ''], IMG,
+                ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's4']], ''], IMG,
+                ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's5']], ''], IMG,
+                ['get', 'rtext'], SEC,
               ],
               LABEL_DETAIL_ZOOM,
               // At DETAIL: title (colour) / ★rating on its own line / details
@@ -652,9 +660,14 @@ export function JuntoMapView({
               // Empty sections collapse.
               ['format',
                 ['get', 'name'], { 'text-color': ['get', 'color'] },
-                // ★rating DIRECTLY under the title (Scott 2026-09-29), gold
+                // the star line DIRECTLY under the title (Scott 2026-09-29)
                 ['case', ['>', ['length', ['get', 'rtext']], 0], '\n', ''], {},
-                ['get', 'rtext'], RATING_GOLD,
+                ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's1']], ''], IMG,
+                ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's2']], ''], IMG,
+                ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's3']], ''], IMG,
+                ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's4']], ''], IMG,
+                ['case', ['>', ['length', ['get', 'rtext']], 0], ['image', ['get', 's5']], ''], IMG,
+                ['get', 'rtext'], SEC,
                 '\n', {},
                 // then: 📅 when / schedule (RA may wrap; UA when stays short)
                 ['match', ['get', 'd2icon'], 'cal', ['image', 'cal'], ''], IMG,
