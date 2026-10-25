@@ -51,8 +51,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 ## P3 — Chantiers (plus de réflexion / d'impact)
 
 ### Page pro — refonte (décidée 2026-10-25, voir DECISIONS) — maquette d'abord, corps à décider
-- [ ] Pleine page (plus de tiroir depuis le pin), barre de statut cachée sur cet écran.
-- [ ] En-tête validé : photo (hauteur actuelle) + PRO / favori / partage / croix en haut ; nom, métier · lieu, labels, note · avis, tagline sur la photo (voile ≈ 46 %) ; actions Appeler · Contacter · Site web · Itinéraire dessous.
+- [x] Page pro (2026-10-25, OTA preview, `components/pro-page.tsx`) : pleine page depuis le pin (tiroir `pro-sheet` retiré de la carte), barre de statut cachée, en-tête validé, actions, sortie mise en avant + bandeau, avis, photos, à propos, coordonnées ; les anciens onglets restent derrière `?tab=catalog|reviews|pictures`. Reste : « Contacter » (pas de messagerie client→pro hors réservation), supprimer `pro-sheet` / l'ancien aperçu quand la fiche de sortie sera refaite.
 - [x] Base (2026-10-25, migs 00554-00555, test 16, 2557 verts) : `profession`, `featured_offering_id`, avis réservés à qui a réservé.
 - [x] Espace pro (2026-10-25, OTA preview) : sélecteur de métier (obligatoire), pastilles « Sortie mise en avant » (dès deux offres), rappel dans l'espace pro, libellés ×5. Reste : filtre carte par métier.
 - [ ] Couleur pro = or `#F2B705` (DECISIONS 2026-10-25) : liseré or des pins pro (`pin-body` paramétré par le liseré), capsule PRO fond or / texte encre, badge PRO et pastille SORTIE ENCADRÉE sur les pages, pastille « Page pro » de la navbar (`page-type-badge`), visuels Play à mettre en accord.
