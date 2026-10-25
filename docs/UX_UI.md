@@ -295,8 +295,8 @@ Les deux pages partagent le même modèle (pleine page, photo à hauteur fixe av
 
 | | Page du pro — *quelqu'un* | Fiche de sortie — *quelque chose à réserver* |
 |---|---|---|
-| Coin haut gauche de la photo | **PRO** (bleu) | la **pastille du sport** (couleur d'univers) |
-| Sur la photo | **l'avatar** du pro (rond, liseré blanc) + nom, métier · lieu, labels, note · avis, tagline | **le titre** de la sortie + **le prix** en étiquette blanche — ni note, ni lieu, ni avatar |
+| Haut de la photo | favori, partage, croix à droite ; rien à gauche | la **pastille du sport** (couleur d'univers) à gauche, favori, partage, croix à droite |
+| Sur la photo | en bas, à gauche, comme un profil de réseau social : **l'avatar** (64, liseré blanc) avec le badge **PRO** à côté, puis le nom, métier · lieu, les labels (sports, diplôme), « 4,9 · 24 avis » — pas de tagline (elle ouvre « À propos ») | **le titre** de la sortie + **le prix** en étiquette blanche — ni note, ni lieu, ni avatar |
 | Sous la photo | les actions de contact : Appeler · Contacter · Site web · Itinéraire | la bande **« par … »** (petit avatar, métier, lieu, note) vers la page du pro, puis les **faits en grille** (durée, niveau, âge, groupe) |
 | Bas de l'écran | rien de collé | la barre collée **prix + Réserver** |
 | Bandeau | un seul : « Voir les N sorties › » | aucun |
