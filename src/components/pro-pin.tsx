@@ -7,7 +7,7 @@ import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
 import {
-  PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y,
+  PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y, PRO_GOLD,
 } from '@/constants/pin-style';
 import { PinBody } from '@/components/pin-body';
 
@@ -93,7 +93,7 @@ export function ProPin({ displayName, pinIcon, pinImageUrl }: ProPinProps) {
   return (
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
-        <PinBody fill={colors.pinBackground} />
+        <PinBody fill={colors.pinBackground} outline={PRO_GOLD} />
         {discColor && <Circle cx={PIN_HEAD_CX} cy={PIN_HEAD_CY} r={DISC_R} fill={discColor} />}
         {glyph && (
           <G transform={`translate(${PIN_HEAD_CX} ${PIN_HEAD_CY}) scale(${GLYPH_SCALE}) translate(-${PIN_HEAD_CX} -${PIN_HEAD_CY})`}>{glyph}</G>

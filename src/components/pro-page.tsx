@@ -25,6 +25,7 @@ import { proCommunityPhotoService } from '@/services/pro-photo-service';
 import { reviewService } from '@/services/review-service';
 import { userService } from '@/services/user-service';
 import { sportCategoryColor } from '@/utils/sport-category-color';
+import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 
 // The pro page (Scott 2026-10-25, canvas « Page pro — la sortie d'abord »):
 // full page, the photo at its usual height with the identity on it (avatar,
@@ -37,9 +38,9 @@ import { sportCategoryColor } from '@/utils/sport-category-color';
 // « Someone », never « something to book » (UX_UI): the avatar and PRO are
 // here, the price only in the featured card, no date anywhere.
 
-export const PRO_GOLD = '#F2B705';
 const WHITE = '#FFFFFF';
-const COVER_H = 250;
+// 292 (was 250, Scott 2026-10-25): room between the top row and the avatar.
+const COVER_H = 292;
 const COLLAPSED_DESCRIPTION_CHARS = 280;
 
 function openLink(url: string): void {
@@ -383,7 +384,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   veil: { backgroundColor: 'rgba(15,12,9,0.46)' },
   topRow: { position: 'absolute', left: 12, right: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
   proBadge: { backgroundColor: PRO_GOLD, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 4 },
-  proBadgeText: { color: '#1F1A15', fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
+  proBadgeText: { color: PRO_GOLD_INK, fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
   topBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   identity: { position: 'absolute', left: 18, right: 18, bottom: 12, gap: 5 },
   avatarRing: { alignSelf: 'flex-start', borderWidth: 3, borderColor: WHITE, borderRadius: 32, marginBottom: 3, ...shadows.card },

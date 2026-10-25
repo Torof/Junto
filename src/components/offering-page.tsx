@@ -22,7 +22,7 @@ import { proService } from '@/services/pro-service';
 import { proOfferingPhotoService, proCommunityPhotoService } from '@/services/pro-photo-service';
 import { reviewService } from '@/services/review-service';
 import { sportCategoryColor } from '@/utils/sport-category-color';
-import { PRO_GOLD } from '@/components/pro-page';
+import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 
 // The pro outing sheet, as a full page (Scott 2026-10-25, same canvas as the
 // pro page). « Something to book », never « someone » (UX_UI): the sport
@@ -333,7 +333,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   ratingAvg: { color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '800' },
   ratingCount: { color: WHITE, fontSize: fontSizes.sm - 1, opacity: 0.9 },
   guidedPill: { backgroundColor: PRO_GOLD, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 4 },
-  guidedPillText: { color: '#1F1A15', fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
+  guidedPillText: { color: PRO_GOLD_INK, fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
   priceTag: { backgroundColor: WHITE, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 7, ...shadows.card },
   priceTagText: { color: colors.textPrimary, fontSize: fontSizes.md - 1, fontWeight: '800' },
   priceTagUnit: { color: colors.textSecondary, fontSize: 11, fontWeight: '600' },

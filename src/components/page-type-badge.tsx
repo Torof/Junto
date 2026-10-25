@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { AppText } from '@/components/app-text';
 import { fontSizes, spacing } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
+import { PRO_GOLD } from '@/constants/pin-style';
 import type { AppColors } from '@/constants/colors';
 
 export type PageType = 'pro' | 'offering' | 'activity';
@@ -18,13 +19,13 @@ interface Props {
 
 // Small colored sphere + natural-language label rendered into the
 // navbar of the pro / offering / activity detail screens. The sphere
-// is the silent at-a-glance type cue (orange = pro storefront, blue =
+// is the silent at-a-glance type cue (gold = pro storefront, blue =
 // catalog offering, green = scheduled activity); the prefix carries
 // the rest of the meaning. Pin silhouettes in this slot were too
 // busy for navbar use — a colored dot is enough at this scale.
 
 const TYPE_COLORS: Record<PageType, string> = {
-  pro: '#F4642A',
+  pro: PRO_GOLD,
   offering: '#3B82F6',
   activity: '#2ECC71',
 };

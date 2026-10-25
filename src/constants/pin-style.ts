@@ -4,9 +4,12 @@
 //   - soft SVG-drawn shadow, rounded tip (2026-10-23: + white outline, two-layer shadow);
 //   - outing: body = universe colour, white glyph; the status colour takes
 //     the body when the outing is soon / in progress;
-//   - pro outing: the same shape in pro blue, white « PRO » capsule;
+//   - pro outing: the same shape in pro blue, « PRO » capsule;
 //   - pro page: the same shape in white with the universe disc inside —
-//     white = « a place », colour = « an outing ».
+//     white = « a place », colour = « an outing »;
+//   - 2026-10-25 (DECISIONS « Couleur pro : l'or ») : the two pro pins keep
+//     their body and take a GOLD outline instead of the white one; the PRO
+//     capsule is gold with ink text — the same badge as the pro pages.
 
 // Rounded-tip silhouette shared by activity / offering / pro pins, drawn
 // in the historical 54-wide design space (head centre (27, 23), tip (27, 51.6)).
@@ -22,6 +25,10 @@ export const PIN_HEAD_CY = 23;
 // detaches it from any ground, and a two-layer shadow sets it on the map.
 // Drawn by components/pin-body.tsx for every pin.
 export const PIN_OUTLINE = { color: '#FFFFFF', width: 4 } as const; // design units (54-wide drop): 2 outside
+// The pro colour — pin outline, PRO capsule, page badges, navbar dot. Nothing
+// else in the app is gold, no sport universe is: it reads « pro » at once.
+export const PRO_GOLD = '#F2B705';
+export const PRO_GOLD_INK = '#1F1A15';
 export const PIN_SHADOW_NEAR = { dx: 0, dy: 2, blur: 1.2, color: '#0A0F1A', opacity: 0.45 } as const;
 export const PIN_SHADOW_FAR = { dx: 0, dy: 5, blur: 4, color: '#0A0F1A', opacity: 0.3 } as const;
 

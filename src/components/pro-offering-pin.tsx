@@ -9,7 +9,7 @@ import { SportIcon } from '@/components/sport-icon';
 import { hasSportIcon } from '@/constants/sport-icon-svgs';
 import { type ProOffering } from '@/services/pro-offering-service';
 import {
-  PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y,
+  PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y, PRO_GOLD, PRO_GOLD_INK,
 } from '@/constants/pin-style';
 import { PinBody } from '@/components/pin-body';
 
@@ -50,12 +50,12 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
         <G transform={`translate(${DROP_OFFSET} 0)`}>
-          <PinBody fill={blue} />
+          <PinBody fill={blue} outline={PRO_GOLD} />
         </G>
-        {/* « PRO » capsule: white on the blue body. */}
+        {/* « PRO » capsule: gold, ink text — the pro badge of the pages (2026-10-25). */}
         <Rect
           x={CAPSULE.x} y={CAPSULE.y} width={CAPSULE.w} height={CAPSULE.h} rx={CAPSULE.r}
-          fill={colors.pinBackground}
+          fill={PRO_GOLD}
         />
         <SvgText
           x={CAPSULE.x + CAPSULE.w / 2}
@@ -63,7 +63,7 @@ export function ProOfferingPin({ offering }: ProOfferingPinProps) {
           fontSize={8}
           fontWeight="bold"
           letterSpacing={0.5}
-          fill={blue}
+          fill={PRO_GOLD_INK}
           textAnchor="middle"
         >
           PRO

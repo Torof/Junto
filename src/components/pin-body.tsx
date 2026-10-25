@@ -6,8 +6,9 @@ import { PIN_DROP_PATH, PIN_OUTLINE, PIN_SHADOW_FAR, PIN_SHADOW_NEAR } from '@/c
 // then a two-layer shadow — a short sharp one that sets it on the map and a
 // wide light one. Only FeGaussianBlur exists natively in react-native-svg,
 // so each shadow is a blurred dark copy of the outlined shape, offset down.
+// `outline` — white for every pin, gold for the pro pins (2026-10-25).
 // Must be rendered inside an <Svg>.
-export function PinBody({ fill }: { fill: string }) {
+export function PinBody({ fill, outline = PIN_OUTLINE.color }: { fill: string; outline?: string }) {
   return (
     <>
       <Defs>
@@ -31,7 +32,7 @@ export function PinBody({ fill }: { fill: string }) {
           filter={`url(#${i === 0 ? 'pinShadowFar' : 'pinShadowNear'})`}
         />
       ))}
-      <Path d={PIN_DROP_PATH} fill={PIN_OUTLINE.color} stroke={PIN_OUTLINE.color} strokeWidth={PIN_OUTLINE.width} strokeLinejoin="round" />
+      <Path d={PIN_DROP_PATH} fill={outline} stroke={outline} strokeWidth={PIN_OUTLINE.width} strokeLinejoin="round" />
       <Path d={PIN_DROP_PATH} fill={fill} />
     </>
   );
