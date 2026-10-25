@@ -382,7 +382,7 @@ export function JuntoMapView({
       let lvl = '';         // UA difficulty signal (km · D+ / level range)
       let lvlicon = '';     // 'lvl' icon before lvl, or ''
       let rtext = '';       // "5★(1)" plain text on its own line, or ''
-      let color: string = colors.pinProBackground;
+      let color: string = colors.cta;
       const kind = p.type;
       if (p.type === 'activity') {
         // UA: title (universe colour) · 📅 when · 📊 level signal.
@@ -402,7 +402,7 @@ export function JuntoMapView({
         name = pr.display_name;
         rtext = ratingStr(pr.avg_rating, pr.review_count);
         d2 = pr.tagline ? truncate(pr.tagline, 28) : '';
-        color = (pr.pin_icon && SPORT_CATEGORY_COLORS[pr.pin_icon]) || colors.pinProBackground;
+        color = (pr.pin_icon && SPORT_CATEGORY_COLORS[pr.pin_icon]) || colors.textPrimary;
       } else {
         // RA: title · ★rating (own line) · 📅 schedule conditions.
         const o = offeringMap.get(p.id);
@@ -411,7 +411,7 @@ export function JuntoMapView({
         rtext = ratingStr(o.avg_rating, o.review_count);
         d2 = o.schedule_text ?? '';
         d2icon = d2 ? 'cal' : '';
-        color = SPORT_CATEGORY_COLORS[o.sport_category] ?? colors.pinProBackground;
+        color = SPORT_CATEGORY_COLORS[o.sport_category] ?? colors.cta;
       }
       return [{
         type: 'Feature' as const,
@@ -796,7 +796,7 @@ export function JuntoMapView({
           const stableKey = aggProps.k ?? String(clusterId);
           const segments: ClusterSegment[] = UNIVERSE_ORDER
             .filter((k) => (agg[k] ?? 0) > 0)
-            .map((k) => ({ color: SPORT_CATEGORY_COLORS[k] ?? colors.pinProBackground, count: agg[k] ?? 0 }));
+            .map((k) => ({ color: SPORT_CATEGORY_COLORS[k] ?? colors.cta, count: agg[k] ?? 0 }));
 
           return (
             <Mapbox.MarkerView

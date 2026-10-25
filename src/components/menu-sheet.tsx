@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { Sparkles, CalendarCheck, Radar, Briefcase, Settings, ChevronRight, LogOut, Route, Bookmark, CalendarDays } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
+import { PRO_GOLD } from '@/constants/pin-style';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/use-auth';
@@ -219,9 +220,8 @@ export function MenuSheet({ open, onClose }: Props) {
             />
           ) : (
             <MenuItem
-              icon={<Briefcase size={20} color={colors.pinProBackground} strokeWidth={2.2} />}
+              icon={<Briefcase size={20} color={PRO_GOLD} strokeWidth={2.2} />}
               label={t('drawer.becomePro', { defaultValue: 'Devenir pro' })}
-              labelColor={colors.pinProBackground}
               sub={t('menu.becomeProSub', { defaultValue: 'Ta page, tes sorties, tes réservations' })}
               onPress={() => go('/(auth)/pro/edit')}
               styles={styles}

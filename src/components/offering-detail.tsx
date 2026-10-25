@@ -511,7 +511,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   editBtn: { marginLeft: 'auto' },
   sportChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full, borderWidth: 1, flexShrink: 0 },
   sportChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
-  proLine: { color: colors.pinProBackground, fontSize: fontSizes.xs, fontWeight: '700', flexShrink: 1 },
+  proLine: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', flexShrink: 1 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   ratingAvg: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
   ratingCount: { color: colors.textSecondary, fontSize: fontSizes.xs },

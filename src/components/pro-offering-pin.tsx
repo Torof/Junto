@@ -12,14 +12,15 @@ import {
   PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y, PRO_GOLD, PRO_GOLD_INK,
 } from '@/constants/pin-style';
 import { PinBody } from '@/components/pin-body';
+import { sportCategoryColor } from '@/utils/sport-category-color';
 
 interface ProOfferingPinProps {
   offering: ProOffering;
 }
 
-// The pro outing: the same rounded drop as the activity pin, in the pro blue
-// (one colour, one meaning — the PRO capsule, the cards), with the « PRO »
-// capsule at the drop's top-left (labels anchor to the pin's right).
+// The pro outing: the same rounded drop as the activity pin, in the sport's
+// universe colour, with the gold outline and the gold « PRO » capsule at the
+// drop's top-left (labels anchor to the pin's right) — 2026-10-25.
 // Restyle 2026-10-16: no ink outline, soft SVG shadow, rounded tip.
 const DESIGN_W = 54;
 const DROP_OFFSET = 4; // room for the capsule on the left
@@ -44,13 +45,15 @@ const CAPSULE = { x: 1, y: 1.5, w: 22, h: 12, r: 6 };
 export function ProOfferingPin({ offering }: ProOfferingPinProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const blue = colors.pinProBackground;
+  // 2026-10-25: the body takes the sport's universe colour, like every outing —
+  // gold (outline + capsule) is what says « pro », not a blue of its own.
+  const body = sportCategoryColor(offering.sport_category, colors.cta);
 
   return (
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
         <G transform={`translate(${DROP_OFFSET} 0)`}>
-          <PinBody fill={blue} outline={PRO_GOLD} />
+          <PinBody fill={body} outline={PRO_GOLD} />
         </G>
         {/* « PRO » capsule: gold, ink text — the pro badge of the pages (2026-10-25). */}
         <Rect

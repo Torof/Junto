@@ -4,6 +4,7 @@ import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { MapPin, Calendar, Star } from 'lucide-react-native';
 import { fontSizes, spacing, radius } from '@/constants/theme';
+import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { type ProOffering } from '@/services/pro-offering-service';
@@ -147,8 +148,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   metaText: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '500' },
-  // One unified pro badge — always the pro-blue (one colour = one meaning
-  // "pro" across pins + cards), a circle rather than a per-sport pill.
+  // One unified pro badge — gold, ink text (the pro colour, 2026-10-25), a
+  // circle rather than a per-sport pill.
   rightCol: { alignSelf: 'stretch', alignItems: 'flex-end', justifyContent: 'flex-start', gap: 5, paddingTop: 2 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   ratingText: { color: colors.textPrimary, fontSize: fontSizes.xs + 1, fontWeight: '800' },
@@ -159,7 +160,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.pinProBackground,
+    backgroundColor: PRO_GOLD,
   },
-  proBadgeText: { color: '#FFFFFF', fontSize: fontSizes.xs - 1, fontWeight: '800', letterSpacing: 0.5 },
+  proBadgeText: { color: PRO_GOLD_INK, fontSize: fontSizes.xs - 1, fontWeight: '800', letterSpacing: 0.5 },
 });

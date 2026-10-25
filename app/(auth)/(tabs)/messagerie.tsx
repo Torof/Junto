@@ -13,6 +13,7 @@ import { RectButton } from 'react-native-gesture-handler';
 import { MapPin, Check, X, Car, Users, Hash, Trash2 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
+import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 import type { AppColors } from '@/constants/colors';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { conversationService } from '@/services/conversation-service';
@@ -553,9 +554,9 @@ export default function MessagerieScreen() {
               // at a glance (a DM carries no pill — its round avatar says it).
               const typeMeta =
                 // Booking thread (00451): the pro sees « Client », the client sees « Pro » —
-                // same blue as the PRO capsule on the map and the cards.
+                // gold, like the PRO capsule on the map and the cards (2026-10-25).
                 isClientConversation(item)
-                  ? { label: iAmPro ? t('messagerie.typeClient', { defaultValue: 'Client' }) : t('messagerie.typePro', { defaultValue: 'Pro' }), text: colors.pinProBackground, bg: colors.pinProBackground + '20' } :
+                  ? { label: iAmPro ? t('messagerie.typeClient', { defaultValue: 'Client' }) : t('messagerie.typePro', { defaultValue: 'Pro' }), text: PRO_GOLD_INK, bg: PRO_GOLD + '55' } :
                 item.type === 'activity' ? { label: t('messagerie.typeOuting', { defaultValue: 'Sortie' }), text: TYPE_OUTING_COLOR, bg: TYPE_OUTING_COLOR + '20' } :
                 item.type === 'channel' ? { label: t('messagerie.typeChannel', { defaultValue: 'Discussion' }), text: TYPE_CHANNEL_COLOR, bg: TYPE_CHANNEL_COLOR + '20' } :
                 item.type === 'group' ? { label: t('messagerie.typeGroup', { defaultValue: 'Groupe' }), text: colors.textSecondary, bg: colors.surfaceAlt } :
