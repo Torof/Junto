@@ -457,6 +457,9 @@ export function JuntoMapView({
 
   const handleCameraChanged = useCallback((state: Mapbox.MapState) => {
     onHeadingChange?.(state.properties.heading);
+    // The user is moving the map: a late GPS fix must not rewind it to the
+    // start-up centre (Scott 2026-10-26, the region-first opening).
+    if (state.gestures.isGestureActive) cameraTouched.current = true;
     const zoom = state.properties.zoom;
     const sw = state.properties.bounds.sw;
     const ne = state.properties.bounds.ne;
