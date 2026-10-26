@@ -7,8 +7,13 @@ import { PIN_DROP_PATH, PIN_OUTLINE, PIN_SHADOW_FAR, PIN_SHADOW_NEAR } from '@/c
 // wide light one. Only FeGaussianBlur exists natively in react-native-svg,
 // so each shadow is a blurred dark copy of the outlined shape, offset down.
 // `outline` — white for every pin, gold for the pro pins (2026-10-25).
+// `path` — the drop by default; the pro page pin passes its shield (2026-10-26).
+// `edge` — an extra thin ring OUTSIDE the outline (the pro shield's ink edge).
 // Must be rendered inside an <Svg>.
-export function PinBody({ fill, outline = PIN_OUTLINE.color }: { fill: string; outline?: string }) {
+export function PinBody({
+  fill, outline = PIN_OUTLINE.color, path = PIN_DROP_PATH, edge,
+}: { fill: string; outline?: string; path?: string; edge?: { color: string; width: number } }) {
+  const shadowWidth = edge ? edge.width : PIN_OUTLINE.width;
   return (
     <>
       <Defs>
@@ -22,19 +27,19 @@ export function PinBody({ fill, outline = PIN_OUTLINE.color }: { fill: string; o
       {[PIN_SHADOW_FAR, PIN_SHADOW_NEAR].map((s, i) => (
         <Path
           key={i}
-          d={PIN_DROP_PATH}
+          d={path}
           fill={s.color}
           stroke={s.color}
-          strokeWidth={PIN_OUTLINE.width}
+          strokeWidth={shadowWidth}
           strokeLinejoin="round"
           opacity={s.opacity}
           transform={`translate(${s.dx} ${s.dy})`}
           filter={`url(#${i === 0 ? 'pinShadowFar' : 'pinShadowNear'})`}
         />
       ))}
-      <Path d={PIN_DROP_PATH} fill={outline} stroke={outline} strokeWidth={PIN_OUTLINE.width} strokeLinejoin="round" />
-      <Path d={PIN_DROP_PATH} fill={fill} />
+      {edge && <Path d={path} fill={edge.color} stroke={edge.color} strokeWidth={edge.width} strokeLinejoin="round" />}
+      <Path d={path} fill={outline} stroke={outline} strokeWidth={PIN_OUTLINE.width} strokeLinejoin="round" />
+      <Path d={path} fill={fill} />
     </>
   );
 }
-

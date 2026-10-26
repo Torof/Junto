@@ -5,8 +5,10 @@
 //   - outing: body = universe colour, white glyph; the status colour takes
 //     the body when the outing is soon / in progress;
 //   - pro outing: the same shape in pro blue, « PRO » capsule;
-//   - pro page: the same shape in white with the universe disc inside —
-//     white = « a place », colour = « an outing »;
+//   - pro page: 2026-10-26 a SHIELD (PIN_SHIELD_PATH) — gold outline, thin
+//     ink edge, PRO capsule under the tip; the pro's pin image fills it, or
+//     a pale tint of the universe with the universe glyph in full colour
+//     (« someone », pale, vs « an outing », full colour);
 //   - 2026-10-25 (DECISIONS « Couleur pro : l'or ») : the two pro pins keep
 //     their body and take a GOLD outline instead of the white one; the PRO
 //     capsule is gold with ink text — the same badge as the pro pages.
@@ -16,6 +18,13 @@
 export const PIN_DROP_PATH =
   'M 27 3 C 15.4 3 6 12.2 6 23.5 C 6 33.5 18.5 43.5 24.6 50.2 C 25.9 51.6 28.1 51.6 29.4 50.2 C 35.5 43.5 48 33.5 48 23.5 C 48 12.2 38.6 3 27 3 Z';
 export const PIN_DROP_TIP_Y = 51.6;
+// The pro PAGE pin's shield (Scott 2026-10-26, mockup « E3 » then « U4 »):
+// same 54-wide space, same tip as the drop, shoulders at y 7.5. Outside the
+// gold outline it carries a thin ink edge; the PRO capsule hangs under the tip.
+export const PIN_SHIELD_PATH =
+  'M 27 3 C 34 6 41 7.5 47 7.5 C 47 22 44 36 29.6 50.2 C 28.2 51.6 25.8 51.6 24.4 50.2 C 10 36 7 22 7 7.5 C 13 7.5 20 6 27 3 Z';
+export const PIN_SHIELD_EDGE = { color: '#1F1A15', width: 6 } as const; // design units: 1 outside the gold
+export const PIN_PRO_CAPSULE = { x: 16, y: 50.5, w: 22, h: 12, r: 6 } as const;
 export const PIN_HEAD_CX = 27;
 export const PIN_HEAD_CY = 23;
 
