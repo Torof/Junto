@@ -39,13 +39,12 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 
 ## P1 — Polish & easy wins
 
-- [ ] **In-app distance feedback** sur l'écran activity-detail quand on est dans la fenêtre de validation (ex "tu es à 220m de la zone" avec dot vert à <150m). Ferme le mystère du fail silencieux à 160m du meetup point.
-- [ ] **Auto-show QR du créateur** sur l'écran d'activité quand T-15min arrive — réduit la dépendance au reminder + manual tap.
+- [x] **In-app distance feedback** — déjà livré (constaté 2026-10-26) : le bloc présence de la page de sortie affiche « À N m du point de rendez-vous » (distance au plus proche de meeting / end / trace, comme le serveur) et passe « Tu y es » en vert dans la zone.
+- [x] **Auto-show QR du créateur** — déjà livré (constaté 2026-10-26) : le modal QR s'ouvre de lui-même à T−15 min si le créateur est sur la page (une fois par session).
 - [x] **Copies légales in-app → liens vers le site** (2026-10-26, `utils/legal-links.ts`) : CGU et confidentialité s'ouvrent dans le navigateur intégré (`/legal/terms`, `/legal/privacy` sur `EXPO_PUBLIC_JUNTO_WEB_HOST`, getjunto.app par défaut — une constante à changer au domaine askandgo) ; les quatre écrans copies supprimés ; FAQ et licences restent natifs.
 
 ## P2 — UX clarifications & redesigns
 
-- [ ] **Session UX messagerie + demandes de covoit** (parqué 2026-05-05, migré du fichier memory au walk #1) — interface messagerie "pas engageante, pas claire" ; flow seat-request "raw, ugly and difficult" : affichage des demandes (deux côtés), affordances accept/decline/cancel, construction du seed message. Déclencheur : après le retour des testeurs (c'est LA surface qu'ils vont critiquer). Note : le bug "popup bloque l'écriture" du même jour est résolu (cause = rate limit 1/min, perdu au rework reply, réinstauré sain à 15/min — mig 00264).
 - [x] **expo-system-ui + sync thème OS** (2026-10-26) : `Appearance.setColorScheme` suit la préférence de thème (clair / sombre / système) dans le ThemeProvider — actif dès l'OTA ; `expo-system-ui` installé et `userInterfaceStyle: 'automatic'` prennent effet à la **prochaine build native** (y bumper la version, 0.1.5).
 
 ## P3 — Chantiers (plus de réflexion / d'impact)
@@ -55,7 +54,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 - [x] Page pro pleine page (`pro-page.tsx`), fiche de sortie pleine page (`offering-page.tsx`), pages Sorties / Avis / Photos derrière les liens (`offering-photos-page.tsx`), « Donner son avis » gated (`reviewService.canReview`). Tiroirs `pro-sheet` / `offering-sheet` et état `selectedOffering` supprimés (2026-10-26).
 - [x] Espace pro : métier obligatoire, « Sortie mise en avant », rappel métier ; « Ton pin sur la carte » à quatre tuiles (`pro-pin-picker.tsx`, 2026-10-26).
 - [x] Couleur pro = or, bleu pro supprimé ; pin de page pro en écusson (or + bord encre + capsule PRO sous la pointe, photo pleine, sinon picto du métier / univers / sport en encre sur teinte 30 %) — `pro-pin.tsx`, `utils/pro-pin-look.ts`, `constants/pro-pictos.ts`.
-- [ ] **« Contacter » un pro** hors réservation — décision produit (pas de messagerie client→pro aujourd'hui).
+- [ ] **« Contacter » un pro** hors réservation — décision produit, **parquée** (Scott 2026-10-26 : « plus tard ») ; aujourd'hui téléphone / e-mail / site.
 - [x] **Filtre carte par métier** (2026-10-26) : section « Métier du pro » dans la feuille de filtres (carte seulement), pastilles actives, compteur ; les pins de page pro suivent, les pins de sortie pro aussi via leur pro.
 - [x] **Mention « avis vérifiés »** (2026-10-26) : ligne discrète sous le résumé de la brique d'avis, cinq langues.
 - [x] **Visuels Play** (2026-10-26) : feature graphic 1024×500 askandgo refaite ; aucune des cinq captures du listing ne montre de badge PRO (seule l'image 6, hors listing, reste en bleu — à refaire si on l'ajoute un jour).
