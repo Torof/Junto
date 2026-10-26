@@ -1,7 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { AppText } from '@/components/app-text';
-import { Image } from 'expo-image';
 import Svg, { Path, G, Rect, Text as SvgText, ClipPath, Image as SvgImage, SvgXml } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -53,8 +52,8 @@ const PICTO_PX = Math.round(24 * SCALE);
 const IMAGE_BOX = { x: 7, y: 3, w: 40, h: 49 };
 const TINT_ALPHA = 0.3; // 20 % read too pale on device (Scott 2026-10-26)
 
-// Cycling has no clean vector at this size, so it stays a raster — tinted.
-const bikeGlyph = require('../../assets/bike-glyph.png');
+// Universes whose glyph is a picto of the sets rather than a path here.
+const UNIVERSE_PICTO: Record<string, string> = { cycling: 'cycling', wellness: 'lotus' };
 
 export const PRO_PIN_ANCHOR = {
   x: 0.5,
@@ -68,17 +67,25 @@ function tint(hex: string, alpha: number): string {
   return `#${mix((n >> 16) & 255)}${mix((n >> 8) & 255)}${mix(n & 255)}`;
 }
 
-// Universe glyphs drawn in the head and scaled around (27, 23), in ink.
+// Universe glyphs (Scott 2026-10-26, planche « glyphes d'univers ») drawn in a
+// 24-box centred on the head and scaled around (27, 23), in ink. Cycling and
+// wellness are pictos (the set's `cycling`, the lotus) — see UNIVERSE_PICTO.
 function glyphFor(key: string, color: string): ReactNode {
   switch (key) {
     case 'mountain':
-      return <Path d="M 15 32 L 23 16 L 28 23 L 32 18 L 39 32 Z" fill={color} />;
-    case 'water':
+      // Two peaks, flat (Scott 2026-10-26: snow caps did not read on the pale tint).
       return (
-        <Path
-          d="M 27 14 C 27 14 19 25 19 29.5 A 8 8 0 1 0 35 29.5 C 35 25 27 14 27 14 Z"
-          fill={color}
-        />
+        <G transform="translate(15 12)">
+          <Path d="M2 20 L8.5 7 L12.2 13.5 L15 9 L22 20 Z" fill={color} />
+        </G>
+      );
+    case 'water':
+      // The drop, with a light reflection (planche « glyphes », Eau B).
+      return (
+        <G transform="translate(15 12)">
+          <Path d="M12 2 C 12 2 5 10.2 5 14.5 A 7 7 0 0 0 19 14.5 C 19 10.2 12 2 12 2 Z" fill={color} />
+          <Path d="M8.2 14.8 C 8.2 12.6 9.3 10.8 10.4 9.5 L 9.2 8.6 C 7.9 10.1 7 12.3 7 14.8 Z" fill="#FFFFFF" opacity={0.55} />
+        </G>
       );
     case 'air':
       return (
@@ -91,15 +98,8 @@ function glyphFor(key: string, color: string): ReactNode {
           <Path d="M 19 35 H 31 a 2.0 2.0 0 1 0 -2.0 -2.0" stroke={color} strokeWidth={1.3} strokeLinecap="round" fill="none" />
         </>
       );
-    case 'wellness':
-      // Yoga figure (MingCute yoga-fill, Apache 2.0) — 24-box centred on the head.
-      return (
-        <G transform="translate(15 11)">
-          <Path d="M8 21v-6.946L7.84 14H4.963a1.5 1.5 0 0 1-1.495-1.385l-.465-6.038a1 1 0 0 1 1.994-.154L5.427 12h2.337l2.11-1.055a1 1 0 0 0 .48-.522l.478-1.197l-4.126-1.27a1 1 0 0 1 .588-1.912l13 4a1 1 0 0 1-.588 1.912l-4.736-1.458l-1.878 2.254c-.319.382-.728.68-1.19.864L10 14.377V21a1 1 0 0 1-2 0M18 5a3 3 0 1 1-6 0a3 3 0 0 1 6 0" fill={color} />
-        </G>
-      );
     default:
-      return null; // cycling -> raster overlay
+      return null; // cycling → the set's bike, wellness → the lotus (pictos)
   }
 }
 
@@ -117,8 +117,8 @@ export function ProPin({ displayName, pinIcon, profession, pinImageUrl }: ProPin
   const ground = universeColor ? tint(universeColor, TINT_ALPHA) : colors.pinBackground;
   const ink = colors.pinBorder;
   const glyph = look.kind === 'universe' ? glyphFor(look.universe, ink) : null;
-  const isBike = look.kind === 'universe' && look.universe === 'cycling';
-  const pictoXml = look.kind === 'picto' ? (SPORT_ICON_XML[look.picto] ?? PRO_PICTO_XML[look.picto]) : undefined;
+  const pictoKey = look.kind === 'picto' ? look.picto : look.kind === 'universe' ? UNIVERSE_PICTO[look.universe] : undefined;
+  const pictoXml = pictoKey ? (SPORT_ICON_XML[pictoKey] ?? PRO_PICTO_XML[pictoKey]) : undefined;
   const initial = (displayName.trim().charAt(0) || '?').toUpperCase();
   const cap = PIN_PRO_CAPSULE;
 
@@ -157,13 +157,11 @@ export function ProPin({ displayName, pinIcon, profession, pinImageUrl }: ProPin
           PRO
         </SvgText>
       </Svg>
-      {/* picto (sport or profession) · cycling = raster bike · nothing = the pro's initial */}
-      {(pictoXml || isBike || look.kind === 'initial') && (
+      {/* picto (sport, profession, cycling or wellness universe) · nothing = the pro's initial */}
+      {(pictoXml || look.kind === 'initial') && (
         <View style={styles.inner} pointerEvents="none">
           {pictoXml ? (
             <SvgXml xml={pictoXml} width={PICTO_PX} height={PICTO_PX} color={ink} />
-          ) : isBike ? (
-            <Image source={bikeGlyph} tintColor={ink} style={styles.bike} contentFit="contain" />
           ) : (
             <AppText style={styles.letter}>{initial}</AppText>
           )}
@@ -189,10 +187,6 @@ const createStyles = (colors: AppColors) =>
       height: INNER_D,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    bike: {
-      width: INNER_D * 0.86,
-      height: INNER_D * 0.56,
     },
     letter: {
       color: colors.pinBorder,

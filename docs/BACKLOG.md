@@ -59,7 +59,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 - [x] **Filtre carte par métier** (2026-10-26) : section « Métier du pro » dans la feuille de filtres (carte seulement), pastilles actives, compteur ; les pins de page pro suivent, les pins de sortie pro aussi via leur pro.
 - [x] **Mention « avis vérifiés »** (2026-10-26) : ligne discrète sous le résumé de la brique d'avis, cinq langues.
 - [x] **Visuels Play** (2026-10-26) : feature graphic 1024×500 askandgo refaite ; aucune des cinq captures du listing ne montre de badge PRO (seule l'image 6, hors listing, reste en bleu — à refaire si on l'ajoute un jour).
-- [ ] **Cinq glyphes d'univers** du pin à redessiner dans le trait du jeu de 38 (nuage « météo », vélo en PNG).
+- [x] **Cinq glyphes d'univers** (2026-10-26, DECISIONS) : montagne deux sommets en aplat, eau goutte, air conservé, vélo = `cycling` du jeu, bien-être = lotus ; PNG du vélo retiré du pin.
 - [x] **Recadrage carré** de la photo de pin : déjà en place (`pickAndUploadProPinImage`, `allowsEditing` 1:1 + 240 px) — seule la photo démo avait été semée en paysage (constaté 2026-10-26).
 
 ### Matériel nécessaire (conçu 2026-07-09, PARKÉ — spec : `docs/GEAR_NEEDS.md` ; déclencheur : conversations « il manque X » observées sur les murs post-lancement)
