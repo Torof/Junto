@@ -10,7 +10,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: IS_PREVIEW ? 'Askandgo (dev)' : 'Askandgo',
   slug: 'junto',
-  version: '0.1.3',
+  version: '0.1.4',
   orientation: 'portrait',
   icon: './assets/askandgo_icon_square.png',
   userInterfaceStyle: 'light',
