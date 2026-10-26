@@ -112,7 +112,7 @@ interface Props {
   // tab is selected), Google place-sheet style.
   onExpand?: () => void;
   // Present only in the sheet — reports the header (name · actions · divider)
-  // height so ProSheet can pin its first snap point right at the divider.
+  // height (historical: the drawer pinned its first snap point at the divider).
   onHeaderMeasured?: (height: number) => void;
   // In the sheet, tapping a catalogue offering switches to the RA drawer rather
   // than pushing the full page. On the standalone page this is undefined → push.

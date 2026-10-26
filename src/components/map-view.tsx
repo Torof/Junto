@@ -104,8 +104,6 @@ interface MapViewProps {
   // activities. Setting any of these renders a popup next to the
   // matching pin. Mutually exclusive in practice (parent state),
   // though the component renders all that are non-null.
-  selectedPro?: NearbyPro | null;
-  selectedOffering?: ProOffering | null;
   // Id of the pin currently in "peeked" mode (highlighted by a card
   // tap in the bottom-sheet list). The matching pin scales up to draw
   // the eye; no tooltip because the originating card already shows
@@ -113,8 +111,6 @@ interface MapViewProps {
   // popup-on-pin-tap flow.
   highlightedPinId?: string | null;
   popupContent?: React.ReactNode;
-  proPopupContent?: React.ReactNode;
-  offeringPopupContent?: React.ReactNode;
   tapMarker?: [number, number] | null;
   tapMarkerContent?: React.ReactNode;
   onActivityPress?: (activity: NearbyActivity) => void;
@@ -183,12 +179,8 @@ export function JuntoMapView({
   pins = [],
   userLocation,
   selectedActivity,
-  selectedPro,
-  selectedOffering,
   highlightedPinId,
   popupContent,
-  proPopupContent,
-  offeringPopupContent,
   tapMarker,
   tapMarkerContent,
   onActivityPress,
@@ -971,48 +963,6 @@ export function JuntoMapView({
               pointerEvents="box-none"
             >
               {popupContent}
-            </View>
-          </Mapbox.MarkerView>
-        );
-      })()}
-
-      {selectedPro && proPopupContent && (() => {
-        const popupOnRight = selectedPro.primary_lng <= (bounds[0] + bounds[2]) / 2;
-        const anchor = popupOnRight ? { x: 0, y: 0.5 } : { x: 1, y: 0.5 };
-        return (
-          <Mapbox.MarkerView
-            key={`popup-pro-${selectedPro.user_id}`}
-            id={`popup-pro-${selectedPro.user_id}`}
-            coordinate={[selectedPro.primary_lng, selectedPro.primary_lat]}
-            allowOverlap
-            anchor={anchor}
-          >
-            <View
-              style={popupOnRight ? { marginLeft: 26 } : { marginRight: 26 }}
-              pointerEvents="box-none"
-            >
-              {proPopupContent}
-            </View>
-          </Mapbox.MarkerView>
-        );
-      })()}
-
-      {selectedOffering && offeringPopupContent && (() => {
-        const popupOnRight = selectedOffering.lng <= (bounds[0] + bounds[2]) / 2;
-        const anchor = popupOnRight ? { x: 0, y: 0.5 } : { x: 1, y: 0.5 };
-        return (
-          <Mapbox.MarkerView
-            key={`popup-offering-${selectedOffering.id}`}
-            id={`popup-offering-${selectedOffering.id}`}
-            coordinate={[selectedOffering.lng, selectedOffering.lat]}
-            allowOverlap
-            anchor={anchor}
-          >
-            <View
-              style={popupOnRight ? { marginLeft: 28 } : { marginRight: 28 }}
-              pointerEvents="box-none"
-            >
-              {offeringPopupContent}
             </View>
           </Mapbox.MarkerView>
         );

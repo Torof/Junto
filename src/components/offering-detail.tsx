@@ -59,7 +59,7 @@ function formatDuration(d: string | null): string | null {
 // Single-scroll "place-page" for a pro offering (RA): a compact info header
 // (sport chip · rating · title · location · schedule) then bold-titled sections
 // — À propos (stats + description + host) → Photos (carousel) → Avis (carousel)
-// → Carte. Shared by the drawer (OfferingSheet) and the deep-link page.
+// → Carte. The old sheet, kept behind `?tab=details` of the deep-link page.
 export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMeasured, onOpenPro, onEdit }: Props) {
   const { t } = useTranslation();
   const colors = useColors();

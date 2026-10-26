@@ -89,7 +89,6 @@ export default function CarteScreen() {
   // same pin (or anywhere on the preview card) opens the detail page.
   // Tap on the map elsewhere dismisses. Mutually exclusive with the
   // activity selection — picking one clears the other.
-  const [selectedOffering, setSelectedOffering] = useState<import('@/services/pro-offering-service').ProOffering | null>(null);
   // Drawer-list "peek" state — when the user taps a card, the matching
   // pin scales up and the card gets a CTA tint. Second tap on the
   // same card opens the detail page. Cards already carry the info the
@@ -229,7 +228,6 @@ export default function CarteScreen() {
         selectionBoundsSpan.current = newSpan;
       } else if (newSpan > selectionBoundsSpan.current * 1.3) {
         setSelectedActivity(null);
-        setSelectedOffering(null);
         selectionBoundsSpan.current = null;
       }
     }
@@ -318,9 +316,9 @@ export default function CarteScreen() {
     }, [queryClient])
   );
 
-  // A pin tap selects one of the three entity types; each opens its own drawer
-  // (ActivitySheet teaser / ProSheet / OfferingSheet).
-  const previewOpen = selectedActivity !== null || selectedOffering !== null;
+  // An activity pin tap opens its teaser drawer; pro and offering pins push
+  // their full pages (2026-10-25), so only the activity has a preview state.
+  const previewOpen = selectedActivity !== null;
 
   // Fly to a pin and land it in the upper part of the map (clear of the drawer
   // sliding up), same framing as a pin tap. Used by the cross-drawer links.
@@ -337,7 +335,6 @@ export default function CarteScreen() {
 
   const clearPreview = useCallback(() => {
     setSelectedActivity(null);
-    setSelectedOffering(null);
   }, []);
 
   return (
@@ -400,7 +397,6 @@ export default function CarteScreen() {
                 suppressMapPressUntil.current = Date.now() + 400;
                 setTappedPoint(null);
                 setSelectedActivity(null);
-                setSelectedOffering(null);
                 setHighlightedPinId(null);
                 // The pro page is a full page now (2026-10-25): push it.
                 router.push(`/(auth)/pro/${pro.user_id}`);
@@ -455,12 +451,10 @@ export default function CarteScreen() {
               onHeadingChange={setHeading}
               resetBearingKey={resetBearingKey}
               selectedActivity={selectedActivity}
-              selectedOffering={selectedOffering}
               highlightedPinId={highlightedPinId}
               onActivityPress={(a) => {
                 suppressMapPressUntil.current = Date.now() + 400;
                 setTappedPoint(null);
-                setSelectedOffering(null);
                 setHighlightedPinId(null);
                 // Land the pin in the top third so it's clear of the
                 // preview sheet that slides up from the bottom.
@@ -477,7 +471,7 @@ export default function CarteScreen() {
                   return;
                 }
                 // Any open pin preview dismisses on a map press.
-                if (selectedActivity || selectedOffering) {
+                if (selectedActivity) {
                   clearPreview();
                   return;
                 }
@@ -523,7 +517,6 @@ export default function CarteScreen() {
             }
             // Clear any pin-tap state (mutually exclusive with peek).
             setSelectedActivity(null);
-            setSelectedOffering(null);
             setHighlightedPinId(a.id);
             // Fly the map so the pin lands at ~22% from the top —
             // well above the 50% drawer line and clearly visible in
@@ -541,7 +534,6 @@ export default function CarteScreen() {
               return;
             }
             setSelectedActivity(null);
-            setSelectedOffering(null);
             setHighlightedPinId(o.id);
             setFlyTarget([o.lng, o.lat]);
             setFlyOffset({ y: -0.28 });
