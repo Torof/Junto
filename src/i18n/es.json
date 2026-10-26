@@ -1451,6 +1451,7 @@
     "reportActivity": "Denunciar esta actividad"
   },
   "reviews": {
+    "verified": "Opiniones verificadas: solo los miembros que reservaron e hicieron la salida pueden dejar una.",
     "count_one": "{{count}} reseña",
     "count_other": "{{count}} reseñas",
     "empty": "Todavía no hay reseñas.",

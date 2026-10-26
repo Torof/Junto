@@ -1451,6 +1451,7 @@
     "reportActivity": "Report this activity"
   },
   "reviews": {
+    "verified": "Verified reviews: only members who booked and did the outing can leave one.",
     "count_one": "{{count}} review",
     "count_other": "{{count}} reviews",
     "empty": "No reviews yet.",

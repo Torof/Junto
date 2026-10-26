@@ -1451,6 +1451,7 @@
     "reportActivity": "Diese Aktivität melden"
   },
   "reviews": {
+    "verified": "Geprüfte Bewertungen: nur Mitglieder, die gebucht und teilgenommen haben, können eine abgeben.",
     "count_one": "{{count}} Bewertung",
     "count_other": "{{count}} Bewertungen",
     "empty": "Noch keine Bewertung.",

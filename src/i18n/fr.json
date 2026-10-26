@@ -1451,6 +1451,7 @@
     "reportActivity": "Signaler cette activité"
   },
   "reviews": {
+    "verified": "Avis vérifiés : seuls les membres qui ont réservé et fait la sortie peuvent en laisser un.",
     "count_one": "{{count}} avis",
     "count_other": "{{count}} avis",
     "empty": "Aucun avis pour le moment.",

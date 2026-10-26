@@ -7,7 +7,7 @@ import Animated from 'react-native-reanimated';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Flag, Pencil, Trash2, CornerUpLeft, ImagePlus, X } from 'lucide-react-native';
+import { Flag, Pencil, Trash2, CornerUpLeft, ImagePlus, X, ShieldCheck } from 'lucide-react-native';
 import dayjs from 'dayjs';
 import * as Burnt from 'burnt';
 import { useColors } from '@/hooks/use-theme';
@@ -291,6 +291,13 @@ export function ReviewSection({ targetType, targetId, isOwner, currentUserId, ho
         </View>
       )}
 
+      {/* Reviews are gated on an accepted, past booking (00554/00555) — say so,
+          once, discreetly (Scott 2026-10-26: « mention avis vérifiés »). */}
+      <View style={styles.verifiedRow}>
+        <ShieldCheck size={13} color={colors.textSecondary} strokeWidth={2.2} />
+        <AppText style={styles.verifiedText}>{t('reviews.verified')}</AppText>
+      </View>
+
       {!isOwner && currentUserId && (ownReview || canReview) && (
         <Pressable style={styles.ctaButton} onPress={openComposer}>
           <AppText style={styles.ctaText}>
@@ -441,6 +448,8 @@ const createStyles = (colors: AppColors) =>
     summaryLeft: { alignItems: 'center', gap: 3, minWidth: 92 },
     summaryAvg: { color: colors.textPrimary, fontSize: 40, fontWeight: '800', lineHeight: 44 },
     summaryCount: { color: colors.textSecondary, fontSize: fontSizes.xs },
+    verifiedRow: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: spacing.sm, marginBottom: spacing.sm },
+    verifiedText: { color: colors.textSecondary, fontSize: fontSizes.xs },
     summaryBars: { flex: 1, gap: 4, justifyContent: 'center' },
     barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     barStar: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', width: 10, textAlign: 'center' },

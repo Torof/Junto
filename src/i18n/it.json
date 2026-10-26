@@ -1451,6 +1451,7 @@
     "reportActivity": "Segnala questa attività"
   },
   "reviews": {
+    "verified": "Recensioni verificate: solo i membri che hanno prenotato e fatto l’uscita possono lasciarne una.",
     "count_one": "{{count}} recensione",
     "count_other": "{{count}} recensioni",
     "empty": "Nessuna recensione per il momento.",
