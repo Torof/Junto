@@ -457,7 +457,7 @@ export default function ProEditScreen() {
             <AppText style={styles.fieldLabel}>{t('pro.pinSection', { defaultValue: 'Ton pin sur la carte' })}</AppText>
             <View style={styles.pinIconRow}>
               <View style={styles.pinPreviewWrap}>
-                <ProPin displayName={displayName || 'P'} pinIcon={pinIcon} pinImageUrl={pinImageUrl} />
+                <ProPin displayName={displayName || 'P'} pinIcon={pinIcon} profession={profession} pinImageUrl={pinImageUrl} />
               </View>
               <View style={{ flex: 1, gap: spacing.sm }}>
                 <AppText style={styles.helper}>
