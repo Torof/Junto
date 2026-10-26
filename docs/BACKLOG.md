@@ -41,7 +41,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 
 - [ ] **In-app distance feedback** sur l'écran activity-detail quand on est dans la fenêtre de validation (ex "tu es à 220m de la zone" avec dot vert à <150m). Ferme le mystère du fail silencieux à 160m du meetup point.
 - [ ] **Auto-show QR du créateur** sur l'écran d'activité quand T-15min arrive — réduit la dépendance au reminder + manual tap.
-- [ ] **Remplacer les copies légales in-app par des liens vers getjunto.app/legal** (walk #1, 2026-06-11) — 3 copies dérivent déjà (contact support@junto.app vs contact@getjunto.app) ; les écrans (visitor)/legal/* et (auth)/legal/privacy+terms deviennent des ouvertures navigateur ; faq/licenses restent natifs. Source unique = web.
+- [x] **Copies légales in-app → liens vers le site** (2026-10-26, `utils/legal-links.ts`) : CGU et confidentialité s'ouvrent dans le navigateur intégré (`/legal/terms`, `/legal/privacy` sur `EXPO_PUBLIC_JUNTO_WEB_HOST`, getjunto.app par défaut — une constante à changer au domaine askandgo) ; les quatre écrans copies supprimés ; FAQ et licences restent natifs.
 
 ## P2 — UX clarifications & redesigns
 
@@ -60,7 +60,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 - [x] **Mention « avis vérifiés »** (2026-10-26) : ligne discrète sous le résumé de la brique d'avis, cinq langues.
 - [x] **Visuels Play** (2026-10-26) : feature graphic 1024×500 askandgo refaite ; aucune des cinq captures du listing ne montre de badge PRO (seule l'image 6, hors listing, reste en bleu — à refaire si on l'ajoute un jour).
 - [ ] **Cinq glyphes d'univers** du pin à redessiner dans le trait du jeu de 38 (nuage « météo », vélo en PNG).
-- [ ] **Recadrage carré** à l'envoi de la photo de pin (elle remplit l'écusson ; un paysage devient une tache).
+- [x] **Recadrage carré** de la photo de pin : déjà en place (`pickAndUploadProPinImage`, `allowsEditing` 1:1 + 240 px) — seule la photo démo avait été semée en paysage (constaté 2026-10-26).
 
 ### Matériel nécessaire (conçu 2026-07-09, PARKÉ — spec : `docs/GEAR_NEEDS.md` ; déclencheur : conversations « il manque X » observées sur les murs post-lancement)
 Besoins de matériel **collaboratifs** (tout participant, pas de rôle organisateur) + quantités absolues ou « /pers » → la page Matériel devient un tableau de couverture (✓ couvert · ◐ partiel · à prévoir + « Je l'apporte »). **Junto compte, ne juge jamais** — résout le blocage qui avait fait parker l'ancienne feature gear-requests (mig 00194). Opt-in de fait (zéro besoin = page actuelle). Avant dev : présenter la chaîne d'autorisation (`upsert_gear_need`/`remove_gear_need`, table `activity_gear_needs`) + compléter SECURITY.md.

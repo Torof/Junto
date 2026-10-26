@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef, type ReactNode } from 'react';
 import { View, Pressable, Switch, ScrollView, StyleSheet, Modal, Alert, Linking, Platform } from 'react-native';
 import { AppText, AppTextInput } from '@/components/app-text';
 import { useRouter } from 'expo-router';
+import { openLegalPage } from '@/utils/legal-links';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, X,
@@ -447,8 +448,8 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
             <View style={styles.sectionCard}>
               <Row icon={PlayCircle} label={t('intro.replay')} onPress={() => { onClose(); requestReplay(); }} />
               <Row icon={HelpCircle} label={t('legal.faq')} onPress={() => { onClose(); router.push('/(auth)/legal/faq'); }} />
-              <Row icon={FileText} label={t('legal.terms')} onPress={() => { onClose(); router.push('/(auth)/legal/terms'); }} />
-              <Row icon={ShieldCheck} label={t('legal.privacy')} onPress={() => { onClose(); router.push('/(auth)/legal/privacy'); }} />
+              <Row icon={FileText} label={t('legal.terms')} onPress={() => { onClose(); void openLegalPage('terms'); }} />
+              <Row icon={ShieldCheck} label={t('legal.privacy')} onPress={() => { onClose(); void openLegalPage('privacy'); }} />
               <Row icon={Scale} label={t('legal.licenses')} onPress={() => { onClose(); router.push('/(auth)/legal/licenses'); }} last />
             </View>
 

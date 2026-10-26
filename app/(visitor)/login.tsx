@@ -8,7 +8,7 @@ import {
   type TextInput,
 } from 'react-native';
 import { AppText, AppTextInput } from '@/components/app-text';
-import { useRouter } from 'expo-router';
+import { openLegalPage } from '@/utils/legal-links';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, G, Rect } from 'react-native-svg';
@@ -26,7 +26,6 @@ export default function LoginScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [mode, setMode] = useState<Mode>('login');
@@ -224,11 +223,11 @@ export default function LoginScreen() {
             </View>
             <AppText style={styles.tosText}>
               {t('auth.tosPrefix')}{' '}
-              <AppText style={styles.link} onPress={() => router.push('/(visitor)/legal/terms')}>
+              <AppText style={styles.link} onPress={() => void openLegalPage('terms')}>
                 {t('auth.tosTerms')}
               </AppText>
               {t('auth.tosAnd')}
-              <AppText style={styles.link} onPress={() => router.push('/(visitor)/legal/privacy')}>
+              <AppText style={styles.link} onPress={() => void openLegalPage('privacy')}>
                 {t('auth.tosPrivacy')}
               </AppText>
             </AppText>
