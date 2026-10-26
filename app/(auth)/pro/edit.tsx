@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
-import { X, Check, ImagePlus, Trash2, ChevronDown, ChevronUp, ChevronRight, Plus, MapPin } from 'lucide-react-native';
+import { X, Check, Trash2, ChevronDown, ChevronUp, ChevronRight, Plus, MapPin } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius, glow } from '@/constants/theme';
@@ -29,8 +29,7 @@ import { JuntoMapView } from '@/components/map-view';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { PressableScale } from '@/components/pressable-scale';
 import { useInitialLocation } from '@/hooks/use-initial-location';
-import { ProPin } from '@/components/pro-pin';
-import { PRO_PIN_ICONS } from '@/constants/pro-pin-icons';
+import { ProPinPicker } from '@/components/pro-pin-picker';
 
 // Register-or-update screen for the pro page (lot 2 pro, mockup validated
 // 2026-10-15):
@@ -122,15 +121,7 @@ export default function ProEditScreen() {
     setShowLocation(existing.status !== 'approved');
   }, [existing]);
 
-  // Pin icon / logo: local state only — applied with « Enregistrer ».
-  const handlePickIcon = (key: string) => {
-    const next = pinIcon === key ? null : key;
-    setPinIcon(next);
-    // The custom logo takes display priority over the glyph, so picking a
-    // universe clears it — the row is "choose what fills the disc".
-    if (next && pinImageUrl) setPinImageUrl(null);
-  };
-
+  // Pin icon / photo: local state only — applied with « Enregistrer ».
   const handlePickPinImage = async () => {
     if (pinImageBusy) return;
     setPinImageBusy(true);
@@ -451,44 +442,19 @@ export default function ProEditScreen() {
           </View>
         )}
 
-        {/* Ton pin sur la carte — approved only (the setters refuse before). */}
+        {/* Ton pin sur la carte — approved only (the setters refuse before).
+            Four ways (2026-10-26): profession (default) · universe · sport · photo. */}
         {isApproved && (
-          <View style={styles.pinCard}>
-            <AppText style={styles.fieldLabel}>{t('pro.pinSection', { defaultValue: 'Ton pin sur la carte' })}</AppText>
-            <View style={styles.pinIconRow}>
-              <View style={styles.pinPreviewWrap}>
-                <ProPin displayName={displayName || 'P'} pinIcon={pinIcon} profession={profession} pinImageUrl={pinImageUrl} />
-              </View>
-              <View style={{ flex: 1, gap: spacing.sm }}>
-                <AppText style={styles.helper}>
-                  {pinImageUrl
-                    ? t('pro.pinLogoSet', { defaultValue: 'Logo importé. Ou choisis une icône :' })
-                    : t('pro.pinPickHint', { defaultValue: 'Choisis une icône, ou importe ton logo :' })}
-                </AppText>
-                <View style={styles.pinIconGrid}>
-                  {PRO_PIN_ICONS.map((opt) => {
-                    const selected = pinIcon === opt.key && !pinImageUrl;
-                    return (
-                      <Pressable
-                        key={opt.key}
-                        style={[styles.pinIconChip, selected && styles.pinIconChipSelected]}
-                        onPress={() => handlePickIcon(opt.key)}
-                        accessibilityLabel={opt.label}
-                      >
-                        <ProPin displayName="" pinIcon={opt.key} />
-                      </Pressable>
-                    );
-                  })}
-                  <Pressable style={[styles.pinIconChip, styles.pinLogoChip, !!pinImageUrl && styles.pinIconChipSelected]} onPress={handlePickPinImage} disabled={pinImageBusy}>
-                    <ImagePlus size={16} color={colors.textPrimary} strokeWidth={2.2} />
-                    <AppText style={styles.pinLogoChipText}>
-                      {pinImageBusy ? t('pro.pinLogoBusy', { defaultValue: 'Envoi…' }) : t('pro.pinLogoShort', { defaultValue: 'Logo…' })}
-                    </AppText>
-                  </Pressable>
-                </View>
-              </View>
-            </View>
-          </View>
+          <ProPinPicker
+            displayName={displayName || 'P'}
+            profession={profession}
+            pinIcon={pinIcon}
+            pinImageUrl={pinImageUrl}
+            pinImageBusy={pinImageBusy}
+            onPinIcon={setPinIcon}
+            onPickImage={handlePickPinImage}
+            onRemoveImage={() => setPinImageUrl(null)}
+          />
         )}
 
         <Field label={t('pro.fieldDisplayName', { defaultValue: 'Nom affiché sur ta page' })} styles={styles}>
@@ -772,17 +738,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   statusBannerText: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 19 },
   verifyNote: { color: colors.textSecondary, fontSize: fontSizes.xs, lineHeight: 16, textAlign: 'center', marginTop: spacing.sm },
   helper: { color: colors.textSecondary, fontSize: fontSizes.xs, lineHeight: 16, marginTop: spacing.xs },
-  pinCard: { backgroundColor: colors.surfaceAlt, borderRadius: radius.card, padding: spacing.sm + 4, marginBottom: spacing.md },
-  pinIconRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xs },
-  pinIconGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  pinIconChip: {
-    width: 44, height: 44, borderRadius: radius.card - 4, backgroundColor: colors.surface,
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'transparent',
-  },
-  pinIconChipSelected: { borderColor: colors.cta },
-  pinLogoChip: { width: undefined, flexDirection: 'row', gap: 6, paddingHorizontal: spacing.sm + 2 },
-  pinLogoChipText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
-  pinPreviewWrap: { paddingVertical: spacing.xs, paddingHorizontal: spacing.xs },
   field: { marginBottom: spacing.md },
   pickRow: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
