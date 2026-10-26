@@ -256,8 +256,11 @@ export function JuntoMapView({
     // bounds stale and blocks the initial activity fetch. Bump the camera
     // multiple times at increasing delays to maximize the chance one of them
     // fires the event.
+    // A later centre (stored fix → OS fix → GPS) is re-applied a few times
+    // too: a setCamera sent before the map is ready is dropped, and the
+    // region-first opening (2026-10-26) sends its first one very early.
     const timers: ReturnType<typeof setTimeout>[] = [];
-    const delays = isFirst ? [250, 1000, 2500] : [0];
+    const delays = isFirst ? [250, 1000, 2500] : [0, 400, 1500];
     for (const delay of delays) {
       timers.push(setTimeout(() => {
         // The user has grabbed the camera (tapped a pin/cluster) — don't

@@ -82,7 +82,16 @@ export default function CarteScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { center, zoom: initialZoom, currentLocation } = useInitialLocation();
+  const { center, zoom: initialZoom, currentLocation, isLoading: locating } = useInitialLocation();
+  // The map mounts with its first centre as `defaultSettings`: give the quick
+  // location sources (stored fix, OS last fix) up to 400 ms to land so the
+  // first frame is the region, not France (Scott 2026-10-26).
+  const [mapGateOpen, setMapGateOpen] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setMapGateOpen(true), 400);
+    return () => clearTimeout(t);
+  }, []);
+  const mapReady = !locating || mapGateOpen;
   const [selectedActivity, setSelectedActivity] = useState<NearbyActivity | null>(null);
   // Preview selection for pro / offering pins — first tap shows the
   // PinPreviewCard at the bottom of the screen; second tap on the
@@ -385,7 +394,7 @@ export default function CarteScreen() {
         )}
 
         <>
-
+            {mapReady && (
             <JuntoMapView
               center={center}
               zoom={initialZoom}
@@ -486,8 +495,7 @@ export default function CarteScreen() {
                 requestAnimationFrame(() => sheetRef.current?.expand());
               }}
             />
-
-
+            )}
         </>
 
         {/* One-line notices drawn on the map (toggle feedback). */}
