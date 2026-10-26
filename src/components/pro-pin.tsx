@@ -2,10 +2,14 @@ import { useMemo, type ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
-import Svg, { Path, G, Rect, Text as SvgText, ClipPath, Image as SvgImage } from 'react-native-svg';
+import Svg, { Path, G, Rect, Text as SvgText, ClipPath, Image as SvgImage, SvgXml } from 'react-native-svg';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
+import { useSports } from '@/hooks/use-sports';
 import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
+import { SPORT_ICON_XML } from '@/constants/sport-icon-svgs';
+import { PRO_PICTO_XML } from '@/constants/pro-pictos';
+import { proPinLook } from '@/utils/pro-pin-look';
 import {
   PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_PAD_X, PIN_PAD_Y, PIN_PRO_CAPSULE, PIN_SHIELD_EDGE, PIN_SHIELD_PATH,
   PRO_GOLD, PRO_GOLD_INK,
@@ -15,16 +19,19 @@ import { PinBody } from '@/components/pin-body';
 interface ProPinProps {
   displayName: string;
   pinIcon?: string | null;
+  profession?: string | null;
   // Optional custom image — fills the WHOLE shield (clipped to it); the
   // silhouette never changes, so the map stays coherent whatever the image.
   pinImageUrl?: string | null;
 }
 
-// The pro PAGE pin (Scott 2026-10-26, mockups « E3 » + « U4 »): a SHIELD —
-// « someone », where every outing is a drop — with the gold outline and a
-// thin ink edge outside it, and the gold PRO capsule hanging under the tip.
-// The pro's pin image fills it; without one, a pale tint of the universe
-// with the universe glyph in full colour (pale = a person, full = an outing).
+// The pro PAGE pin (Scott 2026-10-26, mockups « E3 », « U4 », « F », « Les
+// treize métiers »): a SHIELD — « someone », where every outing is a drop —
+// with the gold outline and a thin ink edge outside it, and the gold PRO
+// capsule hanging under the tip. Four ways to fill it (utils/pro-pin-look):
+// the pro's image ; a universe glyph ; a sport picto of the 38-set ; the
+// profession's picto (default). Glyph and picto are INK on a pale tint of
+// the universe (30 %): pale = a person, full colour = an outing.
 // Same 54-wide design space as the drop, same tip, so labels and anchors hold.
 const DESIGN_W = 54;
 const VIEWBOX_W = DESIGN_W + 2 * PIN_PAD_X;
@@ -41,8 +48,10 @@ const INNER_R = 15;
 const INNER_D = 2 * INNER_R * SCALE;
 const INNER_LEFT = (GLYPH_CX + PIN_PAD_X) * SCALE - INNER_D / 2;
 const INNER_TOP = (GLYPH_CY + PIN_PAD_Y) * SCALE - INNER_D / 2;
+const PICTO_PX = Math.round(24 * SCALE);
 // The image box = the shield's bounding box; `slice` crops it to the shield.
 const IMAGE_BOX = { x: 7, y: 3, w: 40, h: 49 };
+const TINT_ALPHA = 0.3; // 20 % read too pale on device (Scott 2026-10-26)
 
 // Cycling has no clean vector at this size, so it stays a raster — tinted.
 const bikeGlyph = require('../../assets/bike-glyph.png');
@@ -52,14 +61,14 @@ export const PRO_PIN_ANCHOR = {
   y: (PIN_DROP_TIP_Y + PIN_PAD_Y) / VIEWBOX_H,
 };
 
-// The universe at 30 % over white (Scott 2026-10-26, 20 % read too pale) — the shield’s ground without an image.
-function tint(hex: string, alpha = 0.2): string {
+// The universe colour at `alpha` over white — the shield's ground.
+function tint(hex: string, alpha: number): string {
   const n = parseInt(hex.slice(1), 16);
   const mix = (c: number) => Math.round(255 + (c - 255) * alpha).toString(16).padStart(2, '0');
   return `#${mix((n >> 16) & 255)}${mix((n >> 8) & 255)}${mix(n & 255)}`;
 }
 
-// Glyphs drawn in the head and scaled around (27, 23), in the universe colour.
+// Universe glyphs drawn in the head and scaled around (27, 23), in ink.
 function glyphFor(key: string, color: string): ReactNode {
   switch (key) {
     case 'mountain':
@@ -94,15 +103,22 @@ function glyphFor(key: string, color: string): ReactNode {
   }
 }
 
-export function ProPin({ displayName, pinIcon, pinImageUrl }: ProPinProps) {
+export function ProPin({ displayName, pinIcon, profession, pinImageUrl }: ProPinProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { data: sports } = useSports();
+  const categoryOf = useMemo(() => {
+    const m = new Map((sports ?? []).map((s) => [s.key, s.category]));
+    return (key: string) => m.get(key);
+  }, [sports]);
 
-  const hasImage = !!pinImageUrl;
-  const universe = !hasImage && pinIcon ? SPORT_CATEGORY_COLORS[pinIcon] : undefined;
-  const ground = universe ? tint(universe, 0.3) : colors.pinBackground;
-  const glyph = universe ? glyphFor(pinIcon ?? '', universe) : null;
-  const isBike = !!universe && pinIcon === 'cycling';
+  const look = proPinLook({ pin_image_url: pinImageUrl, pin_icon: pinIcon, profession }, categoryOf);
+  const universeColor = look.universe ? SPORT_CATEGORY_COLORS[look.universe] : undefined;
+  const ground = universeColor ? tint(universeColor, TINT_ALPHA) : colors.pinBackground;
+  const ink = colors.pinBorder;
+  const glyph = look.kind === 'universe' ? glyphFor(look.universe, ink) : null;
+  const isBike = look.kind === 'universe' && look.universe === 'cycling';
+  const pictoXml = look.kind === 'picto' ? (SPORT_ICON_XML[look.picto] ?? PRO_PICTO_XML[look.picto]) : undefined;
   const initial = (displayName.trim().charAt(0) || '?').toUpperCase();
   const cap = PIN_PRO_CAPSULE;
 
@@ -110,11 +126,11 @@ export function ProPin({ displayName, pinIcon, pinImageUrl }: ProPinProps) {
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
         <PinBody fill={ground} outline={PRO_GOLD} path={PIN_SHIELD_PATH} edge={PIN_SHIELD_EDGE} />
-        {hasImage && (
+        {look.kind === 'image' && (
           <>
             <ClipPath id="proShieldClip"><Path d={PIN_SHIELD_PATH} /></ClipPath>
             <SvgImage
-              href={{ uri: pinImageUrl }}
+              href={{ uri: pinImageUrl ?? undefined }}
               x={IMAGE_BOX.x}
               y={IMAGE_BOX.y}
               width={IMAGE_BOX.w}
@@ -141,11 +157,13 @@ export function ProPin({ displayName, pinIcon, pinImageUrl }: ProPinProps) {
           PRO
         </SvgText>
       </Svg>
-      {/* cycling = raster bike (universe tint); no icon, no image = the pro's initial */}
-      {!hasImage && (isBike || !universe) && (
+      {/* picto (sport or profession) · cycling = raster bike · nothing = the pro's initial */}
+      {(pictoXml || isBike || look.kind === 'initial') && (
         <View style={styles.inner} pointerEvents="none">
-          {isBike ? (
-            <Image source={bikeGlyph} tintColor={universe} style={styles.bike} contentFit="contain" />
+          {pictoXml ? (
+            <SvgXml xml={pictoXml} width={PICTO_PX} height={PICTO_PX} color={ink} />
+          ) : isBike ? (
+            <Image source={bikeGlyph} tintColor={ink} style={styles.bike} contentFit="contain" />
           ) : (
             <AppText style={styles.letter}>{initial}</AppText>
           )}

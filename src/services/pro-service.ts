@@ -89,6 +89,8 @@ export interface NearbyPro {
   primary_lat: number;
   pin_image_url: string | null;
   pin_icon: string | null;
+  // The declared profession (00554) — the pin's default picto and tint (00557).
+  profession: string | null;
   tagline: string | null;
   description: string | null;
   // Review aggregate — present only on getNearby (map labels / hero).
@@ -222,7 +224,7 @@ export const proService = {
     // must not pretend to be live.
     let query = supabase
       .from('pro_profiles')
-      .select('user_id, display_name, primary_lng, primary_lat, pin_image_url, pin_icon, tagline, description, status')
+      .select('user_id, display_name, primary_lng, primary_lat, pin_image_url, pin_icon, profession, tagline, description, status')
       .eq('status', 'approved')
       .order('display_name', { ascending: true })
       .limit(MAP_FETCH_CAP);

@@ -8,6 +8,8 @@ import { type NearbyPro } from '@/services/pro-service';
 import { type ProOffering } from '@/services/pro-offering-service';
 import { ActivityPin, ACTIVITY_PIN_ANCHOR } from './activity-pin';
 import { ProPin, PRO_PIN_ANCHOR } from './pro-pin';
+import { proPinLook } from '@/utils/pro-pin-look';
+import { useSports } from '@/hooks/use-sports';
 import { ProOfferingPin, PRO_OFFERING_PIN_ANCHOR } from './pro-offering-pin';
 import { ClusterPin, type ClusterSegment } from './cluster-pin';
 import { MapPinIcon, MAP_PIN_ANCHOR } from './map-pin';
@@ -315,11 +317,19 @@ export function JuntoMapView({
   // ignores a press that started on a marker.
   const markerTouchAt = useRef(0);
   const stampMarkerTouch = useCallback(() => { markerTouchAt.current = Date.now(); }, []);
+  // A pro pin's universe is derived (00557): image → none, universe key,
+  // sport key → its category, else the profession's universe. Feeds the
+  // cluster ring and the label colour, like sport_category does for outings.
+  const { data: sportRows } = useSports();
+  const proUniverse = useCallback((p: NearbyPro) => {
+    const m = new Map((sportRows ?? []).map((s) => [s.key, s.category]));
+    return proPinLook(p, (key) => m.get(key)).universe ?? '';
+  }, [sportRows]);
   const clusterCache = useRef<{ sig: string; sc: Supercluster<PinPointProps, ClusterAgg> } | null>(null);
   const cluster = useMemo(() => {
     const sig = [
       activities.map((a) => `a${a.id}:${a.lng}:${a.lat}:${a.sport_category ?? ''}`).join('|'),
-      pros.map((p) => `p${p.user_id}:${p.primary_lng}:${p.primary_lat}:${p.pin_icon ?? ''}`).join('|'),
+      pros.map((p) => `p${p.user_id}:${p.primary_lng}:${p.primary_lat}:${proUniverse(p)}`).join('|'),
       proOfferings.map((o) => `o${o.id}:${o.lng}:${o.lat}:${o.sport_category ?? ''}`).join('|'),
     ].join('#');
     if (clusterCache.current?.sig === sig) return clusterCache.current.sc;
@@ -347,7 +357,7 @@ export function JuntoMapView({
       ...pros.map<PinPoint>((p) => ({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [p.primary_lng, p.primary_lat] },
-        properties: { type: 'pro', id: p.user_id, u: p.pin_icon ?? '' },
+        properties: { type: 'pro', id: p.user_id, u: proUniverse(p) },
       })),
       ...proOfferings.map<PinPoint>((o) => ({
         type: 'Feature',
@@ -358,7 +368,7 @@ export function JuntoMapView({
     sc.load(points);
     clusterCache.current = { sig, sc };
     return sc;
-  }, [activities, pros, proOfferings]);
+  }, [activities, pros, proOfferings, proUniverse]);
 
   const clusters = useMemo(
     // round (not floor) so declustering happens ~half a zoom level earlier
@@ -404,7 +414,7 @@ export function JuntoMapView({
         name = pr.display_name;
         ({ stars, rtext } = ratingParts(pr.avg_rating, pr.review_count));
         d2 = pr.tagline ? truncate(pr.tagline, 28) : '';
-        color = (pr.pin_icon && SPORT_CATEGORY_COLORS[pr.pin_icon]) || colors.textPrimary;
+        color = SPORT_CATEGORY_COLORS[proUniverse(pr)] ?? colors.textPrimary;
       } else {
         // RA: title · ★rating (own line) · 📅 schedule conditions.
         const o = offeringMap.get(p.id);
@@ -422,7 +432,7 @@ export function JuntoMapView({
       }];
     });
     return { type: 'FeatureCollection' as const, features };
-  }, [clusters, activityMap, proMap, offeringMap, colors]);
+  }, [clusters, activityMap, proMap, offeringMap, colors, proUniverse]);
 
   useEffect(() => {
     if (flyTo && cameraRef.current) {
@@ -914,7 +924,7 @@ export function JuntoMapView({
             >
               <View style={highlightStyle}>
                 <Pressable onPressIn={stampMarkerTouch} onPress={() => onProPress?.(pro)} hitSlop={14}>
-                  <ProPin displayName={pro.display_name} pinIcon={pro.pin_icon} pinImageUrl={pro.pin_image_url} />
+                  <ProPin displayName={pro.display_name} pinIcon={pro.pin_icon} profession={pro.profession} pinImageUrl={pro.pin_image_url} />
                 </Pressable>
               </View>
             </Mapbox.MarkerView>
