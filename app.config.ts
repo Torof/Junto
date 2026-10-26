@@ -13,7 +13,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: '0.1.4',
   orientation: 'portrait',
   icon: './assets/askandgo_icon_square.png',
-  userInterfaceStyle: 'light',
+  // 'automatic' + expo-system-ui (2026-10-26): the activity follows the night
+  // mode the ThemeProvider sets from the in-app theme, so system dialogs
+  // match the app instead of the phone (takes effect with the next build).
+  userInterfaceStyle: 'automatic',
   scheme: IS_PREVIEW ? 'juntodev' : 'junto',
   newArchEnabled: true,
   splash: {

@@ -46,7 +46,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 ## P2 — UX clarifications & redesigns
 
 - [ ] **Session UX messagerie + demandes de covoit** (parqué 2026-05-05, migré du fichier memory au walk #1) — interface messagerie "pas engageante, pas claire" ; flow seat-request "raw, ugly and difficult" : affichage des demandes (deux côtés), affordances accept/decline/cancel, construction du seed message. Déclencheur : après le retour des testeurs (c'est LA surface qu'ils vont critiquer). Note : le bug "popup bloque l'écriture" du même jour est résolu (cause = rate limit 1/min, perdu au rework reply, réinstauré sain à 15/min — mig 00264).
-- [ ] **expo-system-ui + sync thème OS** — `userInterfaceStyle` n'est pas appliqué sur Android (warning prebuild). Défer délibéré : le faire proprement = synchroniser l'apparence OS avec le store de thème in-app, sinon dialogs système dark sur app light. Cf. session 2026-06-10.
+- [x] **expo-system-ui + sync thème OS** (2026-10-26) : `Appearance.setColorScheme` suit la préférence de thème (clair / sombre / système) dans le ThemeProvider — actif dès l'OTA ; `expo-system-ui` installé et `userInterfaceStyle: 'automatic'` prennent effet à la **prochaine build native** (y bumper la version, 0.1.5).
 
 ## P3 — Chantiers (plus de réflexion / d'impact)
 

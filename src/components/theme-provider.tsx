@@ -1,5 +1,5 @@
-import { createContext, useContext, useMemo } from 'react';
-import { useColorScheme } from 'react-native';
+import { createContext, useContext, useEffect, useMemo } from 'react';
+import { Appearance, useColorScheme } from 'react-native';
 import { useThemeStore } from '@/store/theme-store';
 import { darkColors, lightColors, type AppColors } from '@/constants/colors';
 
@@ -18,6 +18,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     preference === 'system'
       ? (systemScheme === 'light' ? 'light' : 'dark')
       : preference;
+
+  // Tell the OS which appearance the app runs in, so native surfaces (permission
+  // and picker dialogs, keyboard) follow the in-app theme rather than the phone's
+  // (2026-10-26). 'unspecified' hands the choice back to the system.
+  useEffect(() => {
+    Appearance.setColorScheme(preference === 'system' ? 'unspecified' : preference);
+  }, [preference]);
 
   const themeColors = useMemo(() => {
     const base = resolved === 'light' ? lightColors : darkColors;
