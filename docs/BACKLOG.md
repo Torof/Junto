@@ -22,8 +22,8 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 - [x] **Paramètres → section « Personnalisation »** : Thème, Couleur d'accent, Police, Grappes colorées (2026-10-23).
 - [x] **Site, version téléphone** : pin et étiquette de l'app, carrousels, carte de profil (2026-10-23) ; reste un peu la version ordinateur.
 - [x] **Nom askandgo — prochaine build** (fait 2026-10-24, build production) : le nom sous l'icône doit être « Askandgo » (majuscule, plus pro) — `name` dans app.config.ts ; le reste de la marque reste en minuscules.
-- [ ] **Tutoriel** : à revoir (état des lieux en cours, 2026-10-24).
-- [ ] **Demandes d'autorisation** : trop rapides et agressives au premier lancement — à étaler et expliquer.
+- [x] **Tutoriel** : refait et proposé, plus imposé (2026-10-24, DECISIONS).
+- [x] **Demandes d'autorisation** : au moment où elles servent, toujours expliquées (2026-10-24, DECISIONS).
 - [ ] **Domaine + adresses e-mail askandgo** : quand Scott aura choisi le domaine (site, liens d'e-mail, expéditeur, support@ des pages légales).
 - [ ] **Site, données réelles** : vérifier que l'accueil (prochaines sorties, offres) et les pages partagées affichent et mettent en avant les vraies données dès qu'il y en aura (le site n'avait jamais été relié à la base avant le 2026-10-23).
 - [ ] **Fiche Google Play** : 4 nouvelles captures (les actuelles montrent les anciennes versions), textes à revoir.
@@ -40,33 +40,31 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 - [ ] **In-app distance feedback** sur l'écran activity-detail quand on est dans la fenêtre de validation (ex "tu es à 220m de la zone" avec dot vert à <150m). Ferme le mystère du fail silencieux à 160m du meetup point.
 - [ ] **Auto-show QR du créateur** sur l'écran d'activité quand T-15min arrive — réduit la dépendance au reminder + manual tap.
 - [ ] **Remplacer les copies légales in-app par des liens vers getjunto.app/legal** (walk #1, 2026-06-11) — 3 copies dérivent déjà (contact support@junto.app vs contact@getjunto.app) ; les écrans (visitor)/legal/* et (auth)/legal/privacy+terms deviennent des ouvertures navigateur ; faq/licenses restent natifs. Source unique = web.
-- [ ] **Retirer `react-native-keyboard-controller`** de package.json au prochain build natif — installé pendant la saga clavier (2026-06-10), inerte sur device, gardé uniquement pour la compat OTA du runtime 0.1.3. Le retirer = bump version + build.
 
 ## P2 — UX clarifications & redesigns
 
-- [ ] **Pin beige UA — teinte finale.** Le système v3 est CLOS (2026-06-11) : RA = teardrop identique à UA avec frame toujours bleu pro-badge #3b82f6 (= couleur du badge pro profil, idée Scott), PP = cercle bleu. Le canal sémantique unique = couleur du frame (beige à venir / vert en cours / ambre bientôt / bleu pro permanent). Reste UNIQUEMENT le beige `pinFrame` #E0D2B4 ("proche mais pas parfait") — à fixer après feedback testeurs. 1 ligne + OTA.
 - [ ] **Session UX messagerie + demandes de covoit** (parqué 2026-05-05, migré du fichier memory au walk #1) — interface messagerie "pas engageante, pas claire" ; flow seat-request "raw, ugly and difficult" : affichage des demandes (deux côtés), affordances accept/decline/cancel, construction du seed message. Déclencheur : après le retour des testeurs (c'est LA surface qu'ils vont critiquer). Note : le bug "popup bloque l'écriture" du même jour est résolu (cause = rate limit 1/min, perdu au rework reply, réinstauré sain à 15/min — mig 00264).
 - [ ] **expo-system-ui + sync thème OS** — `userInterfaceStyle` n'est pas appliqué sur Android (warning prebuild). Défer délibéré : le faire proprement = synchroniser l'apparence OS avec le store de thème in-app, sinon dialogs système dark sur app light. Cf. session 2026-06-10.
 
 ## P3 — Chantiers (plus de réflexion / d'impact)
 
-### Page pro — refonte (décidée 2026-10-25, voir DECISIONS) — maquette d'abord, corps à décider
-- [x] Page pro (2026-10-25, OTA preview, `components/pro-page.tsx`) : pleine page depuis le pin (tiroir `pro-sheet` retiré de la carte), barre de statut cachée, en-tête validé, actions, sortie mise en avant + bandeau, avis, photos, à propos, coordonnées ; les anciens onglets restent derrière `?tab=catalog|reviews|pictures`. Reste : « Contacter » (pas de messagerie client→pro hors réservation), supprimer `pro-sheet` / l'ancien aperçu quand la fiche de sortie sera refaite.
-- [x] Base (2026-10-25, migs 00554-00555, test 16, 2557 verts) : `profession`, `featured_offering_id`, avis réservés à qui a réservé.
-- [x] Espace pro (2026-10-25, OTA preview) : sélecteur de métier (obligatoire), pastilles « Sortie mise en avant » (dès deux offres), rappel dans l'espace pro, libellés ×5. Reste : filtre carte par métier.
-- [x] Couleur pro = or (2026-10-25, OTA preview) : `PRO_GOLD` dans `constants/pin-style`, liseré or des deux pins pro (`PinBody` prend `outline`), capsule PRO or / encre, pastille navbar, badges des pages. Bleu pro supprimé (même jour) : le pin de sortie pro est en couleur d'univers. Reste : visuels Play (PRO bleu) à mettre en accord.
-- [ ] Tagline : plus sur la photo ; elle ouvre « À propos » (limite 120 inchangée).
-- [x] Fiche d'une sortie pro (2026-10-25, OTA preview, `components/offering-page.tsx`) : pleine page depuis le pin (tiroir `offering-sheet` retiré de la carte), photo + sport + titre + note + SORTIE ENCADRÉE or + prix, bande « par », faits 2×2, à propos, matériel, avis, photos, barre prix + Réserver ; l'ancienne fiche reste derrière `?tab=details` (avis complets, photos, créneaux). Pages derrière les liens (2026-10-25) : Sorties = l'ancien onglet Catalogue en page (`ProDetail soloTab`), Avis du pro et Avis d'une sortie = la brique d'avis en page, « Donner son avis » seulement avec une réservation acceptée et passée (`reviewService.canReview`). Photos d'une sortie en page (2026-10-26, `components/offering-photos-page.tsx`) : grille + lightbox, ajout (pro → galerie, autres → photos communautaires), suppression selon les droits ; « Voir tout » et les vignettes de la fiche y mènent. Pin de page pro en écusson (2026-10-26, DECISIONS « Pin de la page pro : l'écusson », `components/pro-pin.tsx`) : or + bord encre + capsule PRO sous la pointe, photo pleine ou teinte d'univers. Reste : supprimer `offering-sheet` / `pro-sheet` et l'état `selectedOffering` de la carte ; picto du pin à quatre voies côté base + carte FAIT (mig 00557, 2026-10-26) ; formulaire pro « Ton pin » à quatre tuiles FAIT (2026-10-26, `components/pro-pin-picker.tsx`, maquette validée). Reste : redessiner les cinq glyphes d'univers dans le trait du jeu de 38 ; un recadrage carré à l'envoi de la photo de pin (elle remplit l'écusson, un paysage devient une tache).
-- [x] Avis réservés à qui a réservé — fait en base (00554/00555) ; reste : mention « avis vérifiés » dans l'app, message `errors.code.review_requires_booking` déjà traduit.
-- [ ] Photos : 4 vignettes + « Voir tout » → page grille (pro puis communauté) ; fin du carrousel.
-- [ ] Corps validé 2026-10-25 : une sortie mise en avant + bandeau « Voir les N sorties › » (→ page catalogue = onglet actuel gardé) ; Avis (4,9 + étoiles + « 24 avis », deux avis étoilés, lien discret « Voir les N avis ») ; Photos ; À propos ; coordonnées. Plus d'onglets.
-- [ ] À décider : note « 4,9 · 24 avis » sur la photo tapable → section Avis (suggéré).
+### Page pro — refonte (décidée 2026-10-25, voir DECISIONS) — LIVRÉE en preview, restes ci-dessous
+- [x] Base (migs 00554-00555, 00557 ; tests 06/16 ; 2561 verts) : `profession`, `featured_offering_id`, avis réservés à qui a réservé, `pin_icon` élargi (univers ou sport, NULL = métier).
+- [x] Page pro pleine page (`pro-page.tsx`), fiche de sortie pleine page (`offering-page.tsx`), pages Sorties / Avis / Photos derrière les liens (`offering-photos-page.tsx`), « Donner son avis » gated (`reviewService.canReview`). Tiroirs `pro-sheet` / `offering-sheet` et état `selectedOffering` supprimés (2026-10-26).
+- [x] Espace pro : métier obligatoire, « Sortie mise en avant », rappel métier ; « Ton pin sur la carte » à quatre tuiles (`pro-pin-picker.tsx`, 2026-10-26).
+- [x] Couleur pro = or, bleu pro supprimé ; pin de page pro en écusson (or + bord encre + capsule PRO sous la pointe, photo pleine, sinon picto du métier / univers / sport en encre sur teinte 30 %) — `pro-pin.tsx`, `utils/pro-pin-look.ts`, `constants/pro-pictos.ts`.
+- [ ] **« Contacter » un pro** hors réservation — décision produit (pas de messagerie client→pro aujourd'hui).
+- [ ] **Filtre carte par métier** (la colonne existe ; le filtre de la carte ne la lit pas).
+- [ ] **Mention « avis vérifiés »** dans la brique d'avis (le gate existe, l'app ne le dit pas).
+- [ ] **Visuels Play** : badge PRO bleu → or sur les captures, feature graphic 1024×500 askandgo (cf. PROD_READINESS).
+- [ ] **Cinq glyphes d'univers** du pin à redessiner dans le trait du jeu de 38 (nuage « météo », vélo en PNG).
+- [ ] **Recadrage carré** à l'envoi de la photo de pin (elle remplit l'écusson ; un paysage devient une tache).
 
 ### Matériel nécessaire (conçu 2026-07-09, PARKÉ — spec : `docs/GEAR_NEEDS.md` ; déclencheur : conversations « il manque X » observées sur les murs post-lancement)
 Besoins de matériel **collaboratifs** (tout participant, pas de rôle organisateur) + quantités absolues ou « /pers » → la page Matériel devient un tableau de couverture (✓ couvert · ◐ partiel · à prévoir + « Je l'apporte »). **Junto compte, ne juge jamais** — résout le blocage qui avait fait parker l'ancienne feature gear-requests (mig 00194). Opt-in de fait (zéro besoin = page actuelle). Avant dev : présenter la chaîne d'autorisation (`upsert_gear_need`/`remove_gear_need`, table `activity_gear_needs`) + compléter SECURITY.md.
 
 ### Doc debt
-- [ ] **SECURITY.md — classification des fonctions Pro V1.** Les ~15 RPCs pro (mig 00240-00254 : pro_profiles, offerings, photos) n'ont jamais été ajoutées aux tables "Fonctions client-callable" / chaînes d'autorisation. Les entrées avis (00258-00260) sont à jour ; le rattrapage Pro V1 reste à faire.
+- [x] **SECURITY.md — classification des fonctions Pro V1** : vérifié 2026-10-26, le bloc « Fiche Pro » de la classification liste les RPC pro ; chaînes à jour via PRO_HARDENING.
 
 ### Niveau auto-déclaré validé par les pairs (conçu 2026-07-08, ✅ livré — migs 00293–00299)
 Design **complet et validé sur mock** (session 2026-07-08). Règles verrouillées → DECISIONS.md 2026-07-08. Mock de référence : artifact claude.ai `b362a0df` (session 2026-07-08) — la description ci-dessous est auto-suffisante.
