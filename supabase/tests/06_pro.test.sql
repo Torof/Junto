@@ -135,6 +135,11 @@ PERFORM pg_temp.denied('un suspendu ne peut pas modifier de vitrine', $$SELECT p
 PERFORM pg_temp.as_('pro');
 PERFORM pg_temp.ok('icône de pin valide', $$SELECT public.set_pro_pin_icon('mountain')::text$$);
 PERFORM pg_temp.denied('icône de pin hors liste refusée', $$SELECT public.set_pro_pin_icon('skull')::text$$);
+-- 00557 : une clé de sport du catalogue vaut aussi (le picto de la sortie) ; NULL = le métier.
+PERFORM pg_temp.ok('icône de pin = un sport du catalogue', $$SELECT public.set_pro_pin_icon('canyoning')::text$$);
+PERFORM pg_temp.eq('icône de pin : le sport est enregistré', $$SELECT pin_icon FROM public.pro_profiles WHERE user_id = pg_temp.id('pro')$$, 'canyoning');
+PERFORM pg_temp.ok('icône de pin NULL = retour au métier', $$SELECT public.set_pro_pin_icon(NULL)::text$$);
+PERFORM pg_temp.denied('icône de pin : une forme invalide est refusée', $$SELECT public.set_pro_pin_icon('Canyoning')::text$$);
 PERFORM pg_temp.ok('image de pin dans son dossier', format($$SELECT public.set_pro_pin_image(%L)::text$$, pg_temp.po_url('pro', 'pin.jpg')));
 PERFORM pg_temp.denied('image de pin hors stockage refusée', $$SELECT public.set_pro_pin_image('https://evil.example/pin.jpg')::text$$);
 PERFORM pg_temp.denied('image de pin dans le dossier d''un autre refusée', format($$SELECT public.set_pro_pin_image(%L)::text$$, pg_temp.po_url('pro2', 'pin.jpg')));
