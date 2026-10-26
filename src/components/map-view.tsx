@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect, type ComponentRef, type RefObject } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { AppText } from '@/components/app-text';
 import Mapbox from '@rnmapbox/maps';
 import Supercluster from 'supercluster';
@@ -168,51 +168,6 @@ type ClusterAgg = { u: Record<string, number>; k: string };
 type PinPoint = Supercluster.PointFeature<PinPointProps>;
 // Fixed slice order so a cluster's ring reads the same everywhere.
 const UNIVERSE_ORDER = ['mountain', 'water', 'air', 'cycling', 'on-foot', 'wellness', ''];
-
-// A pin's touch target that never becomes the React responder, so the
-// gesture falls through to the native map: a pan or a pinch that STARTS on a
-// pin or a cluster moves the map (Scott 2026-10-26 — with a Pressable the map
-// stayed frozen under the finger). A tap is recognised by hand: finger up
-// within TAP_SLOP px and TAP_MS of the touch start. When the map takes the
-// gesture, RN sends a touch cancel and nothing fires.
-const TAP_SLOP = 10;
-const TAP_MS = 350;
-const PIN_PRESSED = { opacity: 0.85 } as const;
-function PinTouch({ onTap, onTouchStart, hitSlop, children }: {
-  onTap: () => void;
-  onTouchStart?: () => void;
-  hitSlop?: number;
-  children: React.ReactNode;
-}) {
-  const start = useRef<{ x: number; y: number; t: number } | null>(null);
-  const [pressed, setPressed] = useState(false);
-  const reset = () => { start.current = null; setPressed(false); };
-  return (
-    <View
-      hitSlop={hitSlop}
-      style={pressed ? PIN_PRESSED : undefined}
-      onTouchStart={(e) => {
-        start.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY, t: Date.now() };
-        setPressed(true);
-        onTouchStart?.();
-      }}
-      onTouchMove={(e) => {
-        const s = start.current;
-        if (s && Math.hypot(e.nativeEvent.pageX - s.x, e.nativeEvent.pageY - s.y) > TAP_SLOP) reset();
-      }}
-      onTouchEnd={(e) => {
-        const s = start.current;
-        reset();
-        if (!s) return;
-        const near = Math.hypot(e.nativeEvent.pageX - s.x, e.nativeEvent.pageY - s.y) <= TAP_SLOP;
-        if (near && Date.now() - s.t <= TAP_MS) onTap();
-      }}
-      onTouchCancel={reset}
-    >
-      {children}
-    </View>
-  );
-}
 
 export function JuntoMapView({
   center = DEFAULT_CENTER,
@@ -666,7 +621,7 @@ export function JuntoMapView({
       <Mapbox.ShapeSource
         id="pin-labels"
         shape={labelShape}
-        // The labels are native symbols, not React views: the pin's touch target
+        // The labels are native symbols, not React views: the pin's Pressable
         // never covers them, so tapping a title did nothing (Scott 2026-10-05).
         // Route a label hit to the same handler as its pin.
         onPress={(e) => {
@@ -820,9 +775,9 @@ export function JuntoMapView({
       ) : (
         pins.map((pin) => (
           <Mapbox.MarkerView key={pin.id} id={pin.id} coordinate={pin.coordinate} anchor={MAP_PIN_ANCHOR} allowOverlap>
-            <PinTouch onTouchStart={stampMarkerTouch} onTap={() => onPinPress?.(pin)} hitSlop={10}>
+            <Pressable onPressIn={stampMarkerTouch} onPress={() => onPinPress?.(pin)} hitSlop={10}>
               <MapPinIcon color={pin.color} />
-            </PinTouch>
+            </Pressable>
           </Mapbox.MarkerView>
         ))
       )}
@@ -866,7 +821,7 @@ export function JuntoMapView({
               coordinate={[lng, lat]}
               allowOverlap
             >
-              <PinTouch onTouchStart={stampMarkerTouch} onTap={() => {
+              <Pressable onPressIn={stampMarkerTouch} onPress={() => {
                 const leaves = cluster.getLeaves(clusterId, Infinity);
                 // Bounding box of every point under this cluster + track the
                 // southernmost leaf (lowest latitude = lowest on screen).
@@ -910,7 +865,7 @@ export function JuntoMapView({
                 }
               }}>
                 <ClusterPin count={count} segments={segments} />
-              </PinTouch>
+              </Pressable>
             </Mapbox.MarkerView>
           );
         }
@@ -940,9 +895,9 @@ export function JuntoMapView({
               allowOverlap
             >
               <View style={isSelected ? { elevation: 999, zIndex: 999 } : highlightStyle}>
-                <PinTouch onTouchStart={stampMarkerTouch} onTap={() => onActivityPress?.(activity)} hitSlop={14}>
+                <Pressable onPressIn={stampMarkerTouch} onPress={() => onActivityPress?.(activity)} hitSlop={14}>
                   <ActivityPin activity={activity} />
-                </PinTouch>
+                </Pressable>
               </View>
             </Mapbox.MarkerView>
           );
@@ -960,9 +915,9 @@ export function JuntoMapView({
               allowOverlap
             >
               <View style={highlightStyle}>
-                <PinTouch onTouchStart={stampMarkerTouch} onTap={() => onProPress?.(pro)} hitSlop={14}>
+                <Pressable onPressIn={stampMarkerTouch} onPress={() => onProPress?.(pro)} hitSlop={14}>
                   <ProPin displayName={pro.display_name} pinIcon={pro.pin_icon} profession={pro.profession} pinImageUrl={pro.pin_image_url} />
-                </PinTouch>
+                </Pressable>
               </View>
             </Mapbox.MarkerView>
           );
@@ -980,9 +935,9 @@ export function JuntoMapView({
             allowOverlap
           >
             <View style={highlightStyle}>
-              <PinTouch onTouchStart={stampMarkerTouch} onTap={() => onProOfferingPress?.(offering)} hitSlop={14}>
+              <Pressable onPressIn={stampMarkerTouch} onPress={() => onProOfferingPress?.(offering)} hitSlop={14}>
                 <ProOfferingPin offering={offering} />
-              </PinTouch>
+              </Pressable>
             </View>
           </Mapbox.MarkerView>
         );
