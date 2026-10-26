@@ -102,7 +102,7 @@ export function OfferingPage({ offering, isOwner }: Props) {
     Share.share({ message: `${offering.title} — ${offering.pro_name} sur askandgo\nhttps://${webHost}/pro/offering/${offering.id}` }).catch(() => {});
   };
   const openPro = () => router.push(`/(auth)/pro/${offering.pro_id}`);
-  const openOld = () => router.push(`/(auth)/pro/offering/${offering.id}?tab=details`);
+  const openPhotos = () => router.push(`/(auth)/pro/offering/${offering.id}?tab=photos`);
   const openReviews = () => router.push(`/(auth)/pro/offering/${offering.id}?tab=reviews`);
   const book = () => router.push(`/(auth)/pro/book/${offering.id}`);
 
@@ -278,7 +278,7 @@ export function OfferingPage({ offering, isOwner }: Props) {
           <AppText style={styles.sec}>
             {t('proOffering.tab.pictures', { defaultValue: 'Photos' })}{allPhotos.length > 0 ? <AppText style={styles.sub}>{`  · ${allPhotos.length}`}</AppText> : null}
           </AppText>
-          <Pressable onPress={openOld} hitSlop={6}>
+          <Pressable onPress={openPhotos} hitSlop={6}>
             <AppText style={styles.link}>{allPhotos.length > 0 ? t('pro.seeAll', { defaultValue: 'Voir tout' }) + ' ›' : t('pro.addPhotos', { defaultValue: 'Ajouter des photos' }) + ' ›'}</AppText>
           </Pressable>
         </View>
@@ -287,7 +287,7 @@ export function OfferingPage({ offering, isOwner }: Props) {
             {allPhotos.slice(0, 4).map((url, i) => {
               const more = i === 3 && allPhotos.length > 4 ? allPhotos.length - 4 : 0;
               return (
-                <Pressable key={`${url}-${i}`} style={styles.thumbWrap} onPress={openOld}>
+                <Pressable key={`${url}-${i}`} style={styles.thumbWrap} onPress={openPhotos}>
                   <Image source={{ uri: url }} style={styles.thumb} contentFit="cover" cachePolicy="memory-disk" />
                   {more > 0 ? <View style={styles.thumbMore}><AppText style={styles.thumbMoreText}>+{more}</AppText></View> : null}
                 </Pressable>
