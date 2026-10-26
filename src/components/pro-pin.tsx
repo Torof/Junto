@@ -52,7 +52,7 @@ export const PRO_PIN_ANCHOR = {
   y: (PIN_DROP_TIP_Y + PIN_PAD_Y) / VIEWBOX_H,
 };
 
-// The universe at ~20 % over white — the shield's ground without an image.
+// The universe at 30 % over white (Scott 2026-10-26, 20 % read too pale) — the shield’s ground without an image.
 function tint(hex: string, alpha = 0.2): string {
   const n = parseInt(hex.slice(1), 16);
   const mix = (c: number) => Math.round(255 + (c - 255) * alpha).toString(16).padStart(2, '0');
@@ -100,7 +100,7 @@ export function ProPin({ displayName, pinIcon, pinImageUrl }: ProPinProps) {
 
   const hasImage = !!pinImageUrl;
   const universe = !hasImage && pinIcon ? SPORT_CATEGORY_COLORS[pinIcon] : undefined;
-  const ground = universe ? tint(universe) : colors.pinBackground;
+  const ground = universe ? tint(universe, 0.3) : colors.pinBackground;
   const glyph = universe ? glyphFor(pinIcon ?? '', universe) : null;
   const isBike = !!universe && pinIcon === 'cycling';
   const initial = (displayName.trim().charAt(0) || '?').toUpperCase();
