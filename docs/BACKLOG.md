@@ -58,7 +58,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 - [ ] **« Contacter » un pro** hors réservation — décision produit (pas de messagerie client→pro aujourd'hui).
 - [ ] **Filtre carte par métier** (la colonne existe ; le filtre de la carte ne la lit pas).
 - [ ] **Mention « avis vérifiés »** dans la brique d'avis (le gate existe, l'app ne le dit pas).
-- [ ] **Visuels Play** : badge PRO bleu → or sur les captures, feature graphic 1024×500 askandgo (cf. PROD_READINESS).
+- [x] **Visuels Play** (2026-10-26) : feature graphic 1024×500 askandgo refaite ; aucune des cinq captures du listing ne montre de badge PRO (seule l'image 6, hors listing, reste en bleu — à refaire si on l'ajoute un jour).
 - [ ] **Cinq glyphes d'univers** du pin à redessiner dans le trait du jeu de 38 (nuage « météo », vélo en PNG).
 - [ ] **Recadrage carré** à l'envoi de la photo de pin (elle remplit l'écusson ; un paysage devient une tache).
 
