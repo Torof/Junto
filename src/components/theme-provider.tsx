@@ -21,9 +21,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Tell the OS which appearance the app runs in, so native surfaces (permission
   // and picker dialogs, keyboard) follow the in-app theme rather than the phone's
-  // (2026-10-26). 'unspecified' hands the choice back to the system.
+  // (2026-10-26). null hands the choice back to the system.
   useEffect(() => {
-    Appearance.setColorScheme(preference === 'system' ? 'unspecified' : preference);
+    Appearance.setColorScheme(preference === 'system' ? null : preference);
   }, [preference]);
 
   const themeColors = useMemo(() => {
