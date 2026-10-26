@@ -23,6 +23,7 @@ export function FilterButton({ onPress, blink = false }: Props) {
   const { filters } = useMapStore();
   const activeCount =
     filters.sportKeys.length
+    + filters.professions.length
     + (filters.dateMode !== 'all' ? 1 : 0)
     + filters.levelTiers.length
     + filters.visibilities.length

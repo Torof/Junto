@@ -180,12 +180,22 @@ export default function CarteScreen() {
   // one of those sports (Scott 2026-10-16) — its offerings' sports travel
   // with the pin (NearbyPro.sport_keys).
   const sportKeys = useMapStore((s) => s.filters.sportKeys);
+  // Profession filter (2026-10-26): a page pin stays when the pro declared
+  // one of the chosen professions; an offering pin stays when ITS pro does
+  // (a pro located out of the fetched area is unknown here, so hidden).
+  const professions = useMapStore((s) => s.filters.professions);
   const filteredProsByType = useMemo(() => {
     if (!showProOfferings) return [];
-    const list = pros ?? [];
-    if (sportKeys.length === 0) return list;
-    return list.filter((p) => (p.sport_keys ?? []).some((k) => sportKeys.includes(k)));
-  }, [pros, showProOfferings, sportKeys]);
+    let list = pros ?? [];
+    if (sportKeys.length > 0) list = list.filter((p) => (p.sport_keys ?? []).some((k) => sportKeys.includes(k)));
+    if (professions.length > 0) list = list.filter((p) => !!p.profession && professions.includes(p.profession));
+    return list;
+  }, [pros, showProOfferings, sportKeys, professions]);
+  const filteredOfferingsByProfession = useMemo(() => {
+    if (professions.length === 0) return filteredOfferingsByType;
+    const keep = new Set((pros ?? []).filter((p) => !!p.profession && professions.includes(p.profession)).map((p) => p.user_id));
+    return filteredOfferingsByType.filter((o) => keep.has(o.pro_id));
+  }, [filteredOfferingsByType, professions, pros]);
 
   const doSearch = useCallback((bounds: MapBounds) => {
     lastSearchCenter.current = { lng: bounds.centerLng, lat: bounds.centerLat };
@@ -410,7 +420,7 @@ export default function CarteScreen() {
                 // The pro page is a full page now (2026-10-25): push it.
                 router.push(`/(auth)/pro/${pro.user_id}`);
               }}
-              proOfferings={filteredOfferingsByType}
+              proOfferings={filteredOfferingsByProfession}
               onProOfferingPress={(offering) => {
                 suppressMapPressUntil.current = Date.now() + 400;
                 setTappedPoint(null);
@@ -505,7 +515,7 @@ export default function CarteScreen() {
           ref={sheetRef}
           hidden={previewOpen}
           activities={clusterFilter ?? filteredActivitiesByType}
-          proOfferings={filteredOfferingsByType}
+          proOfferings={filteredOfferingsByProfession}
           userLocation={currentLocation ?? center}
           highlightedItemId={highlightedPinId}
           filterLabel={clusterFilter ? t('map.activitiesAtPoint', { count: clusterFilter.length }) : undefined}

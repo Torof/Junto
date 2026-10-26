@@ -15,6 +15,7 @@ import { fontSizes, spacing, radius, glow } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import { useMapStore, type LevelTier, type SortBy, type SortDir } from '@/store/map-store';
 import { CollapsibleSection } from './collapsible-section';
+import { PRO_PROFESSIONS } from '@/constants/professions';
 import { PlaceSearchBar } from './place-search-bar';
 import { useSports } from '@/hooks/use-sports';
 import { SportIcon } from '@/components/sport-icon';
@@ -72,6 +73,7 @@ export function FilterSheet({
   const {
     filters,
     toggleSportFilter,
+    toggleProfessionFilter,
     setDateMode,
     setDateRange,
     toggleLevelTier,
@@ -89,6 +91,7 @@ export function FilterSheet({
 
   const hasActiveFilters =
     filters.sportKeys.length > 0
+    || filters.professions.length > 0
     || filters.dateMode !== 'all'
     || filters.levelTiers.length > 0
     || filters.visibilities.length > 0
@@ -146,6 +149,7 @@ export function FilterSheet({
             <FiltersTab
               filters={filters}
               toggleSportFilter={toggleSportFilter}
+              toggleProfessionFilter={toggleProfessionFilter}
               setDateMode={setDateMode}
               setDateRange={setDateRange}
               toggleLevelTier={toggleLevelTier}
@@ -201,6 +205,7 @@ export function FilterSheet({
 interface FiltersTabProps {
   filters: ReturnType<typeof useMapStore.getState>['filters'];
   toggleSportFilter: (k: string) => void;
+  toggleProfessionFilter: (k: string) => void;
   setDateMode: (m: 'all' | 'today' | 'week' | 'date' | 'range') => void;
   setDateRange: (f: string, t: string) => void;
   toggleLevelTier: (tier: LevelTier) => void;
@@ -227,7 +232,7 @@ interface FiltersTabProps {
 }
 
 function FiltersTab({
-  filters, toggleSportFilter, setDateMode, setDateRange,
+  filters, toggleSportFilter, toggleProfessionFilter, setDateMode, setDateRange,
   toggleLevelTier, setRadiusKm, setSortBy, setSortDir,
   toggleShowActivities, toggleShowProOfferings, showEntityFilter, onPlaceSelect, onResetLocation, locationLabel, resetFilters,
   showRangeFrom, setShowRangeFrom, showRangeTo, setShowRangeTo,
@@ -250,6 +255,14 @@ function FiltersTab({
       id: `sport-${key}`,
       label: t(`sports.${key}`, { defaultValue: key }),
       clear: () => toggleSportFilter(key),
+    });
+  });
+
+  filters.professions.forEach((key) => {
+    activePills.push({
+      id: `profession-${key}`,
+      label: t(`pro.profession.${key}`, { defaultValue: key }),
+      clear: () => toggleProfessionFilter(key),
     });
   });
 
@@ -294,6 +307,13 @@ function FiltersTab({
     : filters.sportKeys.length === 1
       ? t(`sports.${filters.sportKeys[0]}`, { defaultValue: filters.sportKeys[0] ?? '' })
       : `${t('map.sportLabel')} · ${filters.sportKeys.length}`;
+
+  const professionActive = filters.professions.length > 0;
+  const professionLabel = !professionActive
+    ? t('map.professionLabel')
+    : filters.professions.length === 1
+      ? t(`pro.profession.${filters.professions[0]}`, { defaultValue: filters.professions[0] ?? '' })
+      : `${t('map.professionLabel')} · ${filters.professions.length}`;
 
   const levelActive = filters.levelTiers.length > 0;
   const levelLabel = !levelActive
@@ -464,6 +484,21 @@ function FiltersTab({
             );
           })}
         </CollapsibleSection>
+
+        {/* Pro page pins by declared profession (00554) — map only. */}
+        {showEntityFilter && (
+          <CollapsibleSection title={t('map.professionLabel')} summary={professionActive ? professionLabel : null}>
+            {PRO_PROFESSIONS.map((key) => {
+              const on = filters.professions.includes(key);
+              return (
+                <Pressable key={key} style={styles.optRow} onPress={() => toggleProfessionFilter(key)}>
+                  <AppText style={[styles.optLabel, on && styles.optLabelActive]} numberOfLines={1}>{t(`pro.profession.${key}`, { defaultValue: key })}</AppText>
+                  {on && <Check size={18} color={colors.cta} strokeWidth={2.4} />}
+                </Pressable>
+              );
+            })}
+          </CollapsibleSection>
+        )}
 
         <CollapsibleSection title={t('map.levelLabel')} summary={levelActive ? levelLabel : null}>
           {levelTierList.map((tier) => {

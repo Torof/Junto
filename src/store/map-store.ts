@@ -9,6 +9,7 @@ export type SortDir = 'asc' | 'desc';
 
 interface MapFilters {
   sportKeys: string[];
+  professions: string[];        // pro page pins by declared profession (00554); empty = no filter
   dateMode: DateFilterMode;
   specificDate: string | null;   // ISO date string for 'date' mode
   rangeFrom: string | null;      // ISO date string for 'range' mode
@@ -28,6 +29,7 @@ interface MapFilters {
 interface MapStore {
   filters: MapFilters;
   toggleSportFilter: (sportKey: string) => void;
+  toggleProfessionFilter: (profession: string) => void;
   setDateMode: (mode: DateFilterMode) => void;
   setSpecificDate: (date: string) => void;
   setDateRange: (from: string, to: string) => void;
@@ -43,6 +45,7 @@ interface MapStore {
 
 const DEFAULT_FILTERS: MapFilters = {
   sportKeys: [],
+  professions: [],
   dateMode: 'all',
   specificDate: null,
   rangeFrom: null,
@@ -58,6 +61,15 @@ const DEFAULT_FILTERS: MapFilters = {
 
 export const useMapStore = create<MapStore>((set) => ({
   filters: DEFAULT_FILTERS,
+  toggleProfessionFilter: (profession) =>
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        professions: state.filters.professions.includes(profession)
+          ? state.filters.professions.filter((p) => p !== profession)
+          : [...state.filters.professions, profession],
+      },
+    })),
   toggleSportFilter: (sportKey) =>
     set((state) => ({
       filters: {

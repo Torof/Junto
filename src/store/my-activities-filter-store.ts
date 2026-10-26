@@ -14,6 +14,7 @@ type DateFilterMode = 'all' | 'today' | 'week' | 'date' | 'range';
 
 interface MapFilters {
   sportKeys: string[];
+  professions: string[];        // pro page pins by declared profession (00554); empty = no filter
   dateMode: DateFilterMode;
   specificDate: string | null;
   rangeFrom: string | null;
@@ -34,6 +35,7 @@ interface MapFilters {
 interface FilterStore {
   filters: MapFilters;
   toggleSportFilter: (sportKey: string) => void;
+  toggleProfessionFilter: (profession: string) => void;
   setDateMode: (mode: DateFilterMode) => void;
   setSpecificDate: (date: string) => void;
   setDateRange: (from: string, to: string) => void;
@@ -49,6 +51,7 @@ interface FilterStore {
 
 const DEFAULT_FILTERS: MapFilters = {
   sportKeys: [],
+  professions: [],
   dateMode: 'all',
   specificDate: null,
   rangeFrom: null,
@@ -64,6 +67,15 @@ const DEFAULT_FILTERS: MapFilters = {
 
 export const useMyActivitiesFilterStore = create<FilterStore>((set) => ({
   filters: DEFAULT_FILTERS,
+  toggleProfessionFilter: (profession) =>
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        professions: state.filters.professions.includes(profession)
+          ? state.filters.professions.filter((p) => p !== profession)
+          : [...state.filters.professions, profession],
+      },
+    })),
   toggleSportFilter: (sportKey) =>
     set((state) => ({
       filters: {

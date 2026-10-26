@@ -1044,6 +1044,7 @@
       "pickRange": "Zeitraum"
     },
     "sportLabel": "Sportart",
+    "professionLabel": "Beruf des Profis (optional)",
     "searchSport": "Sportart suchen",
     "searchPlace": "Ort suchen…",
     "useFreeText": "„{{text}}“ verwenden",

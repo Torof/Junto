@@ -1044,6 +1044,7 @@
       "pickRange": "Periodo"
     },
     "sportLabel": "Sport",
+    "professionLabel": "Professione del professionista (facoltativo)",
     "searchSport": "Cerca uno sport",
     "searchPlace": "Cerca un luogo…",
     "useFreeText": "Usa « {{text}} »",

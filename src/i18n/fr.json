@@ -1044,6 +1044,7 @@
       "pickRange": "Période"
     },
     "sportLabel": "Sport",
+    "professionLabel": "Métier du pro (optionnel)",
     "searchSport": "Rechercher un sport",
     "searchPlace": "Rechercher un lieu…",
     "useFreeText": "Utiliser « {{text}} »",

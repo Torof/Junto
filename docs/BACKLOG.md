@@ -56,8 +56,8 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 - [x] Espace pro : métier obligatoire, « Sortie mise en avant », rappel métier ; « Ton pin sur la carte » à quatre tuiles (`pro-pin-picker.tsx`, 2026-10-26).
 - [x] Couleur pro = or, bleu pro supprimé ; pin de page pro en écusson (or + bord encre + capsule PRO sous la pointe, photo pleine, sinon picto du métier / univers / sport en encre sur teinte 30 %) — `pro-pin.tsx`, `utils/pro-pin-look.ts`, `constants/pro-pictos.ts`.
 - [ ] **« Contacter » un pro** hors réservation — décision produit (pas de messagerie client→pro aujourd'hui).
-- [ ] **Filtre carte par métier** (la colonne existe ; le filtre de la carte ne la lit pas).
-- [ ] **Mention « avis vérifiés »** dans la brique d'avis (le gate existe, l'app ne le dit pas).
+- [x] **Filtre carte par métier** (2026-10-26) : section « Métier du pro » dans la feuille de filtres (carte seulement), pastilles actives, compteur ; les pins de page pro suivent, les pins de sortie pro aussi via leur pro.
+- [x] **Mention « avis vérifiés »** (2026-10-26) : ligne discrète sous le résumé de la brique d'avis, cinq langues.
 - [x] **Visuels Play** (2026-10-26) : feature graphic 1024×500 askandgo refaite ; aucune des cinq captures du listing ne montre de badge PRO (seule l'image 6, hors listing, reste en bleu — à refaire si on l'ajoute un jour).
 - [ ] **Cinq glyphes d'univers** du pin à redessiner dans le trait du jeu de 38 (nuage « météo », vélo en PNG).
 - [ ] **Recadrage carré** à l'envoi de la photo de pin (elle remplit l'écusson ; un paysage devient une tache).

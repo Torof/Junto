@@ -1044,6 +1044,7 @@
       "pickRange": "Date range"
     },
     "sportLabel": "Sport",
+    "professionLabel": "Pro's profession (optional)",
     "searchSport": "Search a sport",
     "searchPlace": "Search a place…",
     "useFreeText": "Use “{{text}}”",
