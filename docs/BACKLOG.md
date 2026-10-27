@@ -29,7 +29,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 - [x] **Demandes d'autorisation** : au moment où elles servent, toujours expliquées (2026-10-24, DECISIONS).
 - [ ] **Domaine + adresses e-mail askandgo** : quand Scott aura choisi le domaine (site, liens d'e-mail, expéditeur, support@ des pages légales).
 - [ ] **Site, données réelles** : vérifier que l'accueil (prochaines sorties, offres) et les pages partagées affichent et mettent en avant les vraies données dès qu'il y en aura (le site n'avait jamais été relié à la base avant le 2026-10-23).
-- [ ] **Fiche Google Play** : 4 nouvelles captures (les actuelles montrent les anciennes versions), textes à revoir.
+- [ ] **Fiche Google Play** : six images dans `assets/play-store/askandgo/` (1-5 du 2026-10-24, **6 « pros » refaite le 2026-10-27 sur la nouvelle page pro**, générateur `pro6.py`) ; reste : bords / habillage des images 2-5 à revoir (Scott), textes de la fiche, bloc Contact (domaine).
 - [ ] **Fiche App Store** : à refaire (à préciser : iOS n'est pas encore publié).
 
 **Restes de la bascule** : finir le parcours de validation sur l'app Google Play (dont une sortie publique partagée ouverte dans un navigateur) · publier en production les mises à jour validées en preview (liens d'e-mail à code unique) · retirer les variables Sentry d'EAS et fermer le compte sentry.io · mettre l'ancien projet en pause dans quelques semaines · plus tard : Next.js 16 pour le site (alerte PostCSS, sans risque réel).
