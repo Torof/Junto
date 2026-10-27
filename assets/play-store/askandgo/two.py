@@ -9,14 +9,17 @@ ROOT = os.path.abspath(f'{S}/../../..')
 src = open(f'{S}/generate.py').read()
 # helpers + the Partenaires body (image 3's first screen) as generate.py draws it
 src = src.replace("PH=lambda k:f'photos/demo-channel-{k}.jpg'", "PH=lambda k:f'file://{S}/photos/demo-channel-{k}.jpg'")  # absolute: the html lives elsewhere
-exec(src[:src.index("out['3-partenaires']")])  # noqa: S102
-partenaires_body = body
-# the pro page body as pro6.py draws it (image 6's first screen)
+which = sys.argv[1]
+# 3 → Partenaires, 4 → Discussions (as generate.py draws them); 6 → the pro page as pro6.py draws it.
+cut = {'3': "out['3-partenaires']", '4': "out['4-canaux']", '6': "out['3-partenaires']"}[which]
+exec(src[:src.index(cut)])  # noqa: S102
+first_body = body
+# pro6.py's helpers (PRO, lx, roundbtn…) serve the offering page too; its `body` is the pro page.
 p6 = open(f'{S}/pro6.py').read()
 exec(p6[p6.index("PRO = lambda"):p6.index('extra = (')])  # noqa: S102
-pro_body = body
-
-which = sys.argv[1]
+if which == '6':
+    first_body = body
+partenaires_body = pro_body = canaux_body = first_body
 
 def two_screens(title, sub, body_a, body_b):
     shell = screen(title, sub, '', '')
@@ -97,7 +100,45 @@ offering_body = f'''<div class="zoomwrap" style="background:#FFF">
   <span style="background:{GREEN};color:#FFF;border-radius:999px;padding:12px 26px;font-size:15px;font-weight:800;box-shadow:0 6px 16px rgba(47,164,106,.35)">Réserver</span>
 </div></div>'''
 
-if which == '3':
+def keywords(items):
+    cells = ''.join(f'<div style="display:flex;align-items:center;gap:12px"><span style="width:52px;height:52px;border-radius:50%;background:#FFF;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(31,26,21,.12)">{ic}</span><span style="font-size:30px;font-weight:800;color:{DEEP};letter-spacing:-.4px;white-space:nowrap">{w}</span></div>' for ic, w in items)
+    return f'<div style="position:absolute;left:0;right:0;top:586px;display:flex;justify-content:center;gap:34px;padding:0 30px">{cells}</div>'
+
+# Image 4: two straight phones side by side (Scott 2026-10-27) under the keyword row.
+def side_by_side(title, sub, body_a, body_b, items):
+    shell = screen(title, sub, '', '')
+    phones = (f'<div class="phone" style="left:-8px;top:700px;transform:scale(.66);box-shadow:0 30px 60px rgba(31,26,21,.24)"><div class="scr">{body_a}</div></div>'
+              f'<div class="phone" style="left:448px;top:700px;transform:scale(.66);box-shadow:0 30px 60px rgba(31,26,21,.24)"><div class="scr">{body_b}</div></div>')
+    return shell.replace('<div class="phone"><div class="scr"></div></div>', keywords(items) + phones)
+
+# ---------- 4 · a channel's thread: several people, a shared outing, reactions ----------
+def msg(who, text, own=False, reactions=None):
+    r = (f'<div style="display:flex;gap:6px;margin-top:4px;{"justify-content:flex-end" if own else ""}">' + ''.join(f'<span style="background:#FFF;border:1px solid rgba(31,26,21,.12);border-radius:999px;padding:2px 8px;font-size:12px">{e} {n}</span>' for e, n in reactions) + '</div>') if reactions else ''
+    cls = 'bub own' if own else 'bub'
+    w = '' if own else f'<span class="who" style="font-size:12px">{who}</span>'
+    return f'<div style="display:flex;flex-direction:column;{"align-items:flex-end" if own else ""}"><div class="{cls}" style="font-size:14.5px;margin-top:8px;max-width:84%;padding:9px 12px;border-radius:16px;{"border-bottom-right-radius:5px" if own else "border-bottom-left-radius:5px"}">{w}{text}</div>{r}</div>'
+shared = f'''<div style="display:flex;flex-direction:column;margin-top:8px"><div class="bub" style="font-size:14.5px;margin:0;max-width:92%;padding:9px 12px;border-radius:16px;border-bottom-left-radius:5px"><span class="who" style="font-size:12px">Léa M.</span>Je la pose ici, qui vient ? 👇</div>
+<div style="margin-top:6px;max-width:92%;background:#FFF;border:1.5px solid rgba(31,26,21,.12);border-radius:16px;overflow:hidden">
+ <div style="display:flex;align-items:center;gap:10px;padding:10px 12px"><span class="av" style="width:40px;height:40px;background:{UNI['climbing-sport']};color:#FFF">{sp('climbing-sport',22,'#FFF')}</span><div style="flex:1;min-width:0"><div style="font-size:14.5px;font-weight:800;line-height:1.15">Grande voie à Ailefroide</div><div style="font-size:12.5px;color:{SEC}">sam. 26 juil. · 7h30 · 5c → 6a · 3 / 4</div></div></div>
+ <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px 10px;border-top:1px solid rgba(31,26,21,.08)"><span style="font-size:12.5px;color:{SEC}">{li('pin',13,SEC)} Pré de Madame Carle</span><span class="gp" style="font-size:13px;padding:7px 14px">Rejoindre</span></div></div>
+<div style="display:flex;gap:6px;margin-top:4px"><span style="background:#FFF;border:1px solid rgba(31,26,21,.12);border-radius:999px;padding:2px 8px;font-size:12px">🔥 4</span><span style="background:#FFF;border:1px solid rgba(31,26,21,.12);border-radius:999px;padding:2px 8px;font-size:12px">🙌 2</span></div></div>'''
+thread_body = f'''<div class="zoomwrap" style="background:#FFF">
+<div style="display:flex;align-items:center;gap:10px;padding:42px 14px 10px;border-bottom:1px solid rgba(31,26,21,.08)"><span style="font-size:22px">‹</span><div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Grimpe au soleil à Céüse</div><div style="font-size:12px;color:{SEC}">{sp('climbing-sport',12,SEC)} Escalade · Gap · 128 membres</div></div>{li('users',20,INK)}</div>
+<div style="flex:1;padding:6px 14px 0;display:flex;flex-direction:column;overflow:hidden">
+ <div style="align-self:center;font-size:11px;color:{SEC};margin-top:6px">aujourd'hui</div>
+ {msg('Hugo P.', 'Conditions parfaites à Céüse ce week-end, dalle sèche et 18° annoncés ☀️', False, [('🔥','3')])}
+ {msg('Sam B.', "Chaud pour samedi ! Je peux prendre les dégaines 🧗", False)}
+ {msg('', "Moi aussi, j'ai une 70 m. On part tôt ?", True)}
+ {shared}
+ {msg('Karim D.', 'Rejoint 🙋 Je monte de Gap, 2 places dans la voiture', False, [('👍','2')])}
+ {msg('', 'Parfait, à samedi 7h30 ☕', True)}
+</div>
+<div style="padding:10px 14px 24px;display:flex;align-items:center;gap:10px"><div style="flex:1;background:#F1EFEA;border-radius:999px;padding:11px 16px;font-size:14px;color:{SEC}">Écrire un message…</div><span style="width:40px;height:40px;border-radius:50%;background:{GREEN};display:inline-flex;align-items:center;justify-content:center">{li('chev',18,'#FFF',2.6)}</span></div></div>'''
+
+if which == '4':
+    html = side_by_side('Des discussions qui<br>finissent dehors.', 'Conditions du jour, binômes, matos, sorties proposées — chaque vallée a ses canaux.', canaux_body, thread_body,
+                        [(sp('ski-touring', 30, INK), 'Par sport'), (li('pin', 28, INK), 'Par vallée'), (li('users', 28, INK), 'Ouvert à tous')])
+elif which == '3':
     html = two_screens('Dis quand<br>tu es dispo.', 'Pour quels sports, dans quelle zone — et vois qui cherche la même chose. Un message, et vous partez ensemble.', partenaires_body, dispo_body)
 else:
     html = two_screens('Guides et moniteurs,<br>sur la même carte.', "Leur page, leurs sorties encadrées avec tarifs et places, des avis vérifiés. Tu choisis, tu réserves.", pro_body, offering_body)
