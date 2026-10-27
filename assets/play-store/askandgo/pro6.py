@@ -31,23 +31,24 @@ def star(c='#F2B705', sz=15):
 stars = ''.join(star() for _ in range(5))
 
 body = f'''<div class="zoomwrap" style="background:#FFF">
-<div style="position:relative;height:196px;background:url({PRO('cover.jpg')}) center/cover">
+<div style="position:relative;height:284px;background:url({PRO('cover.jpg')}) center/cover">
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,.08) 0%, rgba(0,0,0,.12) 45%, rgba(0,0,0,.62) 100%)"></div>
   <div style="position:absolute;left:14px;top:40px;background:{GOLD};color:{INK};border-radius:999px;padding:4px 10px;font-size:12px;font-weight:800;letter-spacing:1px">PRO</div>
   <div style="position:absolute;right:12px;top:36px;display:flex;gap:8px">{roundbtn(lx('heart',18,INK),'#FFF',34)}{roundbtn(lx('share',18,INK),'#FFF',34)}{roundbtn(lx('x',18,INK),'#FFF',34)}</div>
+  <div style="position:absolute;left:18px;right:18px;bottom:12px;display:flex;flex-direction:column;gap:5px;color:#FFF;text-shadow:0 1px 8px rgba(0,0,0,.55)">
+    <div style="width:58px;height:58px;border-radius:50%;border:3px solid #FFF;background:url({PRO('avatar.jpg')}) center/cover;box-shadow:0 2px 8px rgba(0,0,0,.3);margin-bottom:3px"></div>
+    <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.1">Nicolas Pellissier</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;opacity:.95">{li('pin',13,'#FFF',2.4)}Guide de haute montagne · Briançon</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;text-shadow:none">
+      <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.22);border-radius:999px;padding:3px 8px;font-size:11px;font-weight:700">{sp('mountaineering',12,'#FFF')}Alpinisme</span>
+      <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.22);border-radius:999px;padding:3px 8px;font-size:11px;font-weight:700">{sp('ski-touring',12,'#FFF')}Ski de rando</span>
+      <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.22);border-radius:999px;padding:3px 8px;font-size:11px;font-weight:700">{sp('canyoning',12,'#FFF')}Canyoning</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:13px;margin-top:1px"><svg width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="1.6" stroke-linejoin="round">{L['star']}</svg><b>4,9</b><span style="opacity:.9">· 5 avis</span></div>
+  </div>
 </div>
 <div style="padding:0 16px">
-  <div style="display:flex;align-items:flex-end;gap:12px;margin-top:-26px">
-    <div style="width:62px;height:62px;border-radius:50%;border:3px solid #FFF;background:url({PRO('avatar.jpg')}) center/cover;box-shadow:0 2px 8px rgba(31,26,21,.18)"></div>
-  </div>
-  <div style="font-size:23px;font-weight:800;letter-spacing:-.3px;margin-top:8px;line-height:1.1">Nicolas Pellissier</div>
-  <div style="font-size:14px;color:{SEC};margin-top:3px;font-weight:600">Guide de haute montagne · Briançon</div>
-  <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
-    <span class="chip" style="font-size:12px;padding:4px 9px;gap:5px;background:{UNI['ski-touring']}1A;color:{UNI['ski-touring']}">{sp('mountaineering',14,UNI['ski-touring'])}Alpinisme</span>
-    <span class="chip" style="font-size:12px;padding:4px 9px;gap:5px;background:{UNI['ski-touring']}1A;color:{UNI['ski-touring']}">{sp('ski-touring',14,UNI['ski-touring'])}Ski de rando</span>
-    <span class="chip" style="font-size:12px;padding:4px 9px;gap:5px;background:{UNI['canyoning']}1A;color:{UNI['canyoning']}">{sp('canyoning',14,UNI['canyoning'])}Canyoning</span>
-  </div>
-  <div style="display:flex;align-items:center;gap:6px;margin-top:9px;font-size:14px"><b>4,9</b><span style="display:inline-flex;gap:1px">{stars}</span><span style="color:{SEC}">· 5 avis ›</span></div>
-  <div style="display:flex;gap:10px;margin-top:12px">{roundbtn(li('phone',19))}{roundbtn(lx('mail',19))}{roundbtn(lx('globe',19))}{roundbtn(lx('nav',19))}{roundbtn(lx('insta',19))}</div>
+  <div style="display:flex;gap:8px;margin-top:12px;overflow:hidden">{''.join(f'<span style="display:inline-flex;align-items:center;gap:6px;background:#F1EFEA;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:700;white-space:nowrap">{svg}{lab}</span>' for svg,lab in [(li('phone',16),'Appeler'),(lx('mail',16),'E-mail'),(lx('globe',16),'Site'),(lx('nav',16),'Itinéraire'),(lx('insta',16),'Instagram')])}</div>
 
   <div style="display:flex;align-items:center;gap:8px;margin-top:18px;font-size:12px;font-weight:800;letter-spacing:1px;color:{SEC}">SORTIES ENCADRÉES <span style="font-weight:600;letter-spacing:0;text-transform:none">· mise en avant</span></div>
   <div style="margin-top:8px;border-radius:18px;background:#F1EFEA;padding:12px 12px 12px;display:flex;flex-direction:column;gap:8px">
@@ -66,9 +67,9 @@ body = f'''<div class="zoomwrap" style="background:#FFF">
   <div style="display:flex;gap:6px;margin-top:8px">{''.join(f'<div style="flex:1;aspect-ratio:1;border-radius:10px;background:url({PRO(p)}) center/cover"></div>' for p in ['p1.jpg','p2.jpg','p3.jpg','p4.jpg'])}</div>
 </div></div>'''
 
-extra = (callout(26, 820, lx('badge', 50, INK), 'Métier', 'guide, moniteur, école — déclaré sur la page', 'left', 212)
-       + callout(838, 1120, li('cal', 50, INK), 'Réserver', 'ses sorties encadrées, prix et places', 'right', 212)
-       + callout(26, 1380, li('star', 50, INK), 'Avis vérifiés', 'par ceux qui ont réservé et fait la sortie', 'left', 212))
+extra = (callout(26, 760, lx('badge', 50, INK), 'Métier', 'guide, moniteur, école — sur la photo', 'left', 212)
+       + callout(838, 1180, li('cal', 50, INK), 'Réserver', 'ses sorties encadrées, prix et places', 'right', 212)
+       + callout(26, 1420, li('star', 50, INK), 'Avis vérifiés', 'par ceux qui ont réservé et fait la sortie', 'left', 212))
 html = screen('Guides et moniteurs,<br>sur la même carte.', "Leur page, leurs sorties encadrées avec tarifs et places, des avis vérifiés. Tu choisis, tu réserves.", body, extra)
 open(sys.argv[1], 'w').write(html)
 print('ok')
