@@ -20,8 +20,8 @@ which = sys.argv[1]
 
 def two_screens(title, sub, body_a, body_b):
     shell = screen(title, sub, '', '')
-    phones = (f'<div class="phone" style="left:16px;top:620px;transform:scale(.68) rotate(-4deg);z-index:1"><div class="scr">{body_a}</div></div>'
-              f'<div class="phone" style="left:440px;top:880px;transform:scale(.68) rotate(3deg);z-index:2;box-shadow:0 46px 90px rgba(31,26,21,.34)"><div class="scr">{body_b}</div></div>')
+    phones = (f'<div class="phone" style="left:-6px;top:600px;transform:scale(.72) rotate(-4deg);z-index:1"><div class="scr">{body_a}</div></div>'
+              f'<div class="phone" style="left:446px;top:900px;transform:scale(.72) rotate(3deg);z-index:2;box-shadow:0 46px 90px rgba(31,26,21,.34)"><div class="scr">{body_b}</div></div>')
     return shell.replace('<div class="phone"><div class="scr"></div></div>', phones)
 
 # ---------- 3 · the page of a dispo (app/(auth)/partners/dispo.tsx) ----------

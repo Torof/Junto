@@ -144,7 +144,7 @@ def ring_av(ini,color,bg='#DCE5D3',fg='#3F7A56'):
 def dispo(ini,name,tier,tiercol,km,dates,sports,about,state=None,bg='#DCE5D3',fg='#3F7A56'):
     pills=''.join(f'<span class="chip" style="background:{UNI[k]}1A;color:{UNI[k]};gap:4px;padding:4px 9px;font-size:13px"><span class="sp" style="width:14px;height:14px;color:{UNI[k]}">{IC[k]}</span>{n}</span>' for k,n in sports)
     st=f'<span class="chip" style="font-size:14px;padding:4px 9px;color:{SEC}">{state}</span>' if state else ''
-    return f'''<div style="width:252px;flex-shrink:0;background:#FFF;border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 2px 6px rgba(31,26,21,.14)">
+    return f'''<div style="width:252px;flex-shrink:0;background:#FFF;border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;border:1.5px solid rgba(31,26,21,.22);box-shadow:0 3px 10px rgba(31,26,21,.16)">
 <div style="display:flex;align-items:center;gap:10px">{ring_av(ini,tiercol,bg,fg)}<div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{name}</div><div style="font-size:14px;font-weight:600;color:{tiercol}">{tier}</div></div>{st}</div>
 <div style="font-size:14px;color:{SEC}">à {km} km · {dates}</div>
 <div style="display:flex;flex-wrap:wrap;gap:6px">{pills}</div>
