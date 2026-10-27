@@ -173,9 +173,14 @@ type FanState = { key: string; center: [number, number]; zoom: number; radiusPx:
 // ring beyond. Screen px → degrees at the current zoom (Mapbox 512-px tiles:
 // 78271.517 · cos(lat) / 2^zoom metres per px).
 const FAN_HALO_PAD = 28;
-// The pin's head sits on the halo's edge (Scott 2026-10-27: « centrées sur la
-// bordure extérieure »), so the tip is placed this many px below the circle.
-const FAN_HEAD_ABOVE_TIP_PX = Math.round((51.6 - 23) * (40 / 54));
+// Each pin stays INSIDE the halo and grazes its edge from within (Scott
+// 2026-10-27): the top pin touches with the top of its head, the bottom one
+// with its tip, a right-hand one with its right side… The pin is taken as a
+// box around its head centre (screen px, 40-px drop + outline): half-width,
+// height above the head centre, height below it down to the tip.
+const FAN_PIN_HALF_W = 18;
+const FAN_PIN_ABOVE_HEAD = 17;
+const FAN_PIN_BELOW_HEAD = 22;
 function fanRadiusPx(n: number): number { return n <= 3 ? 58 : n <= 5 ? 72 : 92; }
 function fanLeaves(points: PinPoint[], center: [number, number], zoomLevel: number): { leaves: FanLeaf[]; radiusPx: number } {
   const n = points.length;
@@ -188,11 +193,16 @@ function fanLeaves(points: PinPoint[], center: [number, number], zoomLevel: numb
     const ring = i < 8 ? 0 : 1;
     const inRing = ring === 0 ? Math.min(n, 8) : n - 8;
     const j = ring === 0 ? i : i - 8;
-    // Heads on the halo's edge; the second ring one pin further out.
-    const r = (ring === 0 ? radiusPx : radiusPx + 48) + FAN_HALO_PAD;
+    // The circle the pins graze: the halo's edge (second ring: one pin further out).
+    const R = (ring === 0 ? radiusPx : radiusPx + 48) + FAN_HALO_PAD;
     const a = -Math.PI / 2 + (j * 2 * Math.PI) / inRing + (ring === 1 ? Math.PI / inRing : 0);
-    const px = r * Math.cos(a);
-    const py = r * Math.sin(a) + FAN_HEAD_ABOVE_TIP_PX; // screen y grows downward
+    const dx = Math.cos(a), dy = Math.sin(a); // screen y grows downward
+    // How far the pin's box reaches along its own direction: pull the head
+    // centre back by that much so the outermost side just touches the edge.
+    const reach = FAN_PIN_HALF_W * Math.abs(dx) + (dy > 0 ? FAN_PIN_BELOW_HEAD * dy : FAN_PIN_ABOVE_HEAD * -dy);
+    const rho = R - reach;
+    const px = rho * dx;
+    const py = rho * dy + FAN_PIN_BELOW_HEAD; // anchor is the tip, below the head centre
     return { props: p.properties, lng: center[0] + px * degPerPxLng, lat: center[1] - py * degPerPxLat };
   });
   return { leaves, radiusPx: n > 8 ? radiusPx + 48 : radiusPx };
