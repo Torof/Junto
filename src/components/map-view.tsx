@@ -406,9 +406,8 @@ export function JuntoMapView({
   // pro page = name. Color matches the pin's universe (pros fall back to the
   // pro blue). Ratings wait until the nearby views expose an aggregate.
   const labelShape = useMemo(() => {
-    const labelled: (typeof clusters)[number][] = fan
-      ? fan.leaves.map((l): PinPoint => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [l.lng, l.lat] }, properties: l.props }))
-      : clusters;
+    // Fan open: no native label at all — the fan draws its own, above the halo.
+    const labelled: (typeof clusters)[number][] = fan ? [] : clusters;
     const features = labelled.flatMap((f) => {
       const p = f.properties as PinPointProps | (Supercluster.ClusterProperties & PinPointProps);
       if ('cluster' in p && p.cluster) return [];
@@ -559,7 +558,33 @@ export function JuntoMapView({
   // One pin marker per type (shape + tap handler). `suffix` keeps keys unique
   // when the same pin is drawn a second time inside the fan; `beforePress`
   // runs first (the fan closes itself).
-  const pinMarker = (pinProps: PinPointProps, lng: number, lat: number, suffix = '', beforePress?: () => void) => {
+  // In the fan the label is a React view beside the pin — the native symbol
+  // labels live under every MarkerView, so under the halo (Scott 2026-10-27).
+  const fanLabelFor = (pinProps: PinPointProps): { name: string; sub: string; color: string } | null => {
+    if (pinProps.type === 'activity') {
+      const a = activityMap.get(pinProps.id); if (!a) return null;
+      const d = dayjs(a.starts_at);
+      return { name: a.title, sub: `${d.format('ddd D MMM')} à ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}`, color: SPORT_CATEGORY_COLORS[a.sport_category] ?? colors.cta };
+    }
+    if (pinProps.type === 'pro') {
+      const pr = proMap.get(pinProps.id); if (!pr) return null;
+      return { name: pr.display_name, sub: pr.tagline ? truncate(pr.tagline, 28) : '', color: colors.textPrimary };
+    }
+    const o = offeringMap.get(pinProps.id); if (!o) return null;
+    return { name: o.title, sub: o.schedule_text ?? '', color: SPORT_CATEGORY_COLORS[o.sport_category] ?? colors.cta };
+  };
+  const fanLabel = (pinProps: PinPointProps, side: 'left' | 'right') => {
+    const l = fanLabelFor(pinProps);
+    if (!l) return null;
+    return (
+      <View pointerEvents="none" style={[styles.fanLabel, side === 'right' ? styles.fanLabelRight : styles.fanLabelLeft]}>
+        <AppText style={[styles.fanLabelName, { color: l.color, textAlign: side === 'right' ? 'left' : 'right' }]} numberOfLines={2}>{l.name}</AppText>
+        {l.sub ? <AppText style={[styles.fanLabelSub, { textAlign: side === 'right' ? 'left' : 'right' }]} numberOfLines={1}>{l.sub}</AppText> : null}
+      </View>
+    );
+  };
+
+  const pinMarker = (pinProps: PinPointProps, lng: number, lat: number, suffix = '', beforePress?: () => void, fanSide?: 'left' | 'right') => {
         // Highlighted pin shared style — scaled 1.3x and stacked on top.
         // The slight downward drift from center-scaling is a few pixels at
         // this size and reads as "the pin grew up out of the location",
@@ -585,6 +610,7 @@ export function JuntoMapView({
                 <Pressable onPressIn={stampMarkerTouch} onPress={() => { beforePress?.(); onActivityPress?.(activity); }} hitSlop={14}>
                   <ActivityPin activity={activity} />
                 </Pressable>
+                {fanSide ? fanLabel(pinProps, fanSide) : null}
               </View>
             </Mapbox.MarkerView>
           );
@@ -605,6 +631,7 @@ export function JuntoMapView({
                 <Pressable onPressIn={stampMarkerTouch} onPress={() => { beforePress?.(); onProPress?.(pro); }} hitSlop={14}>
                   <ProPin displayName={pro.display_name} pinIcon={pro.pin_icon} profession={pro.profession} pinImageUrl={pro.pin_image_url} />
                 </Pressable>
+                {fanSide ? fanLabel(pinProps, fanSide) : null}
               </View>
             </Mapbox.MarkerView>
           );
@@ -625,6 +652,7 @@ export function JuntoMapView({
               <Pressable onPressIn={stampMarkerTouch} onPress={() => { beforePress?.(); onProOfferingPress?.(offering); }} hitSlop={14}>
                 <ProOfferingPin offering={offering} />
               </Pressable>
+              {fanSide ? fanLabel(pinProps, fanSide) : null}
             </View>
           </Mapbox.MarkerView>
         );
@@ -1000,7 +1028,7 @@ export function JuntoMapView({
           </View>
         </Mapbox.MarkerView>
       )}
-      {fan?.leaves.map((leaf) => pinMarker(leaf.props, leaf.lng, leaf.lat, '-fan', () => setFan(null)))}
+      {fan?.leaves.map((leaf) => pinMarker(leaf.props, leaf.lng, leaf.lat, '-fan', () => setFan(null), leaf.lng < fan.center[0] - 1e-9 ? 'left' : 'right'))}
 
       {/* Popups rendered as separate MarkerViews AFTER all pins so
           they always stack on top. Same auto-anchor logic for all
@@ -1049,13 +1077,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   // The fan's ground: a translucent white disc, softly shadowed; the centre
   // marks the real spot (ring + dot).
+  // No shadow / elevation: Android draws it through a translucent disc and it
+  // read as a dark polygon under the white (Scott 2026-10-27).
   fanHalo: {
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    backgroundColor: 'rgba(255,255,255,0.78)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#0A0F1A', shadowOpacity: 0.18, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
   },
+  fanLabel: { position: 'absolute', top: 2, width: 150 },
+  fanLabelRight: { left: 50 },
+  fanLabelLeft: { right: 50 },
+  fanLabelName: { fontSize: 12, fontWeight: '800', lineHeight: 14, textShadowColor: '#FFFFFF', textShadowRadius: 4 },
+  fanLabelSub: { fontSize: 10.5, fontWeight: '600', color: colors.textSecondary, lineHeight: 13, textShadowColor: '#FFFFFF', textShadowRadius: 4 },
   fanCentre: {
     width: 14, height: 14, borderRadius: 7, backgroundColor: colors.pinBackground,
     borderWidth: 1.5, borderColor: colors.pinBorder, alignItems: 'center', justifyContent: 'center',
