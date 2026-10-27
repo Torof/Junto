@@ -101,14 +101,14 @@ offering_body = f'''<div class="zoomwrap" style="background:#FFF">
 </div></div>'''
 
 def keywords(items):
-    cells = ''.join(f'<div style="display:flex;align-items:center;gap:12px"><span style="width:52px;height:52px;border-radius:50%;background:#FFF;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(31,26,21,.12)">{ic}</span><span style="font-size:30px;font-weight:800;color:{DEEP};letter-spacing:-.4px;white-space:nowrap">{w}</span></div>' for ic, w in items)
-    return f'<div style="position:absolute;left:0;right:0;top:586px;display:flex;justify-content:center;gap:34px;padding:0 30px">{cells}</div>'
+    cells = ''.join(f'<div style="display:flex;align-items:center;gap:12px"><span style="width:58px;height:58px;border-radius:50%;background:#FFF;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(31,26,21,.12)">{ic}</span><span style="font-size:32px;font-weight:800;color:{DEEP};letter-spacing:-.5px;white-space:nowrap">{w}</span></div>' for ic, w in items)
+    return f'<div style="position:absolute;left:0;right:0;top:592px;display:flex;justify-content:center;gap:26px;padding:0 20px">{cells}</div>'
 
 # Image 4: two straight phones side by side (Scott 2026-10-27) under the keyword row.
 def side_by_side(title, sub, body_a, body_b, items):
     shell = screen(title, sub, '', '')
-    phones = (f'<div class="phone" style="left:-8px;top:700px;transform:scale(.66);box-shadow:0 30px 60px rgba(31,26,21,.24)"><div class="scr">{body_a}</div></div>'
-              f'<div class="phone" style="left:448px;top:700px;transform:scale(.66);box-shadow:0 30px 60px rgba(31,26,21,.24)"><div class="scr">{body_b}</div></div>')
+    phones = (f'<div class="phone" style="left:-14px;top:730px;transform:scale(.70);box-shadow:0 30px 60px rgba(31,26,21,.24)"><div class="scr">{body_a}</div></div>'
+              f'<div class="phone" style="left:454px;top:730px;transform:scale(.70);box-shadow:0 30px 60px rgba(31,26,21,.24)"><div class="scr">{body_b}</div></div>')
     return shell.replace('<div class="phone"><div class="scr"></div></div>', keywords(items) + phones)
 
 # ---------- 4 · a channel's thread: several people, a shared outing, reactions ----------
@@ -137,7 +137,7 @@ thread_body = f'''<div class="zoomwrap" style="background:#FFF">
 
 if which == '4':
     html = side_by_side('Des discussions qui<br>finissent dehors.', 'Conditions du jour, binômes, matos, sorties proposées — chaque vallée a ses canaux.', canaux_body, thread_body,
-                        [(sp('ski-touring', 30, INK), 'Par sport'), (li('pin', 28, INK), 'Par vallée'), (li('users', 28, INK), 'Ouvert à tous')])
+                        [(sp('ski-touring', 34, INK), 'Par sport'), (li('pin', 32, INK), 'Par vallée'), (li('users', 32, INK), 'Ouvert à tous')])
 elif which == '3':
     html = two_screens('Dis quand<br>tu es dispo.', 'Pour quels sports, dans quelle zone — et vois qui cherche la même chose. Un message, et vous partez ensemble.', partenaires_body, dispo_body)
 else:
