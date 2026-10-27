@@ -23,8 +23,8 @@ partenaires_body = pro_body = canaux_body = first_body
 
 def two_screens(title, sub, body_a, body_b):
     shell = screen(title, sub, '', '')
-    phones = (f'<div class="phone" style="left:-6px;top:600px;transform:scale(.72) rotate(-4deg);z-index:1"><div class="scr">{body_a}</div></div>'
-              f'<div class="phone" style="left:446px;top:900px;transform:scale(.72) rotate(3deg);z-index:2;box-shadow:0 46px 90px rgba(31,26,21,.34)"><div class="scr">{body_b}</div></div>')
+    phones = (f'<div class="phone" style="left:-6px;top:490px;transform:scale(.76) rotate(-4deg);z-index:1"><div class="scr">{body_a}</div></div>'
+              f'<div class="phone" style="left:446px;top:790px;transform:scale(.76) rotate(3deg);z-index:2;box-shadow:0 46px 90px rgba(31,26,21,.34)"><div class="scr">{body_b}</div></div>')
     return shell.replace('<div class="phone"><div class="scr"></div></div>', phones)
 
 # ---------- 3 · the page of a dispo (app/(auth)/partners/dispo.tsx) ----------
@@ -102,13 +102,13 @@ offering_body = f'''<div class="zoomwrap" style="background:#FFF">
 
 def keywords(items):
     cells = ''.join(f'<div style="display:flex;align-items:center;gap:12px"><span style="width:58px;height:58px;border-radius:50%;background:#FFF;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(31,26,21,.12)">{ic}</span><span style="font-size:32px;font-weight:800;color:{DEEP};letter-spacing:-.5px;white-space:nowrap">{w}</span></div>' for ic, w in items)
-    return f'<div style="position:absolute;left:0;right:0;top:592px;display:flex;justify-content:center;gap:26px;padding:0 20px">{cells}</div>'
+    return f'<div style="position:absolute;left:0;right:0;top:478px;display:flex;justify-content:center;gap:26px;padding:0 20px">{cells}</div>'
 
 # Image 4: two straight phones side by side (Scott 2026-10-27) under the keyword row.
 def side_by_side(title, sub, body_a, body_b, items):
     shell = screen(title, sub, '', '')
-    phones = (f'<div class="phone" style="left:-14px;top:730px;transform:scale(.70);box-shadow:0 30px 60px rgba(31,26,21,.24)"><div class="scr">{body_a}</div></div>'
-              f'<div class="phone" style="left:454px;top:730px;transform:scale(.70);box-shadow:0 30px 60px rgba(31,26,21,.24)"><div class="scr">{body_b}</div></div>')
+    phones = (f'<div class="phone" style="left:-27px;top:615px;transform:scale(.74);box-shadow:0 30px 60px rgba(31,26,21,.24)"><div class="scr">{body_a}</div></div>'
+              f'<div class="phone" style="left:467px;top:615px;transform:scale(.74);box-shadow:0 30px 60px rgba(31,26,21,.24)"><div class="scr">{body_b}</div></div>')
     return shell.replace('<div class="phone"><div class="scr"></div></div>', keywords(items) + phones)
 
 # ---------- 4 · a channel's thread: several people, a shared outing, reactions ----------
@@ -136,11 +136,12 @@ thread_body = f'''<div class="zoomwrap" style="background:#FFF">
 <div style="padding:10px 14px 24px;display:flex;align-items:center;gap:10px"><div style="flex:1;background:#F1EFEA;border-radius:999px;padding:11px 16px;font-size:14px;color:{SEC}">Écrire un message…</div><span style="width:40px;height:40px;border-radius:50%;background:{GREEN};display:inline-flex;align-items:center;justify-content:center">{li('chev',18,'#FFF',2.6)}</span></div></div>'''
 
 if which == '4':
-    html = side_by_side('Des discussions qui<br>finissent dehors.', 'Conditions du jour, binômes, matos, sorties proposées — chaque vallée a ses canaux.', canaux_body, thread_body,
+    html = side_by_side("Les discussions des pratiquants<br>de ta vallée,<br>sport par sport.", '', canaux_body, thread_body,
                         [(sp('ski-touring', 34, INK), 'Par sport'), (li('pin', 32, INK), 'Par vallée'), (li('users', 32, INK), 'Ouvert à tous')])
 elif which == '3':
-    html = two_screens('Dis quand<br>tu es dispo.', 'Pour quels sports, dans quelle zone — et vois qui cherche la même chose. Un message, et vous partez ensemble.', partenaires_body, dispo_body)
+    html = two_screens("Des partenaires de sortie :<br>même sport, même zone,<br>mêmes dates.", '', partenaires_body, dispo_body)
 else:
-    html = two_screens('Guides et moniteurs,<br>sur la même carte.', "Leur page, leurs sorties encadrées avec tarifs et places, des avis vérifiés. Tu choisis, tu réserves.", pro_body, offering_body)
+    html = two_screens("Des sorties encadrées<br>par des guides et moniteurs,<br>à réserver.", "", pro_body, offering_body)
+html = html.replace('font-size:82px;line-height:1.04', 'font-size:62px;line-height:1.1').replace('margin:150px 70px 0;text-align:center', 'margin:140px 60px 0;text-align:center')
 open(sys.argv[2], 'w').write(html)
 print('ok')

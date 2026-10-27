@@ -58,9 +58,10 @@ body = f'''<div style="position:absolute;inset:0;background:url({MAP}) center/co
 {drawer_handle(104)}
 <div style="position:absolute;left:0;right:0;bottom:0">{tabbar(0)}</div>'''
 
-extra = (callout(26, 880, sp('climbing-sport', 54, INK), 'Quoi', 'le sport, dans le pin', 'left', 212)
-       + callout(838, 1000, li('pin', 50, INK), 'Où', 'posé sur le spot exact', 'right', 212)
-       + callout(26, 1340, li('cal', 50, INK), 'Quand', 'et le niveau attendu', 'left', 212))
-html = screen('Où que tu ailles,<br>vois qui part.', 'Chaque sortie est posée sur la carte, pile là où ça se passe. Filtre par sport, par date — ou lance la tienne.', body, extra)
+extra = (callout(26, 730, sp('climbing-sport', 54, INK), 'Quoi', 'le sport, dans le pin', 'left', 212)
+       + callout(838, 850, li('pin', 50, INK), 'Où', 'posé sur le spot exact', 'right', 212)
+       + callout(26, 1190, li('cal', 50, INK), 'Quand', 'et le niveau attendu', 'left', 212))
+html = screen("Des sorties outdoor<br>à rejoindre,<br>là où tu es.", '', body, extra, top=620)
+html = html.replace('font-size:82px;line-height:1.04', 'font-size:62px;line-height:1.1').replace('margin:150px 70px 0;text-align:center', 'margin:140px 60px 0;text-align:center')
 open(sys.argv[1], 'w').write(html)
 print('ok')
