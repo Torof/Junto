@@ -173,7 +173,7 @@ export default function CarteScreen() {
   const showActivities = useMapStore((s) => s.filters.showActivities);
   const showProOfferings = useMapStore((s) => s.filters.showProOfferings);
   const filteredActivitiesByType = showActivities ? filtered : [];
-  const filteredOfferingsByType = showProOfferings ? filteredOfferings : [];
+  const filteredOfferingsByType = useMemo(() => (showProOfferings ? filteredOfferings : []), [showProOfferings, filteredOfferings]);
   // The "Pros" checkbox means the whole pro layer — storefront pins (PP)
   // AND offering pins (RA). It used to hide only the offerings.
   // With a sport filter on, a storefront pin stays only when the pro offers
@@ -497,13 +497,6 @@ export default function CarteScreen() {
                 setTappedPoint({ lng, lat });
               }}
               onBoundsChange={handleBoundsChange}
-              onStuckClusterPress={(stuck) => {
-                setSelectedActivity(null);
-                setClusterFilter(stuck);
-                clusterFilterAnchor.current = currentBounds.current;
-                // Defer one frame so the sheet sees the new activities list before expanding
-                requestAnimationFrame(() => sheetRef.current?.expand());
-              }}
             />
             )}
         </>

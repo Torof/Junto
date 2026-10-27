@@ -122,7 +122,6 @@ interface MapViewProps {
   pinsAsLayers?: boolean;
   onMapPress?: (lng: number, lat: number) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
-  onStuckClusterPress?: (activities: NearbyActivity[]) => void;
   flyTo?: { coordinate: [number, number]; key: number; offsetRatio?: { x?: number; y?: number }; zoom?: number } | null;
   compassEnabled?: boolean;
   // Report the map's heading (degrees) so a custom compass button can rotate.
@@ -166,6 +165,31 @@ type PinPointProps = { type: PinType; id: string; u: string };
 // survives a refetch keeps its marker (updated in place, no blink).
 type ClusterAgg = { u: Record<string, number>; k: string };
 type PinPoint = Supercluster.PointFeature<PinPointProps>;
+type FanLeaf = { props: PinPointProps; lng: number; lat: number };
+type FanState = { key: string; center: [number, number]; zoom: number; radiusPx: number; leaves: FanLeaf[]; openedAt: number };
+
+// Fan geometry: radius in screen px by count, one ring up to eight, a second
+// ring beyond. Screen px → degrees at the current zoom (Mapbox 512-px tiles:
+// 78271.517 · cos(lat) / 2^zoom metres per px).
+const FAN_HALO_PAD = 32;
+function fanRadiusPx(n: number): number { return n <= 3 ? 58 : n <= 5 ? 72 : 92; }
+function fanLeaves(points: PinPoint[], center: [number, number], zoomLevel: number): { leaves: FanLeaf[]; radiusPx: number } {
+  const n = points.length;
+  const radiusPx = fanRadiusPx(n);
+  const lat = center[1];
+  const mPerPx = (78271.517 * Math.cos((lat * Math.PI) / 180)) / Math.pow(2, zoomLevel);
+  const degPerPxLng = mPerPx / (111320 * Math.cos((lat * Math.PI) / 180));
+  const degPerPxLat = mPerPx / 110540;
+  const leaves = points.map((p, i) => {
+    const ring = i < 8 ? 0 : 1;
+    const inRing = ring === 0 ? Math.min(n, 8) : n - 8;
+    const j = ring === 0 ? i : i - 8;
+    const r = ring === 0 ? radiusPx : radiusPx + 48;
+    const a = -Math.PI / 2 + (j * 2 * Math.PI) / inRing + (ring === 1 ? Math.PI / inRing : 0);
+    return { props: p.properties, lng: center[0] + r * Math.cos(a) * degPerPxLng, lat: center[1] - r * Math.sin(a) * degPerPxLat };
+  });
+  return { leaves, radiusPx: n > 8 ? radiusPx + 48 : radiusPx };
+}
 // Fixed slice order so a cluster's ring reads the same everywhere.
 const UNIVERSE_ORDER = ['mountain', 'water', 'air', 'cycling', 'on-foot', 'wellness', ''];
 
@@ -190,7 +214,6 @@ export function JuntoMapView({
   pinsAsLayers = false,
   onMapPress,
   onBoundsChange,
-  onStuckClusterPress,
   flyTo,
   compassEnabled = true,
   onHeadingChange,
@@ -208,6 +231,11 @@ export function JuntoMapView({
   const insets = useSafeAreaInsets();
   const mapStyleKey = useMapStyleStore((s) => s.style);
   const [currentZoom, setCurrentZoom] = useState(zoom);
+  // The fan (Scott 2026-10-27, mockup « halo »): a cluster whose points share
+  // one spot can't be zoomed apart, so its tap spreads the pins on a circle
+  // around the point, over a translucent white halo, each pin tappable as
+  // usual. Closes on a map tap, a gesture or a zoom change.
+  const [fan, setFan] = useState<FanState | null>(null);
   const [bounds, setBounds] = useState<[number, number, number, number]>([-180, -90, 180, 90]);
   const cameraRef = useRef<Mapbox.Camera>(null);
   const centerApplied = useRef<string>('');
@@ -378,7 +406,10 @@ export function JuntoMapView({
   // pro page = name. Color matches the pin's universe (pros fall back to the
   // pro blue). Ratings wait until the nearby views expose an aggregate.
   const labelShape = useMemo(() => {
-    const features = clusters.flatMap((f) => {
+    const labelled: (typeof clusters)[number][] = fan
+      ? fan.leaves.map((l): PinPoint => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [l.lng, l.lat] }, properties: l.props }))
+      : clusters;
+    const features = labelled.flatMap((f) => {
       const p = f.properties as PinPointProps | (Supercluster.ClusterProperties & PinPointProps);
       if ('cluster' in p && p.cluster) return [];
       const coords = f.geometry.coordinates as [number, number];
@@ -427,7 +458,7 @@ export function JuntoMapView({
       }];
     });
     return { type: 'FeatureCollection' as const, features };
-  }, [clusters, activityMap, proMap, offeringMap, colors, proUniverse]);
+  }, [clusters, fan, activityMap, proMap, offeringMap, colors, proUniverse]);
 
   useEffect(() => {
     if (flyTo && cameraRef.current) {
@@ -463,6 +494,9 @@ export function JuntoMapView({
     // The user is moving the map: a late GPS fix must not rewind it to the
     // start-up centre (Scott 2026-10-26, the region-first opening).
     if (state.gestures.isGestureActive) cameraTouched.current = true;
+    if (fan && Date.now() - fan.openedAt > 500 && (state.gestures.isGestureActive || Math.abs(state.properties.zoom - fan.zoom) > 0.05)) {
+      setFan(null);
+    }
     const zoom = state.properties.zoom;
     const sw = state.properties.bounds.sw;
     const ne = state.properties.bounds.ne;
@@ -497,7 +531,7 @@ export function JuntoMapView({
       centerLng: cLng,
       centerLat: cLat,
     });
-  }, [onBoundsChange, onHeadingChange]);
+  }, [fan, onBoundsChange, onHeadingChange]);
 
   // Keep the latest user GPS / center / zoom in a ref so the style-change
   // effect below can read them without firing on every location update.
@@ -521,6 +555,80 @@ export function JuntoMapView({
     }, 300);
     return () => clearTimeout(t);
   }, [mapStyleKey]);
+
+  // One pin marker per type (shape + tap handler). `suffix` keeps keys unique
+  // when the same pin is drawn a second time inside the fan; `beforePress`
+  // runs first (the fan closes itself).
+  const pinMarker = (pinProps: PinPointProps, lng: number, lat: number, suffix = '', beforePress?: () => void) => {
+        // Highlighted pin shared style — scaled 1.3x and stacked on top.
+        // The slight downward drift from center-scaling is a few pixels at
+        // this size and reads as "the pin grew up out of the location",
+        // which is the right metaphor for the peek state.
+        const isHighlighted = highlightedPinId === pinProps.id;
+        const highlightStyle = isHighlighted
+          ? { transform: [{ scale: 1.3 }], elevation: 998, zIndex: 998 }
+          : undefined;
+
+        if (pinProps.type === 'activity') {
+          const activity = activityMap.get(pinProps.id);
+          if (!activity) return null;
+          const isSelected = selectedActivity?.id === activity.id;
+          return (
+            <Mapbox.MarkerView
+              key={`activity-${activity.id}${suffix}`}
+              id={`activity-${activity.id}${suffix}`}
+              coordinate={[lng, lat]}
+              anchor={ACTIVITY_PIN_ANCHOR}
+              allowOverlap
+            >
+              <View style={isSelected ? { elevation: 999, zIndex: 999 } : highlightStyle}>
+                <Pressable onPressIn={stampMarkerTouch} onPress={() => { beforePress?.(); onActivityPress?.(activity); }} hitSlop={14}>
+                  <ActivityPin activity={activity} />
+                </Pressable>
+              </View>
+            </Mapbox.MarkerView>
+          );
+        }
+
+        if (pinProps.type === 'pro') {
+          const pro = proMap.get(pinProps.id);
+          if (!pro) return null;
+          return (
+            <Mapbox.MarkerView
+              key={`pro-${pro.user_id}${suffix}`}
+              id={`pro-${pro.user_id}${suffix}`}
+              coordinate={[lng, lat]}
+              anchor={PRO_PIN_ANCHOR}
+              allowOverlap
+            >
+              <View style={highlightStyle}>
+                <Pressable onPressIn={stampMarkerTouch} onPress={() => { beforePress?.(); onProPress?.(pro); }} hitSlop={14}>
+                  <ProPin displayName={pro.display_name} pinIcon={pro.pin_icon} profession={pro.profession} pinImageUrl={pro.pin_image_url} />
+                </Pressable>
+              </View>
+            </Mapbox.MarkerView>
+          );
+        }
+
+        // pinProps.type === 'offering'
+        const offering = offeringMap.get(pinProps.id);
+        if (!offering) return null;
+        return (
+          <Mapbox.MarkerView
+            key={`offering-${offering.id}${suffix}`}
+            id={`offering-${offering.id}${suffix}`}
+            coordinate={[lng, lat]}
+            anchor={PRO_OFFERING_PIN_ANCHOR}
+            allowOverlap
+          >
+            <View style={highlightStyle}>
+              <Pressable onPressIn={stampMarkerTouch} onPress={() => { beforePress?.(); onProOfferingPress?.(offering); }} hitSlop={14}>
+                <ProOfferingPin offering={offering} />
+              </Pressable>
+            </View>
+          </Mapbox.MarkerView>
+        );
+  };
 
   const mapView = (
     <Mapbox.MapView
@@ -547,6 +655,7 @@ export function JuntoMapView({
       onMapIdle={handleCameraChanged}
       onPress={(feature) => {
         if (Date.now() - markerTouchAt.current < 700) return;  // the tap was a marker's
+        if (fan) { setFan(null); return; }                      // a tap closes the fan, nothing else
         if (onMapPress && feature.geometry.type === 'Point') {
           const [lng, lat] = feature.geometry.coordinates;
           if (typeof lng === 'number' && typeof lat === 'number') {
@@ -816,6 +925,7 @@ export function JuntoMapView({
           const aggProps = props as unknown as Partial<ClusterAgg>;
           const agg = aggProps.u ?? {};
           const stableKey = aggProps.k ?? String(clusterId);
+          if (fan?.key === stableKey) return null; // open as a fan below
           const segments: ClusterSegment[] = UNIVERSE_ORDER
             .filter((k) => (agg[k] ?? 0) > 0)
             .map((k) => ({ color: SPORT_CATEGORY_COLORS[k] ?? colors.cta, count: agg[k] ?? 0 }));
@@ -846,12 +956,12 @@ export function JuntoMapView({
                 // ACTIVITIES to the drawer instead (pros/offerings cluster fine
                 // via spatial proximity and aren't surfaced here yet).
                 const separable = Number.isFinite(minLng) && (maxLng - minLng > 3e-5 || maxLat - minLat > 3e-5);
-                if (!separable && onStuckClusterPress) {
-                  const stuckActivities = leaves
-                    .filter((leaf) => (leaf.properties as PinPointProps).type === 'activity')
-                    .map((leaf) => activityMap.get((leaf.properties as PinPointProps).id))
-                    .filter((a): a is NearbyActivity => a !== undefined);
-                  onStuckClusterPress(stuckActivities);
+                if (!separable) {
+                  // Same spot: recentre on it, then open the fan (halo).
+                  cameraTouched.current = true;
+                  cameraRef.current?.setCamera({ centerCoordinate: [lng, lat], animationDuration: 250 });
+                  const { leaves: fl, radiusPx } = fanLeaves(leaves as PinPoint[], [lng, lat], currentZoom);
+                  setFan({ key: stableKey, center: [lng, lat], zoom: currentZoom, radiusPx, leaves: fl, openedAt: Date.now() });
                   return;
                 }
                 cameraTouched.current = true;
@@ -878,76 +988,19 @@ export function JuntoMapView({
 
         // Individual pin — branch on type for shape + tap handler.
         const pinProps = props as PinPointProps;
-
-        // Highlighted pin shared style — scaled 1.3x and stacked on top.
-        // The slight downward drift from center-scaling is a few pixels at
-        // this size and reads as "the pin grew up out of the location",
-        // which is the right metaphor for the peek state.
-        const isHighlighted = highlightedPinId === pinProps.id;
-        const highlightStyle = isHighlighted
-          ? { transform: [{ scale: 1.3 }], elevation: 998, zIndex: 998 }
-          : undefined;
-
-        if (pinProps.type === 'activity') {
-          const activity = activityMap.get(pinProps.id);
-          if (!activity) return null;
-          const isSelected = selectedActivity?.id === activity.id;
-          return (
-            <Mapbox.MarkerView
-              key={`activity-${activity.id}`}
-              id={`activity-${activity.id}`}
-              coordinate={[lng, lat]}
-              anchor={ACTIVITY_PIN_ANCHOR}
-              allowOverlap
-            >
-              <View style={isSelected ? { elevation: 999, zIndex: 999 } : highlightStyle}>
-                <Pressable onPressIn={stampMarkerTouch} onPress={() => onActivityPress?.(activity)} hitSlop={14}>
-                  <ActivityPin activity={activity} />
-                </Pressable>
-              </View>
-            </Mapbox.MarkerView>
-          );
-        }
-
-        if (pinProps.type === 'pro') {
-          const pro = proMap.get(pinProps.id);
-          if (!pro) return null;
-          return (
-            <Mapbox.MarkerView
-              key={`pro-${pro.user_id}`}
-              id={`pro-${pro.user_id}`}
-              coordinate={[lng, lat]}
-              anchor={PRO_PIN_ANCHOR}
-              allowOverlap
-            >
-              <View style={highlightStyle}>
-                <Pressable onPressIn={stampMarkerTouch} onPress={() => onProPress?.(pro)} hitSlop={14}>
-                  <ProPin displayName={pro.display_name} pinIcon={pro.pin_icon} profession={pro.profession} pinImageUrl={pro.pin_image_url} />
-                </Pressable>
-              </View>
-            </Mapbox.MarkerView>
-          );
-        }
-
-        // pinProps.type === 'offering'
-        const offering = offeringMap.get(pinProps.id);
-        if (!offering) return null;
-        return (
-          <Mapbox.MarkerView
-            key={`offering-${offering.id}`}
-            id={`offering-${offering.id}`}
-            coordinate={[lng, lat]}
-            anchor={PRO_OFFERING_PIN_ANCHOR}
-            allowOverlap
-          >
-            <View style={highlightStyle}>
-              <Pressable onPressIn={stampMarkerTouch} onPress={() => onProOfferingPress?.(offering)} hitSlop={14}>
-                <ProOfferingPin offering={offering} />
-              </Pressable>
-            </View>
-          </Mapbox.MarkerView>
-        );
+        return pinMarker(pinProps, lng, lat);
       })}
+
+      {/* The fan: halo under, then the spread pins, drawn after every other
+          marker so they sit on top. Tapping one closes the fan first. */}
+      {fan && (
+        <Mapbox.MarkerView key={`fan-halo-${fan.key}`} id={`fan-halo-${fan.key}`} coordinate={fan.center} anchor={{ x: 0.5, y: 0.5 }} allowOverlap>
+          <View pointerEvents="none" style={[styles.fanHalo, { width: 2 * (fan.radiusPx + FAN_HALO_PAD), height: 2 * (fan.radiusPx + FAN_HALO_PAD), borderRadius: fan.radiusPx + FAN_HALO_PAD }]}>
+            <View style={styles.fanCentre}><View style={styles.fanDot} /></View>
+          </View>
+        </Mapbox.MarkerView>
+      )}
+      {fan?.leaves.map((leaf) => pinMarker(leaf.props, leaf.lng, leaf.lat, '-fan', () => setFan(null)))}
 
       {/* Popups rendered as separate MarkerViews AFTER all pins so
           they always stack on top. Same auto-anchor logic for all
@@ -994,6 +1047,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   map: {
     flex: 1,
   },
+  // The fan's ground: a translucent white disc, softly shadowed; the centre
+  // marks the real spot (ring + dot).
+  fanHalo: {
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#0A0F1A', shadowOpacity: 0.18, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  fanCentre: {
+    width: 14, height: 14, borderRadius: 7, backgroundColor: colors.pinBackground,
+    borderWidth: 1.5, borderColor: colors.pinBorder, alignItems: 'center', justifyContent: 'center',
+  },
+  fanDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: colors.pinBorder },
   mapWrapper: { flex: 1 },
   attributionPill: {
     position: 'absolute',

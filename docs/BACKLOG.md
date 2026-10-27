@@ -22,6 +22,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 - [x] **Paramètres → section « Personnalisation »** : Thème, Couleur d'accent, Police, Grappes colorées (2026-10-23).
 - [x] **Site, version téléphone** : pin et étiquette de l'app, carrousels, carte de profil (2026-10-23) ; reste un peu la version ordinateur.
 - [x] **Déplacer la carte en partant d'un pin ou d'un cluster** (2026-10-26) : la carte restait figée — cause native dans `@rnmapbox/maps` 10.3.2 (le MarkerView interdisait l'interception du geste), corrigée en amont (#4255, 10.3.4) ; passage en 10.3.11, version 0.1.4, build preview validée par Scott. La prochaine build production l'emporte.
+- [x] **Éventail « halo » sur un cluster insécable** (2026-10-27, DECISIONS) : les pins au même point s'écartent en cercle sur un disque translucide au lieu d'ouvrir la liste ; à tester sur l'appareil (recentrage, fermeture au geste, taps). Suite possible : éventail + liste à 50 % (idée de Scott).
 - [x] **Ouverture sur la région, pas la France** (2026-10-26, `hooks/use-initial-location.ts`) : dernier fix mémorisé par l'app → dernier fix du système quel que soit son âge → IP → France seulement sans rien ; le fix GPS frais recentre ensuite sauf si la carte a déjà été bougée.
 - [x] **Nom askandgo — prochaine build** (fait 2026-10-24, build production) : le nom sous l'icône doit être « Askandgo » (majuscule, plus pro) — `name` dans app.config.ts ; le reste de la marque reste en minuscules.
 - [x] **Tutoriel** : refait et proposé, plus imposé (2026-10-24, DECISIONS).
