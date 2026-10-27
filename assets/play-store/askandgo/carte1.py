@@ -64,7 +64,7 @@ def keywords(items):
     return f'<div style="position:absolute;left:0;right:0;top:478px;display:flex;justify-content:center;gap:26px;padding:0 20px">{cells}</div>'
 items = [(sp('climbing-sport', 34, INK), 'Le sport'), (li('pin', 32, INK), 'Le lieu exact'), (li('cal', 32, INK), 'La date et le niveau')]
 shell = screen("Des sorties outdoor<br>à rejoindre,<br>là où tu es.", '', '', '')
-phone = f'<div class="phone" style="left:220px;top:585px;transform:scale(.95);box-shadow:0 36px 70px rgba(31,26,21,.26)"><div class="scr">{body}</div></div>'
+phone = f'<div class="phone" style="left:220px;top:600px;transform:scale(.93) rotate(-3deg);box-shadow:0 36px 70px rgba(31,26,21,.26)"><div class="scr">{body}</div></div>'
 html = shell.replace('<div class="phone"><div class="scr"></div></div>', keywords(items) + phone)
 html = html.replace('font-size:82px;line-height:1.04', 'font-size:62px;line-height:1.1').replace('margin:150px 70px 0;text-align:center', 'margin:140px 60px 0;text-align:center')
 open(sys.argv[1], 'w').write(html)
