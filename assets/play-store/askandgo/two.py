@@ -20,8 +20,8 @@ which = sys.argv[1]
 
 def two_screens(title, sub, body_a, body_b):
     shell = screen(title, sub, '', '')
-    phones = (f'<div class="phone" style="left:34px;top:700px;transform:scale(.62) rotate(-4deg);z-index:1"><div class="scr">{body_a}</div></div>'
-              f'<div class="phone" style="left:470px;top:830px;transform:scale(.62) rotate(3deg);z-index:2;box-shadow:0 46px 90px rgba(31,26,21,.34)"><div class="scr">{body_b}</div></div>')
+    phones = (f'<div class="phone" style="left:16px;top:620px;transform:scale(.68) rotate(-4deg);z-index:1"><div class="scr">{body_a}</div></div>'
+              f'<div class="phone" style="left:440px;top:880px;transform:scale(.68) rotate(3deg);z-index:2;box-shadow:0 46px 90px rgba(31,26,21,.34)"><div class="scr">{body_b}</div></div>')
     return shell.replace('<div class="phone"><div class="scr"></div></div>', phones)
 
 # ---------- 3 · the page of a dispo (app/(auth)/partners/dispo.tsx) ----------
@@ -30,11 +30,17 @@ def chip(icon_html, text, bg='#F1EFEA', fg=INK):
 def block(label, value):
     return f'<div style="flex:1;background:#F1EFEA;border-radius:14px;padding:10px 12px"><div style="font-size:11px;font-weight:800;letter-spacing:.8px;color:{SEC}">{label}</div><div style="font-size:14px;font-weight:700;margin-top:3px;line-height:1.2">{value}</div></div>'
 dispo_body = f'''<div class="zoomwrap" style="background:#FFF">
-<div style="display:flex;justify-content:flex-end;padding:40px 14px 0"><span style="width:34px;height:34px;border-radius:50%;background:#F1EFEA;display:inline-flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{INK}" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></div>
-<div style="display:flex;flex-direction:column;align-items:center;padding:4px 16px 0">
-  <div style="width:96px;height:96px;border-radius:50%;border:4px solid {GOOD};padding:3px"><div class="av" style="width:100%;height:100%;background:#E7DCEB;color:#6B4E8B;font-size:30px">JR</div></div>
-  <div style="font-size:24px;font-weight:800;margin-top:10px;letter-spacing:-.3px">Julie R.</div>
-  <div style="font-size:14px;color:{SEC};font-weight:600;margin-top:3px">à 24 km de ta zone · 11 sorties</div>
+<div style="position:relative;background:#1F2A22;padding:72px 22px 22px;overflow:hidden">
+  <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 405 230" preserveAspectRatio="none"><path d="M -20 40 C 80 10 160 70 260 30 S 380 60 440 20" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 66 C 80 44 160 86 260 56 S 380 86 440 46" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 92 C 80 78 160 122 260 82 S 380 112 440 72" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 118 C 80 88 160 138 260 108 S 380 138 440 98" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 144 C 80 122 160 174 260 134 S 380 164 440 124" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 170 C 80 156 160 190 260 160 S 380 190 440 150" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 196 C 80 166 160 226 260 186 S 380 216 440 176" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 222 C 80 200 160 242 260 212 S 380 242 440 202" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 248 C 80 234 160 278 260 238 S 380 268 440 228" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/></svg>
+  <div style="position:absolute;right:14px;top:36px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+  <div style="position:relative;display:flex;align-items:center;gap:16px">
+    <div style="width:92px;height:92px;border-radius:50%;border:4px solid {GOOD};padding:3px;flex-shrink:0"><div class="av" style="width:100%;height:100%;background:#E7DCEB;color:#6B4E8B;font-size:30px">JR</div></div>
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:26px;font-weight:800;color:#FFF;letter-spacing:-.3px;line-height:1.05">Julie R.</div>
+      <span style="align-self:flex-start;background:{GOOD};color:#FFF;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700">Bonne</span>
+      <div style="font-size:14px;color:rgba(255,255,255,.8)">à 24 km de ta zone · 11 sorties</div>
+    </div>
+  </div>
 </div>
 <div style="display:flex;gap:8px;padding:16px 16px 0">{block('QUAND', '9 – 12 nov.')}{block('SE DÉPLACE', 'Covoit ou solo')}{block('SA ZONE', 'Rayon de 40 km')}</div>
 <div style="padding:0 16px"><div style="font-size:13px;color:{GREEN};font-weight:700;margin-top:8px;display:flex;align-items:center;gap:4px">{li('pin',13,GREEN)}Voir la zone</div></div>
