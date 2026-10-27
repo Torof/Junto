@@ -173,6 +173,8 @@ type FanState = { key: string; center: [number, number]; zoom: number; radiusPx:
 // ring beyond. Screen px → degrees at the current zoom (Mapbox 512-px tiles:
 // 78271.517 · cos(lat) / 2^zoom metres per px).
 const FAN_HALO_PAD = 28;
+// Below this zoom the fan would open among the neighbours: zoom in to it first.
+const FAN_MIN_ZOOM = 15;
 // Each pin stays INSIDE the halo and grazes its edge from within (Scott
 // 2026-10-27): the top pin touches with the top of its head, the bottom one
 // with its tip, a right-hand one with its right side… The pin is taken as a
@@ -510,7 +512,7 @@ export function JuntoMapView({
     // The user is moving the map: a late GPS fix must not rewind it to the
     // start-up centre (Scott 2026-10-26, the region-first opening).
     if (state.gestures.isGestureActive) cameraTouched.current = true;
-    if (fan && Date.now() - fan.openedAt > 500 && (state.gestures.isGestureActive || Math.abs(state.properties.zoom - fan.zoom) > 0.05)) {
+    if (fan && Date.now() - fan.openedAt > 800 && (state.gestures.isGestureActive || Math.abs(state.properties.zoom - fan.zoom) > 0.05)) {
       setFan(null);
     }
     const zoom = state.properties.zoom;
@@ -1015,11 +1017,14 @@ export function JuntoMapView({
                 // via spatial proximity and aren't surfaced here yet).
                 const separable = Number.isFinite(minLng) && (maxLng - minLng > 3e-5 || maxLat - minLat > 3e-5);
                 if (!separable) {
-                  // Same spot: recentre on it, then open the fan (halo).
+                  // Same spot: recentre on it — and zoom in first when the map is
+                  // wide, so the fan doesn't land among other pins (Scott
+                  // 2026-10-27) — then open the fan (halo) at the target zoom.
                   cameraTouched.current = true;
-                  cameraRef.current?.setCamera({ centerCoordinate: [lng, lat], animationDuration: 250 });
-                  const { leaves: fl, radiusPx } = fanLeaves(leaves as PinPoint[], [lng, lat], currentZoom);
-                  setFan({ key: stableKey, center: [lng, lat], zoom: currentZoom, radiusPx, leaves: fl, openedAt: Date.now() });
+                  const targetZoom = Math.max(currentZoom, FAN_MIN_ZOOM);
+                  cameraRef.current?.setCamera({ centerCoordinate: [lng, lat], zoomLevel: targetZoom, animationDuration: targetZoom > currentZoom + 0.05 ? 450 : 250 });
+                  const { leaves: fl, radiusPx } = fanLeaves(leaves as PinPoint[], [lng, lat], targetZoom);
+                  setFan({ key: stableKey, center: [lng, lat], zoom: targetZoom, radiusPx, leaves: fl, openedAt: Date.now() });
                   return;
                 }
                 cameraTouched.current = true;
