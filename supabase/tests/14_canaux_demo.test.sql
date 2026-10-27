@@ -83,3 +83,23 @@ PERFORM set_config('junto.bypass_lock', 'false', true);
 UPDATE public.channels SET is_demo = false WHERE conversation_id = pg_temp.id('cd_conv');
 PERFORM pg_temp.eq('CD5 is_demo épinglé par le déclencheur',
   format($$SELECT is_demo::text FROM public.channels WHERE conversation_id = %L$$, pg_temp.id('cd_conv')), 'true');
+
+-- ═════ CD6 — Les pros démo (00558) restent derrière le rideau ═════
+-- Cinq pages pro et vingt sorties semées en migration : un vrai compte ne voit
+-- ni la page, ni la sortie, ni leurs avis ; l'admin en mode démo voit tout.
+PERFORM pg_temp.as_('cd_u');
+PERFORM pg_temp.eq('CD6 rideau baissé : aucune page pro démo (00558)',
+  $$SELECT count(*)::text FROM public.pro_profiles WHERE user_id IN ('d0000000-0000-4000-a000-000000000019','d0000000-0000-4000-a000-00000000001a','d0000000-0000-4000-a000-00000000001b','d0000000-0000-4000-a000-00000000001c','d0000000-0000-4000-a000-00000000001d')$$, '0');
+PERFORM pg_temp.eq('CD6 rideau baissé : aucune sortie pro démo (00558)',
+  $$SELECT count(*)::text FROM public.pro_offerings WHERE pro_id IN ('d0000000-0000-4000-a000-000000000019','d0000000-0000-4000-a000-00000000001a','d0000000-0000-4000-a000-00000000001b','d0000000-0000-4000-a000-00000000001c','d0000000-0000-4000-a000-00000000001d')$$, '0');
+PERFORM pg_temp.eq('CD6 rideau baissé : aucun avis sur une sortie démo',
+  $$SELECT count(*)::text FROM public.offering_reviews WHERE offering_id = 'b0000000-0000-4000-a000-000000000011'$$, '0');
+PERFORM pg_temp.as_('cd_adm');
+PERFORM pg_temp.cd_demo_mode(true);
+PERFORM pg_temp.eq('CD6 admin, mode démo : les cinq pages pro',
+  $$SELECT count(*)::text FROM public.pro_profiles WHERE user_id IN ('d0000000-0000-4000-a000-000000000019','d0000000-0000-4000-a000-00000000001a','d0000000-0000-4000-a000-00000000001b','d0000000-0000-4000-a000-00000000001c','d0000000-0000-4000-a000-00000000001d')$$, '5');
+PERFORM pg_temp.eq('CD6 admin, mode démo : les vingt sorties',
+  $$SELECT count(*)::text FROM public.pro_offerings WHERE pro_id IN ('d0000000-0000-4000-a000-000000000019','d0000000-0000-4000-a000-00000000001a','d0000000-0000-4000-a000-00000000001b','d0000000-0000-4000-a000-00000000001c','d0000000-0000-4000-a000-00000000001d')$$, '20');
+PERFORM pg_temp.eq('CD6 admin, mode démo : chaque page a sa sortie mise en avant',
+  $$SELECT count(*)::text FROM public.pro_profiles WHERE is_demo AND featured_offering_id IS NOT NULL AND user_id <> 'd0000000-0000-4000-a000-000000000001'$$, '5');
+PERFORM pg_temp.cd_demo_mode(false);
