@@ -136,8 +136,8 @@ thread_body = f'''<div class="zoomwrap" style="background:#FFF">
 <div style="padding:10px 14px 24px;display:flex;align-items:center;gap:10px"><div style="flex:1;background:#F1EFEA;border-radius:999px;padding:11px 16px;font-size:14px;color:{SEC}">Écrire un message…</div><span style="width:40px;height:40px;border-radius:50%;background:{GREEN};display:inline-flex;align-items:center;justify-content:center">{li('chev',18,'#FFF',2.6)}</span></div></div>'''
 
 if which == '4':
-    html = side_by_side("Rejoins les discussions des pratiquants,<br>sport par sport, partout où tu vas.<br>Conditions, matos, sorties qui se montent.", '', canaux_body, thread_body,
-                        [(sp('ski-touring', 34, INK), 'Par sport'), (li('pin', 32, INK), 'Par vallée'), (li('users', 32, INK), 'Ouvert à tous')])
+    html = side_by_side("Rejoins les discussions<br>des pratiquants, sport par sport,<br>partout où tu vas.", '', canaux_body, thread_body,
+                        [(sp('ski-touring', 34, INK), 'Par sport'), (li('pin', 32, INK), 'Par lieu'), (li('users', 32, INK), 'Ouvert à tous')])
 elif which == '3':
     html = two_screens("Des partenaires de sortie :<br>même sport, même zone,<br>mêmes dates.", '', partenaires_body, dispo_body)
 else:
