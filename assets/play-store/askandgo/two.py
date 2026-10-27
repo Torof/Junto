@@ -139,7 +139,7 @@ if which == '4':
     html = side_by_side("Rejoins les discussions<br>des pratiquants, sport par sport,<br>partout où tu vas.", '', canaux_body, thread_body,
                         [(sp('ski-touring', 34, INK), 'Par sport'), (li('pin', 32, INK), 'Par lieu'), (li('users', 32, INK), 'Ouvert à tous')])
 elif which == '3':
-    html = two_screens("Des partenaires de sortie :<br>même sport, même zone,<br>mêmes dates.", '', partenaires_body, dispo_body)
+    html = two_screens("Trouve des partenaires de sortie :<br>même sport, même zone,<br>mêmes dates.", '', partenaires_body, dispo_body)
 else:
     html = two_screens("Trouve le guide et la sortie<br>qu'il te faut, n'importe où.<br>Et réserve en quelques taps.", "", pro_body, offering_body)
 html = html.replace('font-size:82px;line-height:1.04', 'font-size:62px;line-height:1.1').replace('margin:150px 70px 0;text-align:center', 'margin:140px 60px 0;text-align:center')
