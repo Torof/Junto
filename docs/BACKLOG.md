@@ -40,6 +40,8 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 
 ## P1 — Polish & easy wins
 
+- [ ] **Éventail halo — finitions** (Scott 2026-10-27 : « il y aura des choses à modifier, on reviendra dessus ») : écriture des étiquettes, rayon / zoom mini (`FAN_MIN_ZOOM` 15), puis l'idée éventail + liste à 50 %.
+
 - [x] **In-app distance feedback** — déjà livré (constaté 2026-10-26) : le bloc présence de la page de sortie affiche « À N m du point de rendez-vous » (distance au plus proche de meeting / end / trace, comme le serveur) et passe « Tu y es » en vert dans la zone.
 - [x] **Auto-show QR du créateur** — déjà livré (constaté 2026-10-26) : le modal QR s'ouvre de lui-même à T−15 min si le créateur est sur la page (une fois par session).
 - [x] **Copies légales in-app → liens vers le site** (2026-10-26, `utils/legal-links.ts`) : CGU et confidentialité s'ouvrent dans le navigateur intégré (`/legal/terms`, `/legal/privacy` sur `EXPO_PUBLIC_JUNTO_WEB_HOST`, getjunto.app par défaut — une constante à changer au domaine askandgo) ; les quatre écrans copies supprimés ; FAQ et licences restent natifs.
@@ -123,7 +125,6 @@ Design **complet et validé sur mock** (session 2026-07-08). Règles verrouillé
 - [ ] Vérification d'identité avancée
 - [ ] API pour clubs et associations sportives
 - [ ] Tableau de bord analytics pour les Pros
-- [ ] Map clustering + "search this zone" button (différé à une session UI dédiée)
 - [ ] Live position partagée pendant l'activité
 
 ### Présence — durcissements
