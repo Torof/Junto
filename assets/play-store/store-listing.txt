@@ -2,40 +2,45 @@
 Askandgo — sorties outdoor
 
 === BRÈVE DESCRIPTION (max 80) ===
-Où que tu ailles, vois qui part dehors — et pars avec eux.
+Propose ta sortie outdoor ou rejoins-en une. Où tu veux, quand tu veux.
 
 === DESCRIPTION COMPLÈTE ===
-Tu arrives dans une vallée que tu ne connais pas. Tes potes ne sont pas libres. Tu as envie de grimper, de skier, de voler. Askandgo te montre, sur une carte, les sorties qui partent autour de l'endroit où tu es — et te laisse les rejoindre, ou lancer la tienne en deux minutes.
+Tu pars trois semaines dans une vallée que tu ne connais pas. Tes potes ne sont pas libres ce week-end. Tu as envie de grimper, de skier, de voler, de pagayer. Askandgo te montre sur une carte les sorties outdoor que d'autres proposent — là où tu es, ou là où tu vas, à la date que tu choisis — et te laisse les rejoindre. Ou tu poses la tienne, et ce sont les autres qui te rejoignent.
 
 Gratuit, sans publicité, sans revente de données. Pensé dans les Hautes-Alpes, pour partout.
 
 ━━━━━━━━━━━━━━━━━━━━
-VOIS QUI PART
+PROPOSE TA SORTIE, OU REJOINS-EN UNE
 ━━━━━━━━━━━━━━━━━━━━
-Chaque sortie est posée sur la carte, pile là où ça se passe : le sport, le niveau, la date, les places. Filtre, regarde, rejoins. Ou pose ton rendez-vous et laisse les autres venir à toi.
+Chaque sortie est posée sur la carte, pile là où ça se passe : le sport, le lieu exact, la date, le niveau attendu, les places. Cherche n'importe où, à n'importe quelle date. Rejoins en un tap, ou crée la tienne en deux minutes.
 
 ━━━━━━━━━━━━━━━━━━━━
-DEDANS, TOUT S'ORGANISE
+ORGANISE AVEC CEUX QUI VIENNENT
 ━━━━━━━━━━━━━━━━━━━━
-Qui conduit, qui apporte la corde, ce qui manque, qui est en retard : tout le monde le voit au même endroit. Covoiturage, matériel, discussion de groupe, trace GPX — rien ne se perd dans dix conversations.
+Qui conduit, qui apporte la corde, ce qui manque, qui est en retard : tout le monde le voit au même endroit. Covoiturage, matériel, discussion de groupe, rendez-vous, trace GPX — rien ne se perd dans dix conversations.
 
 ━━━━━━━━━━━━━━━━━━━━
 TROUVE DES PARTENAIRES
 ━━━━━━━━━━━━━━━━━━━━
-Dis quand tu es dispo, pour quels sports, dans quelle zone — et vois qui cherche la même chose. Rejoins les canaux de ta vallée : conditions du jour, binômes, sorties proposées. Des discussions qui finissent dehors.
+Dis quand tu es dispo, pour quels sports, dans quelle zone — et vois qui cherche la même chose : même sport, même zone, mêmes dates. Un message, et vous partez ensemble.
 
 ━━━━━━━━━━━━━━━━━━━━
-DES INCONNUS, OUI. DES INCONNUS FIABLES.
+REJOINS LES DISCUSSIONS, PARTOUT OÙ TU VAS
 ━━━━━━━━━━━━━━━━━━━━
-La présence est vérifiée sur place, la fiabilité se construit sortie après sortie, et ton niveau par sport est confirmé par ceux qui ont grimpé avec toi. Pas de notes, pas de classement : juste de quoi partir tranquille avec quelqu'un que tu ne connais pas encore.
+Un canal par sport et par lieu, ouvert à qui passe par là : conditions du jour, matos, binômes, sorties qui se montent. Tu arrives quelque part, les pratiquants du coin discutent déjà.
 
 ━━━━━━━━━━━━━━━━━━━━
-GUIDES, MONITEURS, BUREAUX
+TU DÉCIDES AVEC QUI TU PARS
 ━━━━━━━━━━━━━━━━━━━━
-Leurs sorties encadrées sont épinglées sur la même carte : photos, tarifs, agenda, réservation dans l'app. Vous êtes pro ? Votre vitrine et vos offres, sans commission.
+La présence est vérifiée sur place, la fiabilité se construit sortie après sortie, et le niveau par sport est confirmé par ceux qui ont pratiqué avec la personne. Pas de notes, pas de classement : le parcours et le comportement de chacun, vérifiés dehors. Chacun ses critères.
 
 ━━━━━━━━━━━━━━━━━━━━
-PLUS DE 35 SPORTS
+GUIDES, MONITEURS, ÉCOLES
+━━━━━━━━━━━━━━━━━━━━
+Trouve le guide et la sortie qu'il te faut, n'importe où : leurs sorties encadrées sont sur la même carte, avec photos, tarifs, places et avis vérifiés. Réserve en quelques taps. Vous êtes pro ? Votre page et vos sorties, sans commission.
+
+━━━━━━━━━━━━━━━━━━━━
+PRÈS DE 40 SPORTS
 ━━━━━━━━━━━━━━━━━━━━
 Escalade, ski de rando, randonnée, trail, alpinisme, canyoning, parapente, VTT, kayak, surf, voile, via ferrata, cascade de glace, raquettes, yoga en plein air… et tout ce qui se pratique dehors, à plusieurs.
 
