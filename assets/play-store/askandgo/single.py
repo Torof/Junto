@@ -28,7 +28,7 @@ elif which == '4':
     html = single("Les discussions des pratiquants<br>de ta vallée,<br>sport par sport.", '', screen_body,
                   [(sp('ski-touring', 34, INK), 'Par sport'), (li('pin', 32, INK), 'Par vallée'), (li('users', 32, INK), 'Ouvert à tous')])
 else:
-    html = single("Des partenaires fiables :<br>présence et niveau<br>vérifiés sur le terrain.", '', screen_body,
+    html = single("Tu décides avec qui tu pars.<br>Le parcours et le comportement<br>de chacun sont vérifiés dehors.<br>Chacun ses critères.", '', screen_body,
                   [(li('check', 32, INK, 3), 'Présence vérifiée'), (li('shield', 32, INK), 'Fiabilité'), (li('users', 32, INK), 'Niveau confirmé')])
 html = html.replace('font-size:82px;line-height:1.04', 'font-size:62px;line-height:1.1').replace('margin:150px 70px 0;text-align:center', 'margin:140px 60px 0;text-align:center')
 open(sys.argv[2], 'w').write(html)
