@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect, type ComponentRef, type RefObject } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { AppText } from '@/components/app-text';
+import { Calendar, BarChart3 } from 'lucide-react-native';
 import Mapbox from '@rnmapbox/maps';
 import Supercluster from 'supercluster';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -171,7 +172,10 @@ type FanState = { key: string; center: [number, number]; zoom: number; radiusPx:
 // Fan geometry: radius in screen px by count, one ring up to eight, a second
 // ring beyond. Screen px → degrees at the current zoom (Mapbox 512-px tiles:
 // 78271.517 · cos(lat) / 2^zoom metres per px).
-const FAN_HALO_PAD = 32;
+const FAN_HALO_PAD = 28;
+// The pin's head sits on the halo's edge (Scott 2026-10-27: « centrées sur la
+// bordure extérieure »), so the tip is placed this many px below the circle.
+const FAN_HEAD_ABOVE_TIP_PX = Math.round((51.6 - 23) * (40 / 54));
 function fanRadiusPx(n: number): number { return n <= 3 ? 58 : n <= 5 ? 72 : 92; }
 function fanLeaves(points: PinPoint[], center: [number, number], zoomLevel: number): { leaves: FanLeaf[]; radiusPx: number } {
   const n = points.length;
@@ -184,9 +188,12 @@ function fanLeaves(points: PinPoint[], center: [number, number], zoomLevel: numb
     const ring = i < 8 ? 0 : 1;
     const inRing = ring === 0 ? Math.min(n, 8) : n - 8;
     const j = ring === 0 ? i : i - 8;
-    const r = ring === 0 ? radiusPx : radiusPx + 48;
+    // Heads on the halo's edge; the second ring one pin further out.
+    const r = (ring === 0 ? radiusPx : radiusPx + 48) + FAN_HALO_PAD;
     const a = -Math.PI / 2 + (j * 2 * Math.PI) / inRing + (ring === 1 ? Math.PI / inRing : 0);
-    return { props: p.properties, lng: center[0] + r * Math.cos(a) * degPerPxLng, lat: center[1] - r * Math.sin(a) * degPerPxLat };
+    const px = r * Math.cos(a);
+    const py = r * Math.sin(a) + FAN_HEAD_ABOVE_TIP_PX; // screen y grows downward
+    return { props: p.properties, lng: center[0] + px * degPerPxLng, lat: center[1] - py * degPerPxLat };
   });
   return { leaves, radiusPx: n > 8 ? radiusPx + 48 : radiusPx };
 }
@@ -560,26 +567,39 @@ export function JuntoMapView({
   // runs first (the fan closes itself).
   // In the fan the label is a React view beside the pin — the native symbol
   // labels live under every MarkerView, so under the halo (Scott 2026-10-27).
-  const fanLabelFor = (pinProps: PinPointProps): { name: string; sub: string; color: string } | null => {
+  // Same content as the native labels: title · 📅 when · 📊 level for an
+  // outing, title · 📅 schedule for a pro outing, name · tagline for a pro.
+  type FanLine = { icon?: 'cal' | 'lvl'; text: string };
+  const fanLabelFor = (pinProps: PinPointProps): { name: string; lines: FanLine[]; color: string } | null => {
     if (pinProps.type === 'activity') {
       const a = activityMap.get(pinProps.id); if (!a) return null;
       const d = dayjs(a.starts_at);
-      return { name: a.title, sub: `${d.format('ddd D MMM')} à ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}`, color: SPORT_CATEGORY_COLORS[a.sport_category] ?? colors.cta };
+      const lvl = formatDifficultySignal(a.sport_key, a.level, a.distance_km, a.elevation_gain_m, a.level_max);
+      const lines: FanLine[] = [{ icon: 'cal', text: `${d.format('ddd D MMM')} à ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}` }];
+      if (lvl) lines.push({ icon: 'lvl', text: lvl });
+      return { name: a.title, lines, color: SPORT_CATEGORY_COLORS[a.sport_category] ?? colors.cta };
     }
     if (pinProps.type === 'pro') {
       const pr = proMap.get(pinProps.id); if (!pr) return null;
-      return { name: pr.display_name, sub: pr.tagline ? truncate(pr.tagline, 28) : '', color: colors.textPrimary };
+      return { name: pr.display_name, lines: pr.tagline ? [{ text: truncate(pr.tagline, 28) }] : [], color: colors.textPrimary };
     }
     const o = offeringMap.get(pinProps.id); if (!o) return null;
-    return { name: o.title, sub: o.schedule_text ?? '', color: SPORT_CATEGORY_COLORS[o.sport_category] ?? colors.cta };
+    return { name: o.title, lines: o.schedule_text ? [{ icon: 'cal', text: o.schedule_text }] : [], color: SPORT_CATEGORY_COLORS[o.sport_category] ?? colors.cta };
   };
   const fanLabel = (pinProps: PinPointProps, side: 'left' | 'right') => {
     const l = fanLabelFor(pinProps);
     if (!l) return null;
+    const right = side === 'right';
     return (
-      <View pointerEvents="none" style={[styles.fanLabel, side === 'right' ? styles.fanLabelRight : styles.fanLabelLeft]}>
-        <AppText style={[styles.fanLabelName, { color: l.color, textAlign: side === 'right' ? 'left' : 'right' }]} numberOfLines={2}>{l.name}</AppText>
-        {l.sub ? <AppText style={[styles.fanLabelSub, { textAlign: side === 'right' ? 'left' : 'right' }]} numberOfLines={1}>{l.sub}</AppText> : null}
+      <View pointerEvents="none" style={[styles.fanLabel, right ? styles.fanLabelRight : styles.fanLabelLeft]}>
+        <AppText style={[styles.fanLabelName, { color: l.color, textAlign: right ? 'left' : 'right' }]} numberOfLines={2}>{l.name}</AppText>
+        {l.lines.map((line, i) => (
+          <View key={i} style={[styles.fanLabelRow, !right && styles.fanLabelRowLeft]}>
+            {line.icon === 'cal' ? <Calendar size={10} color={colors.textSecondary} strokeWidth={2.4} /> : null}
+            {line.icon === 'lvl' ? <BarChart3 size={10} color={colors.textSecondary} strokeWidth={2.4} /> : null}
+            <AppText style={styles.fanLabelSub} numberOfLines={1}>{line.text}</AppText>
+          </View>
+        ))}
       </View>
     );
   };
@@ -1088,7 +1108,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   fanLabelRight: { left: 50 },
   fanLabelLeft: { right: 50 },
   fanLabelName: { fontSize: 12, fontWeight: '800', lineHeight: 14, textShadowColor: '#FFFFFF', textShadowRadius: 4 },
-  fanLabelSub: { fontSize: 10.5, fontWeight: '600', color: colors.textSecondary, lineHeight: 13, textShadowColor: '#FFFFFF', textShadowRadius: 4 },
+  fanLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  fanLabelRowLeft: { justifyContent: 'flex-end' },
+  fanLabelSub: { fontSize: 10.5, fontWeight: '600', color: colors.textSecondary, lineHeight: 13, textShadowColor: '#FFFFFF', textShadowRadius: 4, flexShrink: 1 },
   fanCentre: {
     width: 14, height: 14, borderRadius: 7, backgroundColor: colors.pinBackground,
     borderWidth: 1.5, borderColor: colors.pinBorder, alignItems: 'center', justifyContent: 'center',
