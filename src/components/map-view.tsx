@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect, type ComponentRef, type RefObject } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { AppText } from '@/components/app-text';
-import { Calendar, BarChart3 } from 'lucide-react-native';
+import { Image } from 'expo-image';
 import Mapbox from '@rnmapbox/maps';
 import Supercluster from 'supercluster';
 import { type NearbyActivity } from '@/services/activity-service';
@@ -172,6 +172,9 @@ type FanState = { key: string; center: [number, number]; zoom: number; radiusPx:
 // Fan geometry: radius in screen px by count, one ring up to eight, a second
 // ring beyond. Screen px → degrees at the current zoom (Mapbox 512-px tiles:
 // 78271.517 · cos(lat) / 2^zoom metres per px).
+// The native labels' icon images, reused by the fan labels.
+const LABEL_CAL_IMG = require('../../assets/label-cal.png');
+const LABEL_LVL_IMG = require('../../assets/label-level.png');
 const FAN_HALO_PAD = 28;
 // Below this zoom the fan would open among the neighbours: zoom in to it first.
 const FAN_MIN_ZOOM = 15;
@@ -602,16 +605,21 @@ export function JuntoMapView({
     const l = fanLabelFor(pinProps);
     if (!l) return null;
     const right = side === 'right';
+    // A white card behind the text (text shadows alone blended into the
+    // contour lines, Scott 2026-10-27); the same calendar / level images as
+    // the native labels.
     return (
       <View pointerEvents="none" style={[styles.fanLabel, right ? styles.fanLabelRight : styles.fanLabelLeft]}>
-        <AppText style={[styles.fanLabelName, { color: l.color, textAlign: right ? 'left' : 'right' }]} numberOfLines={2}>{l.name}</AppText>
-        {l.lines.map((line, i) => (
-          <View key={i} style={[styles.fanLabelRow, !right && styles.fanLabelRowLeft]}>
-            {line.icon === 'cal' ? <Calendar size={10} color={colors.textSecondary} strokeWidth={2.4} /> : null}
-            {line.icon === 'lvl' ? <BarChart3 size={10} color={colors.textSecondary} strokeWidth={2.4} /> : null}
-            <AppText style={styles.fanLabelSub} numberOfLines={1}>{line.text}</AppText>
-          </View>
-        ))}
+        <View style={[styles.fanLabelCard, !right && styles.fanLabelCardLeft]}>
+          <AppText style={[styles.fanLabelName, { color: l.color, textAlign: right ? 'left' : 'right' }]} numberOfLines={2}>{l.name}</AppText>
+          {l.lines.map((line, i) => (
+            <View key={i} style={[styles.fanLabelRow, !right && styles.fanLabelRowLeft]}>
+              {line.icon === 'cal' ? <Image source={LABEL_CAL_IMG} style={styles.fanLabelIcon} contentFit="contain" /> : null}
+              {line.icon === 'lvl' ? <Image source={LABEL_LVL_IMG} style={styles.fanLabelIcon} contentFit="contain" /> : null}
+              <AppText style={styles.fanLabelSub} numberOfLines={1}>{line.text}</AppText>
+            </View>
+          ))}
+        </View>
       </View>
     );
   };
@@ -1119,13 +1127,19 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  fanLabel: { position: 'absolute', top: 2, width: 150 },
-  fanLabelRight: { left: 50 },
-  fanLabelLeft: { right: 50 },
-  fanLabelName: { fontSize: 12, fontWeight: '800', lineHeight: 14, textShadowColor: '#FFFFFF', textShadowRadius: 4 },
-  fanLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  fanLabelRowLeft: { justifyContent: 'flex-end' },
-  fanLabelSub: { fontSize: 10.5, fontWeight: '600', color: colors.textSecondary, lineHeight: 13, textShadowColor: '#FFFFFF', textShadowRadius: 4, flexShrink: 1 },
+  fanLabel: { position: 'absolute', top: 0, width: 160, alignItems: 'flex-start' },
+  fanLabelRight: { left: 48 },
+  fanLabelLeft: { right: 48, alignItems: 'flex-end' },
+  fanLabelCard: {
+    backgroundColor: 'rgba(255,255,255,0.94)', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 4,
+    borderWidth: 1, borderColor: 'rgba(31,26,21,0.10)', maxWidth: 160, alignItems: 'flex-start',
+  },
+  fanLabelCardLeft: { alignItems: 'flex-end' },
+  fanLabelName: { fontSize: 12.5, fontWeight: '800', lineHeight: 15 },
+  fanLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 },
+  fanLabelRowLeft: { flexDirection: 'row-reverse' },
+  fanLabelIcon: { width: 12, height: 12 },
+  fanLabelSub: { fontSize: 11, fontWeight: '700', color: colors.textPrimary, lineHeight: 13, flexShrink: 1 },
   fanCentre: {
     width: 14, height: 14, borderRadius: 7, backgroundColor: colors.pinBackground,
     borderWidth: 1.5, borderColor: colors.pinBorder, alignItems: 'center', justifyContent: 'center',
