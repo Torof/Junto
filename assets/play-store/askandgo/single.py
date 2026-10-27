@@ -22,7 +22,7 @@ def single(title, sub, body_html, items):
     return shell.replace('<div class="phone"><div class="scr"></div></div>', keywords(items) + phone)
 
 if which == '2':
-    html = single("La sortie s'organise<br>avec les participants :<br>covoiturage, matériel, discussion.", "", screen_body,
+    html = single("Organise ta sortie<br>avec ceux qui viennent.<br>Covoiturage, matériel, discussion :<br>tout au même endroit.", "", screen_body,
                   [(li('car', 32, INK), 'Qui conduit'), (li('bag', 32, INK), 'Qui apporte quoi'), (li('msg', 32, INK), 'On se parle')])
 elif which == '4':
     html = single("Les discussions des pratiquants<br>de ta vallée,<br>sport par sport.", '', screen_body,
