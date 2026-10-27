@@ -62,8 +62,12 @@ body = f'''<div style="position:absolute;inset:0;background:url({MAP}) center/co
 def keywords(items):
     cells = ''.join(f'<div style="display:flex;align-items:center;gap:12px"><span style="width:58px;height:58px;border-radius:50%;background:#FFF;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(31,26,21,.12)">{ic}</span><span style="font-size:32px;font-weight:800;color:{DEEP};letter-spacing:-.5px;white-space:nowrap">{w}</span></div>' for ic, w in items)
     return f'<div style="position:absolute;left:0;right:0;top:478px;display:flex;justify-content:center;gap:26px;padding:0 20px">{cells}</div>'
-items = [(sp('climbing-sport', 34, INK), 'Le sport'), (li('pin', 32, INK), 'Le lieu exact'), (li('cal', 32, INK), 'La date et le niveau')]
-shell = screen("Des sorties outdoor<br>à rejoindre,<br>là où tu es.", '', '', '')
+# Two sides of the same screen (Scott 2026-10-27): join an outing around you, or post
+# yours for others to join — the « proposer » icon is the map's green + button.
+items = [(li('search', 32, INK), 'Trouver une sortie'),
+         (f'<span style="width:58px;height:58px;border-radius:50%;background:{GREEN};display:inline-flex;align-items:center;justify-content:center;margin:-0px">{li("plus", 30, "#FFF", 2.8)}</span>', 'Proposer la tienne'),
+         (li('cal', 32, INK), 'Sport, lieu, date')]
+shell = screen("Des sorties outdoor là où tu es :<br>rejoins-en une,<br>ou propose la tienne.", '', '', '')
 phone = f'<div class="phone" style="left:220px;top:600px;transform:scale(.93) rotate(-3deg);box-shadow:0 36px 70px rgba(31,26,21,.26)"><div class="scr">{body}</div></div>'
 html = shell.replace('<div class="phone"><div class="scr"></div></div>', keywords(items) + phone)
 html = html.replace('font-size:82px;line-height:1.04', 'font-size:62px;line-height:1.1').replace('margin:150px 70px 0;text-align:center', 'margin:140px 60px 0;text-align:center')
