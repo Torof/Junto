@@ -34,6 +34,10 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 
 **Restes de la bascule** : finir le parcours de validation sur l'app Google Play (dont une sortie publique partagée ouverte dans un navigateur) · publier en production les mises à jour validées en preview (liens d'e-mail à code unique) · retirer les variables Sentry d'EAS et fermer le compte sentry.io · mettre l'ancien projet en pause dans quelques semaines · plus tard : Next.js 16 pour le site (alerte PostCSS, sans risque réel).
 
+## Dernière étape avant publication (fiche Play, site)
+
+- [ ] **Identité bleu électrique + vert montagne** (Scott 2026-10-28, planches « Bleu électrique et vert montagne », « A ou B ») — répartition **A** : bleu #1E7FD8 = l'action principale de chaque écran + le + + l'icône et le logo ; vert montagne #3F7A56 = tout le reste (onglets, liens, pastilles validées, bulles, titres) ; « Ask**and**go » avec « and » vert. Garde-fous : un seul bleu par écran, jamais en grande surface, teinte ajustable à l'œil sur l'app réelle (#1B6FC4 si trop vif), vigilance carte (le bleu « eau » des pins). Plan : jeton `brand` à côté de `cta` → inventaire écran par écran (présenté avant code) → preview → icône/splash/logo (build) → site → six images Play régénérées. **À faire en dernier, après audits et backlog.**
+
 ## P0 — Bugs en cours
 
 (aucun bloquant connu)
