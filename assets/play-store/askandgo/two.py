@@ -31,9 +31,9 @@ def two_screens(title, sub, body_a, body_b):
 def chip(icon_html, text, bg='#F1EFEA', fg=INK):
     return f'<span class="chip" style="background:{bg};color:{fg};font-size:13px;padding:6px 11px;gap:6px">{icon_html}{text}</span>'
 def block(label, value):
-    return f'<div style="flex:1;background:#F1EFEA;border-radius:14px;padding:10px 12px"><div style="font-size:11px;font-weight:800;letter-spacing:.8px;color:{SEC}">{label}</div><div style="font-size:14px;font-weight:700;margin-top:3px;line-height:1.2">{value}</div></div>'
+    return f'<div style="flex:1 1 40%;background:#F1EFEA;border-radius:14px;padding:12px 14px"><div style="font-size:11px;font-weight:800;letter-spacing:.8px;color:{SEC}">{label}</div><div style="font-size:15px;font-weight:700;margin-top:3px;line-height:1.2">{value}</div></div>'
 dispo_body = f'''<div class="zoomwrap" style="background:#FFF">
-<div style="position:relative;background:#1F2A22;padding:72px 22px 22px;overflow:hidden">
+<div style="position:relative;background:#1F2A22;padding:92px 22px 30px;overflow:hidden">
   <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 405 230" preserveAspectRatio="none"><path d="M -20 40 C 80 10 160 70 260 30 S 380 60 440 20" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 66 C 80 44 160 86 260 56 S 380 86 440 46" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 92 C 80 78 160 122 260 82 S 380 112 440 72" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 118 C 80 88 160 138 260 108 S 380 138 440 98" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 144 C 80 122 160 174 260 134 S 380 164 440 124" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 170 C 80 156 160 190 260 160 S 380 190 440 150" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 196 C 80 166 160 226 260 186 S 380 216 440 176" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 222 C 80 200 160 242 260 212 S 380 242 440 202" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/><path d="M -20 248 C 80 234 160 278 260 238 S 380 268 440 228" fill="none" stroke="#FFF" stroke-opacity=".08" stroke-width="1.3"/></svg>
   <div style="position:absolute;right:14px;top:36px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
   <div style="position:relative;display:flex;align-items:center;gap:16px">
@@ -45,13 +45,15 @@ dispo_body = f'''<div class="zoomwrap" style="background:#FFF">
     </div>
   </div>
 </div>
-<div style="display:flex;gap:8px;padding:16px 16px 0">{block('QUAND', '9 – 12 nov.')}{block('SE DÉPLACE', 'Covoit ou solo')}{block('SA ZONE', 'Rayon de 40 km')}</div>
-<div style="padding:0 16px"><div style="font-size:13px;color:{GREEN};font-weight:700;margin-top:8px;display:flex;align-items:center;gap:4px">{li('pin',13,GREEN)}Voir la zone</div></div>
+<div style="display:flex;flex-wrap:wrap;gap:10px;padding:18px 16px 0">{block('QUAND', '9 – 12 nov.')}{block('SE DÉPLACE', 'Voiture, covoiturage')}
+  <div style="flex:1 1 100%;background:#F1EFEA;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px"><div style="flex:1"><div style="font-size:11px;font-weight:800;letter-spacing:.8px;color:{SEC}">SA ZONE</div><div style="font-size:15px;font-weight:700;margin-top:3px">Rayon de 40 km</div></div><span style="background:{GREEN}1A;color:{GREEN};border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700">Voir la zone</span></div>
+</div>
 <div style="padding:18px 16px 0"><div style="font-size:12px;font-weight:800;letter-spacing:1px;color:{SEC}">SES SPORTS</div>
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
     {chip(sp('ski-touring',14,'#FFF'), 'Ski de rando · <span style="font-weight:600;opacity:.9">débutante</span>', UNI['ski-touring'], '#FFF')}
     {chip(sp('climbing-sport',14,'#FFF'), 'Escalade · <span style="font-weight:600;opacity:.9">intermédiaire</span>', UNI['climbing-sport'], '#FFF')}
-    {chip(sp('hiking',14,'#FFF'), 'Randonnée · <span style="font-weight:600;opacity:.9">avancée</span>', UNI['hiking'], '#FFF')}
+    {chip(sp('hiking',14,'#FFF'), 'Randonnée · <span style="font-weight:600;opacity:.9">avancée</span>', '#E11D48', '#FFF')}
+    {chip(sp('paragliding',14,'#FFF'), 'Parapente · <span style="font-weight:600;opacity:.9">débutante</span>', '#8B5CF6', '#FFF')}
   </div></div>
 <div style="padding:18px 16px 0"><div style="font-size:12px;font-weight:800;letter-spacing:1px;color:{SEC}">VIBES</div>
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">{chip('🧭', 'Découverte')}{chip('🤝', 'Convivialité')}{chip('📈', 'Progresser')}</div></div>
@@ -141,7 +143,7 @@ if which == '4':
 elif which == '3':
     html = two_screens("Trouve des partenaires de sortie :<br>même sport, même zone,<br>mêmes dates.", '', partenaires_body, dispo_body)
 else:
-    html = two_screens("Trouve le guide et la sortie<br>qu'il te faut, n'importe où.<br>Et réserve en quelques taps.", "", pro_body, offering_body)
+    html = two_screens("Trouve un guide ou un moniteur,<br>n'importe où, et réserve<br>sa sortie encadrée<br>en quelques taps.", "", pro_body, offering_body)
 html = html.replace('font-size:82px;line-height:1.04', 'font-size:62px;line-height:1.1').replace('margin:150px 70px 0;text-align:center', 'margin:140px 60px 0;text-align:center')
 open(sys.argv[2], 'w').write(html)
 print('ok')
