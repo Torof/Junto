@@ -12,7 +12,7 @@ export default function PrivacyPage() {
     <article style={{ color: 'var(--ink)', lineHeight: 1.6 }}>
       <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8 }}>Politique de Confidentialité</h1>
       <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 32 }}>
-        Dernière mise à jour : avril 2026
+        Dernière mise à jour : octobre 2026
       </p>
 
       <H2>1. Responsable du traitement</H2>
@@ -44,7 +44,6 @@ export default function PrivacyPage() {
         <li>Géolocalisation (pour afficher les activités à proximité et valider la présence aux activités)</li>
         <li>Données de session (token d'authentification stocké de manière sécurisée sur l'appareil)</li>
         <li>Identifiant d'appareil et token de notification push (livraison des notifications)</li>
-        <li>Rapports de diagnostic et de plantage (uniquement si vous activez le partage dans les paramètres — voir section 9)</li>
       </Ul>
       <P><B>Données professionnelles (uniquement si vous demandez une page pro) :</B></P>
       <Ul>
@@ -88,7 +87,7 @@ export default function PrivacyPage() {
         <li>Supabase (hébergement, base de données, authentification — serveurs UE)</li>
         <li>Mapbox (affichage cartographique — reçoit des coordonnées de requête ; États-Unis)</li>
         <li>Expo / Google Firebase Cloud Messaging (livraison des notifications push — reçoit le token d'appareil ; États-Unis)</li>
-        <li>GeoJS (zone approximative à partir de l'adresse IP, seulement si la localisation n'est pas autorisée — reçoit l'adresse IP)</li>
+        <li>GeoJS (zone approximative à partir de l'adresse IP, seulement quand aucune position n'est disponible sur l'appareil — reçoit l'adresse IP)</li>
         <li>Photon / komoot (recherche de lieux et nom du lieu à partir d'une position — reçoit le texte recherché ou les coordonnées ; Allemagne)</li>
         <li>OpenRouteService / HeiGIT (calage d'un tracé dessiné sur les sentiers — reçoit les points du tracé, via nos serveurs ; Allemagne)</li>
         <li>IGN Géoplateforme (calcul du dénivelé d'un tracé — reçoit les points du tracé, via nos serveurs ; France)</li>
@@ -109,7 +108,6 @@ export default function PrivacyPage() {
         <li>Messages du mur : anonymisés en cas de suppression du compte (le contenu reste, sans lien avec vous)</li>
         <li>Signalements : conservés même après suppression du compte (obligation de modération)</li>
         <li>Notifications : purgées automatiquement après 7 jours</li>
-        <li>Rapports de diagnostic (Sentry, si activés) : conservés 90 jours maximum chez Sentry</li>
         <li>Après suppression du compte : données et médias (photos de profil, galeries) supprimés immédiatement ; toute donnée résiduelle sous 30 jours maximum</li>
       </Ul>
       <P>
@@ -146,7 +144,7 @@ export default function PrivacyPage() {
         Vous pouvez également introduire une réclamation auprès de la CNIL (<A href="https://www.cnil.fr">www.cnil.fr</A>).
       </P>
 
-      <H2>9. Géolocalisation et diagnostics</H2>
+      <H2>9. Géolocalisation</H2>
       <P>L'Application utilise votre position géographique pour :</P>
       <Ul>
         <li>Afficher les activités à proximité sur la carte</li>
@@ -164,14 +162,9 @@ export default function PrivacyPage() {
         paramètres de votre appareil.
       </P>
       <P>
-        Votre position n'est jamais stockée de manière permanente. Un fallback par IP est utilisé
-        si la géolocalisation est désactivée.
-      </P>
-      <P>
-        <B>Rapports de diagnostic :</B> le partage de rapports de plantage (Sentry) est désactivé
-        par défaut et ne s'active que si vous l'autorisez dans les paramètres de l'application.
-        Les données sensibles (position, identifiants, contenus de messages) sont filtrées avant
-        envoi. Vous pouvez retirer votre consentement à tout moment.
+        Votre position n'est jamais stockée de manière permanente. La dernière position connue est
+        gardée sur votre téléphone, pour ouvrir la carte sur votre région. Quand aucune position
+        n'est disponible, une zone approximative est déduite de l'adresse IP.
       </P>
 
       <H2>10. Mineurs</H2>
