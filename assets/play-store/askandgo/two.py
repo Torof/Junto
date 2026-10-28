@@ -69,36 +69,36 @@ dispo_body = f'''<div class="zoomwrap" style="background:#FFF">
 def fact(icon_html, label, value):
     return f'<div style="flex:1;min-width:46%;background:#F1EFEA;border-radius:14px;padding:10px 12px;display:flex;gap:9px;align-items:center">{icon_html}<div><div style="font-size:11px;font-weight:800;letter-spacing:.6px;color:{SEC}">{label}</div><div style="font-size:14px;font-weight:700;margin-top:2px">{value}</div></div></div>'
 offering_body = f'''<div class="zoomwrap" style="background:#FFF">
-<div style="position:relative;height:250px;background:url({PRO('p3.jpg')}) center/cover">
+<div style="position:relative;height:250px;background:url({PRO('off.jpg')}) center/cover">
   <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,.10) 0%, rgba(0,0,0,.10) 40%, rgba(0,0,0,.62) 100%)"></div>
-  <div style="position:absolute;left:12px;top:38px;display:flex;align-items:center;gap:6px;background:{UNI['ski-touring']};color:#FFF;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:800">{sp('mountaineering',14,'#FFF')}Alpinisme</div>
+  <div style="position:absolute;left:12px;top:38px;display:flex;align-items:center;gap:6px;background:{UNI['climbing-sport']};color:#FFF;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:800">{sp('climbing-sport',14,'#FFF')}Escalade</div>
   <div style="position:absolute;right:12px;top:34px;display:flex;gap:8px">{roundbtn(lx('heart',18,INK),'#FFF',34)}{roundbtn(lx('share',18,INK),'#FFF',34)}{roundbtn(lx('x',18,INK),'#FFF',34)}</div>
   <div style="position:absolute;left:16px;right:140px;bottom:14px;color:#FFF;text-shadow:0 1px 8px rgba(0,0,0,.55)">
-    <div style="font-size:22px;font-weight:800;line-height:1.1;letter-spacing:-.3px">Dôme des Écrins · 2 jours</div>
+    <div style="font-size:22px;font-weight:800;line-height:1.1;letter-spacing:-.3px">Initiation falaise à Ailefroide</div>
     <div style="display:flex;align-items:center;gap:5px;font-size:13px;margin-top:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="1.6" stroke-linejoin="round">{L['star']}</svg><b>4,5</b><span style="opacity:.9">· 2 avis</span></div>
   </div>
   <div style="position:absolute;right:12px;bottom:14px;display:flex;flex-direction:column;align-items:flex-end;gap:6px">
     <span style="background:{GOLD};color:{INK};border-radius:999px;padding:4px 10px;font-size:10.5px;font-weight:800;letter-spacing:.8px">SORTIE ENCADRÉE</span>
-    <span style="background:#FFF;color:{INK};border-radius:12px;padding:6px 11px;font-size:17px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.2)">520 € <span style="font-size:11px;font-weight:600;color:{SEC}">/ pers.</span></span>
+    <span style="background:#FFF;color:{INK};border-radius:12px;padding:6px 11px;font-size:17px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.2)">45 € <span style="font-size:11px;font-weight:600;color:{SEC}">/ pers.</span></span>
   </div>
 </div>
 <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(31,26,21,.08)">
   <div style="width:34px;height:34px;border-radius:50%;background:url({PRO('avatar.jpg')}) center/cover"></div>
-  <div style="flex:1;font-size:13px"><span style="color:{SEC}">par</span> <b>Nicolas Pellissier</b><div style="font-size:12px;color:{SEC}">Guide de haute montagne · Briançon</div></div><span style="color:{SEC}">›</span>
+  <div style="flex:1;font-size:13px"><span style="color:{SEC}">par</span> <b>Lise Arnaud</b><div style="font-size:12px;color:{SEC}">Monitrice d'escalade · Ailefroide</div></div><span style="color:{SEC}">›</span>
 </div>
 <div style="display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px 0">
-  {fact(li('clock',18,INK), 'DURÉE', '2 jours')}{fact(lx('bar',18,INK), 'NIVEAU', 'Intermédiaire')}
-  {fact(li('pin',18,INK), 'LIEU', 'Pré de Mme Carle')}{fact(li('users',18,INK), 'GROUPE', "jusqu'à 2 pers.")}
+  {fact(li('clock',18,INK), 'DURÉE', '3 heures')}{fact(lx('bar',18,INK), 'NIVEAU', 'Tous niveaux')}
+  {fact(li('pin',18,INK), 'LIEU', 'Ailefroide')}{fact(li('users',18,INK), 'GROUPE', "jusqu'à 6 pers.")}
 </div>
 <div style="padding:16px 16px 0"><div style="font-size:16px;font-weight:800">À propos</div>
-  <div style="font-size:13.5px;line-height:1.45;margin-top:6px;color:#2E2A25">Le 4 000 des Écrins en deux jours : montée au refuge par le Glacier Blanc, départ nocturne, arête sommitale au lever du soleil. Bonne condition physique et une première expérience de cramponnage.</div></div>
+  <div style="font-size:13.5px;line-height:1.45;margin-top:6px;color:#2E2A25">Une demi-journée pour découvrir l'escalade sur les dalles-écoles d'Ailefroide : nœud d'encordement, assurage, premières voies. Dès 8 ans, en famille ou entre amis. Tout le matériel est fourni.</div></div>
 <div style="padding:14px 16px 0"><div style="font-size:16px;font-weight:800">Matériel</div>
   <div style="font-size:11px;font-weight:800;letter-spacing:.8px;color:{SEC};margin-top:8px">FOURNI</div>
-  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><span class="chip ok" style="font-size:12px;padding:5px 10px">{li('check',13,'#1E6B45',3)}Corde</span><span class="chip ok" style="font-size:12px;padding:5px 10px">{li('check',13,'#1E6B45',3)}Matériel glacier</span><span class="chip ok" style="font-size:12px;padding:5px 10px">{li('check',13,'#1E6B45',3)}Crampons, piolet</span></div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><span class="chip ok" style="font-size:12px;padding:5px 10px">{li('check',13,'#1E6B45',3)}Baudrier</span><span class="chip ok" style="font-size:12px;padding:5px 10px">{li('check',13,'#1E6B45',3)}Casque</span><span class="chip ok" style="font-size:12px;padding:5px 10px">{li('check',13,'#1E6B45',3)}Chaussons</span></div>
   <div style="font-size:11px;font-weight:800;letter-spacing:.8px;color:{SEC};margin-top:10px">À PRÉVOIR</div>
-  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><span class="chip" style="font-size:12px;padding:5px 10px">Chaussures cramponnables</span><span class="chip" style="font-size:12px;padding:5px 10px">Baudrier et casque</span><span class="chip" style="font-size:12px;padding:5px 10px">Sac 35 L</span></div></div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><span class="chip" style="font-size:12px;padding:5px 10px">Tenue souple</span><span class="chip" style="font-size:12px;padding:5px 10px">Eau et encas</span><span class="chip" style="font-size:12px;padding:5px 10px">Crème solaire</span></div></div>
 <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;padding:12px 16px 26px;border-top:1px solid rgba(31,26,21,.08);background:#FFF">
-  <div><div style="font-size:19px;font-weight:800">520 € <span style="font-size:12px;color:{SEC};font-weight:600">/ pers.</span></div><div style="font-size:11.5px;color:{SEC}">Juin à septembre · nuit au refuge</div></div>
+  <div><div style="font-size:19px;font-weight:800">45 € <span style="font-size:12px;color:{SEC};font-weight:600">/ pers.</span></div><div style="font-size:11.5px;color:{SEC}">Mai à octobre · matin ou après-midi</div></div>
   <span style="background:{GREEN};color:#FFF;border-radius:999px;padding:12px 26px;font-size:15px;font-weight:800;box-shadow:0 6px 16px rgba(47,164,106,.35)">Réserver</span>
 </div></div>'''
 
