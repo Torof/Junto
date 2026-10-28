@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description: 'Comment supprimer votre compte askandgo et demander la suppression de vos données.',
 };
 
-const CONTACT_EMAIL = 'contact@getjunto.app';
+const CONTACT_EMAIL = 'contact@askandgo.io';
 const MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Demande de suppression de compte askandgo')}&body=${encodeURIComponent(
   'Bonjour,\n\nJe souhaite supprimer mon compte askandgo et l’ensemble de mes données personnelles.\n\nAdresse email du compte : [votre email]\n\nMerci.',
 )}`;

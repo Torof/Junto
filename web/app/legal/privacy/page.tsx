@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description: 'Politique de confidentialité de l\'application askandgo.',
 };
 
-const CONTACT_EMAIL = 'contact@getjunto.app';
+const CONTACT_EMAIL = 'contact@askandgo.io';
 
 export default function PrivacyPage() {
   return (
@@ -92,7 +92,7 @@ export default function PrivacyPage() {
         <li>OpenRouteService / HeiGIT (calage d'un tracé dessiné sur les sentiers — reçoit les points du tracé, via nos serveurs ; Allemagne)</li>
         <li>IGN Géoplateforme (calcul du dénivelé d'un tracé — reçoit les points du tracé, via nos serveurs ; France)</li>
         <li>Resend (envoi des e-mails de compte : confirmation, mot de passe — reçoit l'adresse email ; États-Unis)</li>
-        <li>Vercel (hébergement du site web getjunto.app ; États-Unis)</li>
+        <li>Vercel (hébergement du site web askandgo.io ; États-Unis)</li>
       </Ul>
       <P>
         Les transferts de données vers des sous-traitants situés hors de l'Union européenne sont

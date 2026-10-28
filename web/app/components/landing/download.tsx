@@ -35,7 +35,7 @@ export default async function Download({ playUrl, isPlayStore }: { playUrl: stri
             <a href="/legal/terms">Conditions</a>
             <a href="/legal/mentions">Mentions légales</a>
             <a href="/legal/account-deletion">Supprimer mon compte</a>
-            <a href="mailto:contact@getjunto.app">contact@getjunto.app</a>
+            <a href="mailto:contact@askandgo.io">contact@askandgo.io</a>
           </div>
         </div>
       </footer>

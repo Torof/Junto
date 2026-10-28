@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Mentions légales — askandgo',
-  description: 'Mentions légales du site getjunto.app et de l’application askandgo.',
+  description: 'Mentions légales du site askandgo.io et de l’application askandgo.',
 };
 
-const CONTACT_EMAIL = 'contact@getjunto.app';
+const CONTACT_EMAIL = 'contact@askandgo.io';
 
 // Éditeur non professionnel (personne physique) — LCEN art. 6-III-2 : identité
 // détenue par l'hébergeur, non publiée. À repasser en mentions "pro" complètes
@@ -15,12 +15,12 @@ export default function MentionsPage() {
     <article style={{ color: 'var(--ink)', lineHeight: 1.6 }}>
       <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8 }}>Mentions légales</h1>
       <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 32 }}>
-        Site getjunto.app et application mobile askandgo
+        Site askandgo.io et application mobile askandgo
       </p>
 
       <H2>Éditeur</H2>
       <P>
-        Le site getjunto.app et l&apos;application askandgo sont édités à titre personnel et non
+        Le site askandgo.io et l&apos;application askandgo sont édités à titre personnel et non
         professionnel par une personne physique.
       </P>
       <P>

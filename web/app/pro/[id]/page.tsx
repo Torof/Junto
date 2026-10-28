@@ -4,7 +4,7 @@ import { APK_DOWNLOAD_URL } from '@/lib/download';
 import { UUID_RE } from '@/lib/uuid';
 
 // Static teaser — pro_profiles is NOT anon-readable (RLS 00256), so this page
-// can't render the storefront's data. It exists so shared getjunto.app/pro/{id}
+// can't render the storefront's data. It exists so shared askandgo.io/pro/{id} (and getjunto.app/pro/{id})
 // links land somewhere useful: relay into the app + install fallback.
 export default async function ProPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

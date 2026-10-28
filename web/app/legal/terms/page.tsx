@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description: 'Conditions générales d\'utilisation de l\'application askandgo.',
 };
 
-const CONTACT_EMAIL = 'contact@getjunto.app';
+const CONTACT_EMAIL = 'contact@askandgo.io';
 
 export default function TermsPage() {
   return (
