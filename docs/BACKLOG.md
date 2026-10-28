@@ -34,6 +34,18 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 
 **Restes de la bascule** : finir le parcours de validation sur l'app Google Play (dont une sortie publique partagée ouverte dans un navigateur) · publier en production les mises à jour validées en preview (liens d'e-mail à code unique) · retirer les variables Sentry d'EAS et fermer le compte sentry.io · mettre l'ancien projet en pause dans quelques semaines · plus tard : Next.js 16 pour le site (alerte PostCSS, sans risque réel).
 
+## Domaine askandgo.io (acheté le 2026-10-28, GoDaddy)
+
+Branche `domain-askandgo` prête : hôte par défaut askandgo.io dans l'app, liens d'app sur askandgo.io ET getjunto.app (les anciens liens partagés restent valides), adresses `contact@askandgo.io` du site, modèles d'e-mail askandgo, contact de la fiche Play. **Fusion dans main seulement quand les étapes 1 à 3 tournent** (le site part en ligne à chaque push).
+
+- [ ] 1. Scott — Vercel : ajouter askandgo.io + www au projet du site, recopier les enregistrements DNS chez GoDaddy. Garder getjunto.app sur le projet SANS redirection (Android vérifie `assetlinks.json` sur chaque domaine et ne suit pas les redirections).
+- [ ] 2. Scott — Resend : ajouter le domaine, enregistrements SPF / DKIM / MX de retour chez GoDaddy ; Supabase SMTP → expéditeur `askandgo <noreply@askandgo.io>`.
+- [ ] 3. Scott — réception de `contact@askandgo.io` (redirection GoDaddy vers Proton).
+- [ ] 4. Scott — Supabase Auth : Site URL `https://askandgo.io`, adresses de retour `https://askandgo.io/**` (garder getjunto.app le temps de la transition).
+- [ ] 5. Scott — coller les deux modèles `docs/email-templates/*.html` dans Supabase.
+- [ ] 6. Claude — fusionner la branche, passer `EXPO_PUBLIC_JUNTO_WEB_HOST` / `JUNTO_WEB_HOST` à askandgo.io dans EAS (preview + production), OTA preview, vérifier un lien partagé et un e-mail de confirmation.
+- [ ] 7. Build natif v18 : embarque les liens d'app des deux domaines. Après publication : empreinte Play App Signing dans `assetlinks.json`.
+
 ## Dernière étape avant publication (fiche Play, site)
 
 - [ ] **Identité bleu électrique + vert montagne** (Scott 2026-10-28, planches « Bleu électrique et vert montagne », « A ou B ») — répartition **A** : bleu #1E7FD8 = l'action principale de chaque écran + le + + l'icône et le logo ; vert montagne #3F7A56 = tout le reste (onglets, liens, pastilles validées, bulles, titres) ; « Ask**and**go » avec « and » vert. Garde-fous : un seul bleu par écran, jamais en grande surface, teinte ajustable à l'œil sur l'app réelle (#1B6FC4 si trop vif), vigilance carte (le bleu « eau » des pins). Plan : jeton `brand` à côté de `cta` → inventaire écran par écran (présenté avant code) → preview → icône/splash/logo (build) → site → six images Play régénérées. **À faire en dernier, après audits et backlog.**
@@ -102,7 +114,7 @@ Design **complet et validé sur mock** (session 2026-07-08). Règles verrouillé
 - [ ] **Keystore backup sécurisé**.
 - [ ] **Android App Links — cert Play App Signing.** Le gros est fait (2026-06-11) : package name corrigé, fingerprint EAS réel extrait de l'APK signé et vérifié en ligne sur getjunto.app (Vercel auto-déploie sur push, le README web est obsolète sur ce point). Reste UNIQUEMENT : ajouter le fingerprint du cert **Play App Signing** à assetlinks.json avant la release store (Play Console → App integrity), sinon les builds store ne vérifieront pas.
 - [ ] **CGU + Politique de confidentialité finalisées** — textes hébergés sur `getjunto.app/legal/*` (web landing en place, FR + EN à compléter).
-- [ ] **Custom SMTP pour le sender email** — actuellement "Supabase Auth" via shared SMTP. Setup Resend / Mailgun / etc. avec DNS records sur OVH pour avoir `Junto <noreply@getjunto.app>`. Décision attendue.
+- [ ] **Custom SMTP pour le sender email** — voir « Domaine askandgo.io », étape 2 (`askandgo <noreply@askandgo.io>`).
 - [ ] **Checklist de test de release manuelle** (`docs/RELEASE_TESTING.md`) à dérouler avant chaque release — rescopé au walk #1 : la suite automatisée (Detox/Maestro) passe en post-launch.
 - [ ] **Préparation Play Store** : screenshots refresh, description, content rating questionnaire, déclaration âge 18+.
 
