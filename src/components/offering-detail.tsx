@@ -142,9 +142,9 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   };
 
   const sharePage = () => {
-    // Env-driven host (default getjunto.app) so the share URL always matches the
+    // Env-driven host (default askandgo.io) so the share URL always matches the
     // App Links intentFilter host — same pattern as activity-detail.
-    const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
+    const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'askandgo.io';
     Share.share({ message: `${offering.title} — ${sportLabel}\nhttps://${webHost}/pro/offering/${offering.id}` }).catch(() => {});
   };
 

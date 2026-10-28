@@ -5,6 +5,10 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 // tester build (no signature/package conflict). Same slug/projectId → same EAS
 // project + OTA channels. Auth is email/password, so the different package is safe.
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
+// Web hosts the app opens links for: the primary one (askandgo.io since
+// 2026-10-28) first, then getjunto.app for links shared before the rename.
+const WEB_HOST = process.env.JUNTO_WEB_HOST ?? 'askandgo.io';
+const WEB_HOSTS = [...new Set([WEB_HOST, 'getjunto.app'])];
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -42,15 +46,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         action: 'VIEW',
         autoVerify: true,
-        data: [
-          { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'getjunto.app', pathPrefix: '/activity' },
-          { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'getjunto.app', pathPrefix: '/invite' },
-          // /pro covers both /pro/{id} and /pro/offering/{id} (prefix match).
-          { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'getjunto.app', pathPrefix: '/pro' },
-          // /u/{id} — contact-share QR/link (takes effect on next native build;
-          // the web relay page handles it meanwhile).
-          { scheme: 'https', host: process.env.JUNTO_WEB_HOST ?? 'getjunto.app', pathPrefix: '/u' },
-        ],
+        // Every path on every host: askandgo.io (primary) and getjunto.app (kept so
+        // links shared before the rename still open the app). /pro covers both
+        // /pro/{id} and /pro/offering/{id} (prefix match); /u/{id} is the
+        // contact-share QR/link.
+        data: WEB_HOSTS.flatMap((host) =>
+          ['/activity', '/invite', '/pro', '/u'].map((pathPrefix) => ({ scheme: 'https', host, pathPrefix })),
+        ),
         category: ['BROWSABLE', 'DEFAULT'],
       },
     ],
@@ -67,7 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: false,
     bundleIdentifier: IS_PREVIEW ? 'app.getjunto.preview' : 'app.getjunto',
-    associatedDomains: [`applinks:${process.env.JUNTO_WEB_HOST ?? 'getjunto.app'}`],
+    associatedDomains: WEB_HOSTS.map((host) => `applinks:${host}`),
     infoPlist: {
       // Required strings for "Always" location permission so background
       // geofencing can fire when the app is closed.

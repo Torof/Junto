@@ -5,7 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 // the in-app copies had already drifted from it (two different contact
 // addresses). Same env-driven host as the share links; the askandgo domain
 // will change this one constant.
-const WEB_HOST = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
+const WEB_HOST = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'askandgo.io';
 
 export type LegalPage = 'terms' | 'privacy';
 

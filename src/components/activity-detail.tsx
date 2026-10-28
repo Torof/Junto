@@ -249,9 +249,9 @@ export function ActivityDetail({
 
   const handleShare = useCallback(async () => {
     try {
-      // Canonical share host (Scott 2026-07-06): getjunto.app — the only host
-      // wired into the Android intentFilters / iOS associatedDomains.
-      const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
+      // Canonical share host: askandgo.io since 2026-10-28 (getjunto.app
+      // before). Both are wired into the intentFilters / associatedDomains.
+      const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'askandgo.io';
       let link: string;
       if (isPrivateLink) {
         // Only the creator can share private-link activities (token gated)

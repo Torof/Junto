@@ -17,8 +17,8 @@ import { contactService } from '@/services/contact-service';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { askPermission } from '@/lib/permissions';
 
-const WEB_HOST = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
-// Only Junto contact links: getjunto.app/u/<uuid> or junto://profile/<uuid>,
+const WEB_HOST = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'askandgo.io';
+// Only our contact links: askandgo.io/u/<uuid> (or getjunto.app/u/<uuid>) or junto://profile/<uuid>,
 // optionally followed by #t=<token> — the QR's short-lived token (mig 00456)
 // that turns a scan into an instant connection. A shared link never has one.
 // The token rides in the URL fragment (never sent to the web server if the

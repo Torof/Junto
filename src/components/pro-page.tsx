@@ -124,7 +124,7 @@ export function ProPage({ pro, isOwner }: Props) {
     openLink(url);
   };
   const sharePage = () => {
-    const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
+    const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'askandgo.io';
     Share.share({ message: `${pro.display_name} sur askandgo\nhttps://${webHost}/pro/${pro.user_id}` }).catch(() => {});
   };
   const openTab = (tab: 'catalog' | 'reviews' | 'pictures') => router.push(`/(auth)/pro/${pro.user_id}?tab=${tab}`);

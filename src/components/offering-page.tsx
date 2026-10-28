@@ -98,7 +98,7 @@ export function OfferingPage({ offering, isOwner }: Props) {
     : t('booking.perPerson', { defaultValue: '/pers' });
 
   const sharePage = () => {
-    const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
+    const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'askandgo.io';
     Share.share({ message: `${offering.title} — ${offering.pro_name} sur askandgo\nhttps://${webHost}/pro/offering/${offering.id}` }).catch(() => {});
   };
   const openPro = () => router.push(`/(auth)/pro/${offering.pro_id}`);

@@ -1,6 +1,6 @@
 // Rewrites incoming deep-link paths before Expo Router resolves them.
 //
-// Contact-share links are `https://getjunto.app/u/<uuid>` (and the matching
+// Contact-share links are `https://askandgo.io/u/<uuid>` (or getjunto.app) (and the matching
 // applink / junto://u/<uuid>) — a deliberate rename of the profile route. There
 // is no `/u` screen; map a well-formed UUID to the real profile route. Every
 // other path (activity / invite / pro / …) passes through untouched.

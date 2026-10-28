@@ -114,7 +114,7 @@ export default function CreateStep4() {
           if (token) {
             // https link (not the raw junto:// scheme — messengers don't make
             // custom schemes tappable); the web /invite page relays into the app.
-            const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'getjunto.app';
+            const webHost = process.env.EXPO_PUBLIC_JUNTO_WEB_HOST ?? 'askandgo.io';
             await Share.share({ message: `${title} — https://${webHost}/invite/${token}` });
           }
         } catch {
