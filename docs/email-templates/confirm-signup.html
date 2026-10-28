@@ -1,10 +1,9 @@
 <!--
-  askandgo — "Confirm signup" email template.
+  askandgo — "Confirm signup" email template (copy of the live one, 2026-10-28).
   Paste into Supabase → Authentication → Email Templates → Confirm signup.
-  Uses {{ .ConfirmationURL }} (routes through /auth/callback → the app,
-  logging the user straight in). Inline styles only — email clients strip
-  <style> and external CSS. Logo served from https://askandgo.io.
-  Same layout as reset-password.html.
+  Links straight to the site with {{ .TokenHash }} (the page exchanges it,
+  then hands over to the app) — no raw token in the URL. Inline styles only:
+  email clients strip <style> and external CSS. Logo served from askandgo.io.
 -->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#E7EEE8;margin:0;padding:40px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
   <tr>
@@ -23,13 +22,13 @@
         <tr>
           <td align="center" style="padding:10px 44px 0;">
             <p style="margin:0;font-size:15px;line-height:1.55;color:#4A5A50;">
-              Confirme ton adresse e-mail pour proposer ta sortie outdoor ou en rejoindre une.
+              Confirme ton adresse email pour commencer à trouver, créer et rejoindre des sorties outdoor, là où tu veux partir.
             </p>
           </td>
         </tr>
         <tr>
           <td align="center" style="padding:26px 40px 4px;">
-            <a href="{{ .ConfirmationURL }}"
+            <a href="https://askandgo.io/auth/callback?token_hash={{ .TokenHash }}&type=signup"
                style="display:inline-block;background:#2FA46A;color:#FFFFFF;text-decoration:none;font-size:16px;font-weight:700;padding:15px 38px;border-radius:10px;">
               Confirmer mon email
             </a>
