@@ -36,14 +36,15 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 
 ## Domaine askandgo.io (acheté le 2026-10-28, GoDaddy)
 
-Branche `domain-askandgo` prête : hôte par défaut askandgo.io dans l'app, liens d'app sur askandgo.io ET getjunto.app (les anciens liens partagés restent valides), adresses `contact@askandgo.io` du site, modèles d'e-mail askandgo, contact de la fiche Play. **Fusion dans main seulement quand les étapes 1 à 3 tournent** (le site part en ligne à chaque push).
+**Fusionné le 2026-10-29** (OTA preview publiée, EAS preview → askandgo.io ; production sans variable = défaut askandgo.io du code). Hôte par défaut askandgo.io dans l'app, liens d'app sur askandgo.io ET getjunto.app (les anciens liens partagés restent valides), adresses `contact@askandgo.io` du site, modèles d'e-mail askandgo, contact de la fiche Play. **Fusion dans main seulement quand les étapes 1 à 3 tournent** (le site part en ligne à chaque push).
 
-- [ ] 1. Scott — Vercel : ajouter askandgo.io + www au projet du site, recopier les enregistrements DNS chez GoDaddy. Garder getjunto.app sur le projet SANS redirection (Android vérifie `assetlinks.json` sur chaque domaine et ne suit pas les redirections).
+- [x] 1. Scott — Vercel : ajouter askandgo.io + www au projet du site, recopier les enregistrements DNS chez GoDaddy. Garder getjunto.app sur le projet SANS redirection (Android vérifie `assetlinks.json` sur chaque domaine et ne suit pas les redirections).
 - [ ] 2. Scott — Resend : ajouter le domaine, enregistrements SPF / DKIM / MX de retour chez GoDaddy ; Supabase SMTP → expéditeur `askandgo <noreply@askandgo.io>`.
-- [ ] 3. Scott — réception de `contact@askandgo.io` (redirection GoDaddy vers Proton).
-- [ ] 4. Scott — Supabase Auth : Site URL `https://askandgo.io`, adresses de retour `https://askandgo.io/**` (garder getjunto.app le temps de la transition).
+- [x] 3. Scott — réception de `contact@askandgo.io` : domaine personnalisé Proton (MX, SPF, 3 DKIM, un seul DMARC), testé le 2026-10-29.
+- [x] 4. Scott — Supabase Auth : Site URL `https://askandgo.io`, adresses de retour `https://askandgo.io/**` (garder getjunto.app le temps de la transition).
 - [ ] 5. Scott — coller les deux modèles `docs/email-templates/*.html` dans Supabase.
-- [ ] 6. Claude — fusionner la branche, passer `EXPO_PUBLIC_JUNTO_WEB_HOST` / `JUNTO_WEB_HOST` à askandgo.io dans EAS (preview + production), OTA preview, vérifier un lien partagé et un e-mail de confirmation.
+- [x] 6. Claude — branche fusionnée, EAS preview → askandgo.io, OTA preview.
+- [ ] 6 bis. Scott — sur la preview : partager une sortie (lien askandgo.io), « mot de passe oublié » (expéditeur `noreply@askandgo.io`, lien askandgo.io). Puis OTA production.
 - [ ] 7. Build natif v18 : embarque les liens d'app des deux domaines. Après publication : empreinte Play App Signing dans `assetlinks.json`.
 
 ## Dernière étape avant publication (fiche Play, site)
