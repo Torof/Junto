@@ -195,7 +195,7 @@ Voir `docs/DAY_OF_ACTIVITY.md` pour le flux complet.
 
 ### Next.js (`web/`)
 - Site marketing + bridges pour deep links (auth callback, reset-password, activity public, invite)
-- Domaine : `getjunto.app`
+- Domaine : `askandgo.io` (GoDaddy, depuis 2026-10-28) ; `getjunto.app` (OVH) gardé pour les anciens liens
 - Hébergé sur Vercel
 
 ---

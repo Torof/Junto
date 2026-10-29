@@ -4,7 +4,7 @@
 
 ## Contact
 
-- Canal de signalement : **contact@getjunto.app** (mentionné dans la privacy policy)
+- Canal de signalement : **contact@askandgo.io** (mentionné dans la privacy policy)
 - Autorité : **CNIL** — notification en ligne via <https://www.cnil.fr/fr/notifier-une-violation-de-donnees-personnelles>
 
 ## 1. Détection — où regarder
@@ -14,7 +14,7 @@
 | Sentry | erreurs anormales, patterns d'abus | sentry.io (ingest DE) |
 | Supabase Logs | requêtes anormales, erreurs auth, volumétrie | Dashboard → Logs (vérifier la rétention du plan : Free = 1 jour, Pro = 7 jours, à confirmer) |
 | Supabase Auth | connexions suspectes, vagues de signups | Dashboard → Authentication |
-| Signalement externe | email d'un utilisateur / chercheur | contact@getjunto.app |
+| Signalement externe | email d'un utilisateur / chercheur | contact@askandgo.io |
 
 ## 2. Qualification (dans l'heure)
 

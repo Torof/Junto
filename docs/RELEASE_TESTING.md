@@ -47,7 +47,7 @@
 ## RGPD & compte
 - [ ] Toggle "Partager les rapports de plantage" : ON → event arrive dans Sentry ; OFF → plus rien
 - [ ] Suppression de compte : profil/photos/messages purgés, messages de mur anonymisés, retour à l'écran visiteur
-- [ ] getjunto.app : /legal/privacy, /legal/terms, /legal/mentions (infos entité remplies), /legal/account-deletion répondent
+- [ ] askandgo.io : /legal/privacy, /legal/terms, /legal/mentions (infos entité remplies), /legal/account-deletion répondent
 
 ## Régressions connues à re-vérifier
 - [ ] Clavier : DM + chat d'activité + composer d'avis + report — l'input reste visible au-dessus du clavier
