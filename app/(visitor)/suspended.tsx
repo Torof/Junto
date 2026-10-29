@@ -8,7 +8,7 @@ import type { AppColors } from '@/constants/colors';
 import { supabase } from '@/services/supabase';
 import { authService } from '@/services/auth-service';
 
-const SUPPORT_EMAIL = 'support@junto.app';
+const SUPPORT_EMAIL = 'contact@askandgo.io';
 
 export default function SuspendedScreen() {
   const colors = useColors();
