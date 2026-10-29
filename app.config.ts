@@ -49,9 +49,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         // Every path on every host: askandgo.io (primary) and getjunto.app (kept so
         // links shared before the rename still open the app). /pro covers both
         // /pro/{id} and /pro/offering/{id} (prefix match); /u/{id} is the
-        // contact-share QR/link.
+        // contact-share QR/link; /auth/reset-password and /auth/callback are the
+        // account e-mails' links (Scott 2026-10-29: straight into the app, the
+        // site page stays the fallback when the app is not installed).
         data: WEB_HOSTS.flatMap((host) =>
-          ['/activity', '/invite', '/pro', '/u'].map((pathPrefix) => ({ scheme: 'https', host, pathPrefix })),
+          ['/activity', '/invite', '/pro', '/u', '/auth/reset-password', '/auth/callback'].map((pathPrefix) => ({ scheme: 'https', host, pathPrefix })),
         ),
         category: ['BROWSABLE', 'DEFAULT'],
       },
