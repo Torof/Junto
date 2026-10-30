@@ -13,10 +13,11 @@ export interface Accent {
 }
 
 export const ACCENTS: Accent[] = [
+  { key: 'forest', hex: '#246342' }, // identity green, app default (2026-10-30)
   { key: 'orange', hex: '#F26B2E' },
   { key: 'mountain', hex: '#3F7A56' }, // site identity color
   { key: 'meadow', hex: '#2E8B57' },
-  { key: 'vif', hex: '#2FA46A' }, // app base accent theme (2026-07-08)
+  { key: 'vif', hex: '#2FA46A' }, // previous app default (2026-07-08 → 2026-10-30)
   { key: 'pine', hex: '#216B5E' },
   { key: 'sage', hex: '#6E8A5E' },
   { key: 'glacier', hex: '#4A86B8' },
@@ -26,4 +27,4 @@ export const ACCENTS: Accent[] = [
 
 // The light-theme default `cta` — used to highlight the active swatch when no
 // explicit override is set (accent === null).
-export const DEFAULT_ACCENT_HEX = '#2FA46A';
+export const DEFAULT_ACCENT_HEX = '#246342';

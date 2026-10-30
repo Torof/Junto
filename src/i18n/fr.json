@@ -1503,6 +1503,7 @@
     "fontOption": { "system": "Système" },
     "fontLoadError": "Impossible de charger cette police",
     "accentOption": {
+      "forest": "Forêt",
       "orange": "Orange",
       "mountain": "Vert montagne",
       "pine": "Sapin",

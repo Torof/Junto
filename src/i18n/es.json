@@ -1503,6 +1503,7 @@
     "fontOption": { "system": "Sistema" },
     "fontLoadError": "No se pudo cargar esta fuente",
     "accentOption": {
+      "forest": "Bosque",
       "orange": "Naranja",
       "mountain": "Verde montaña",
       "pine": "Pino",

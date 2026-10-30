@@ -2,7 +2,13 @@ export const darkColors = {
   background: '#0D1B2A',
   surface: '#1B3A5C',
   surfaceAlt: '#142D48',
-  cta: '#2FA46A', // vert vif — app accent theme (2026-07-08)
+  // Identity green (Scott 2026-10-30) — lifted for the dark canvas: the
+  // light-theme #246342 would sink into the navy background.
+  cta: '#45A06D',
+  // Brand blue (askandgo, Scott 2026-10-30): the ONE main action per screen,
+  // the « + » buttons and the logo. Everything else stays `cta` (green).
+  // Fixed — never follows the user's accent override.
+  brand: '#1E7FD8',
   // Text/icon color ON solid accent fills (cta/success/error buttons).
   // Canon 2026-09-19 — replaces ~106 hardcoded '#FFFFFF' text literals.
   onCta: '#FFFFFF',
@@ -49,7 +55,7 @@ export const darkColors = {
   // PP pushpin (v4): grey head rim on the white Google-place body. Same in
   // both themes — the pin sits on the (independently-styled) map.
   pinProRim: '#6B7280',
-  // On-map action color (create FAB + route line). FIXED — independent of the
+  // On-map route line color (the create FAB moved to `brand`, 2026-10-30). FIXED — independent of the
   // user's accent AND of the theme, because these elements sit on the Mapbox
   // terrain (green-dominant, uncontrolled): a themeable accent could match the
   // ground and vanish. Muted terracotta pops on green without shouting.
@@ -86,7 +92,8 @@ export const lightColors = {
   background: '#FFFFFF',
   surface: '#FFFFFF',
   surfaceAlt: '#F1EFEA',
-  cta: '#2FA46A', // vert vif — app accent theme (2026-07-08)
+  cta: '#246342', // identity green « entre les deux » (Scott 2026-10-30)
+  brand: '#1E7FD8', // see darkColors.brand
   // Text/icon color ON solid accent fills (cta/success/error buttons).
   // Canon 2026-09-19 — replaces ~106 hardcoded '#FFFFFF' text literals.
   onCta: '#FFFFFF',

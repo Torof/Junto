@@ -1503,6 +1503,7 @@
     "fontOption": { "system": "System" },
     "fontLoadError": "Diese Schriftart konnte nicht geladen werden",
     "accentOption": {
+      "forest": "Wald",
       "orange": "Orange",
       "mountain": "Berggrün",
       "pine": "Tanne",

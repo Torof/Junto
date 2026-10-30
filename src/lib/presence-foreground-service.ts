@@ -115,7 +115,7 @@ export async function startPresenceForegroundService(): Promise<boolean> {
         notificationTitle: 'askandgo valide ta présence',
         notificationBody:
           'Détection automatique active pendant la fenêtre de présence',
-        notificationColor: '#2FA46A',
+        notificationColor: '#1E7FD8',
       },
     });
     serviceRunning = true;
