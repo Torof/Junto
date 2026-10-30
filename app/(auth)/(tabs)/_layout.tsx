@@ -4,11 +4,12 @@ import { Tabs, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Map, MessageCircle, Menu, UserSearch, ArrowLeft, type LucideIcon } from 'lucide-react-native';
+import { Map, MessageCircle, Menu, UserSearch, ArrowLeft, Users, type LucideIcon } from 'lucide-react-native';
 import { MenuSheet } from '@/components/menu-sheet';
-import { useFontStyle } from '@/components/app-text';
+import { AppText, useFontStyle } from '@/components/app-text';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
+import { spacing, fontSizes } from '@/constants/theme';
 import { notificationService } from '@/services/notification-service';
 import { conversationService } from '@/services/conversation-service';
 import { invitationService } from '@/services/invitation-service';
@@ -81,6 +82,7 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
 
 export default function TabsLayout() {
   const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const font = useFontStyle();
@@ -218,6 +220,20 @@ export default function TabsLayout() {
               <ArrowLeft size={24} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
           ),
+          // New group lives in the header (2026-10-30): in the tab row it was
+          // pushed off-screen by the tabs and their counters. Icon + label —
+          // a bare people icon doesn't say « create ».
+          headerRight: () => (
+            <Pressable
+              onPress={() => router.push('/(auth)/create-group')}
+              hitSlop={8}
+              accessibilityRole="button"
+              style={styles.headerAction}
+            >
+              <Users size={18} color={colors.cta} strokeWidth={2.4} />
+              <AppText style={styles.headerActionText}>{t('group.createTitle', { defaultValue: 'Nouveau groupe' })}</AppText>
+            </Pressable>
+          ),
           tabBarIcon: ({ focused }) => <MessageTabIcon focused={focused} />,
         }}
       />
@@ -256,6 +272,8 @@ export default function TabsLayout() {
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
+  headerAction: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: spacing.md - 2, paddingLeft: spacing.sm },
+  headerActionText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   bellContainer: {
     width: 28,
     height: 28,

@@ -450,10 +450,6 @@ export default function MessagerieScreen() {
             </View>
           )}
         </Pressable>
-        <View style={{ flex: 1 }} />
-        <Pressable onPress={() => router.push('/(auth)/create-group')} hitSlop={8} style={styles.newGroupBtn}>
-          <Users size={20} color={colors.textPrimary} strokeWidth={2.2} />
-        </Pressable>
       </View>
 
       {/* Messages tab */}
@@ -859,7 +855,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: 4,
   },
   badgeText: { color: colors.onCta, fontSize: 10, fontWeight: '700' },
-  newGroupBtn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.xs },
 
   // Conversation row — flat list-item with leading unread bar
   row: {
