@@ -18,7 +18,7 @@
   font-size: clamp(30px, 3.8vw, 50px);
   line-height: 1.02;
   letter-spacing: -0.03em;
-  color: #246342;
+  color: #1E7FD8; /* the four numbered section titles — brand blue (Scott 2026-10-30) */
   text-wrap: balance;
 }
 .l-lead {
@@ -161,7 +161,7 @@
 /* Repeated per-row buttons stay green, as in the app (one blue action per screen). */
 .l-btn.sm, .l-btn.list { background: #246342; }
 .l-preview { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
-.l-map { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid rgba(31,26,21,0.32); box-shadow: 0 6px 18px rgba(31,26,21,0.10); background: #DCE5D3; flex: 1 1 auto; min-height: 300px; }
+.l-map { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid rgba(31,26,21,0.32); box-shadow: 0 6px 18px rgba(31,26,21,0.10); background: #DCE5D3; flex: 1 1 auto; min-height: 200px; }
 .l-map > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 40% 55%; }
 .l-map-pin { position: absolute; left: 42%; top: 58%; width: 0; height: 0; }
 .l-app-pin { position: absolute; left: 0; top: 0; transform: translate(-50%, -80%); }
@@ -304,7 +304,7 @@
   .l-form { padding: 16px; gap: 12px; }
   .l-form-foot { flex-direction: column; align-items: stretch; }
   .l-form-foot .l-btn { justify-content: center; }
-  .l-map { min-height: 240px; }
+  .l-map { min-height: 200px; }
   .l-org { margin-top: 28px; padding: 20px 16px; border-radius: 20px; gap: 16px; }
   .l-tile { padding: 16px; }
   .l-dispo { width: 280px; }

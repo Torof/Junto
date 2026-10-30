@@ -171,7 +171,6 @@ export default function LaunchDemo() {
           </form>
 
           <div className="l-preview">
-            <div className="l-label">Ce que les autres verront</div>
             <div className="l-map">
               <img src="/hero-map-ecrins.jpg" alt="" />
               <div className="l-map-pin">
@@ -198,7 +197,6 @@ export default function LaunchDemo() {
               </div>
               <div className="l-seats"><IconUsers size={14} color="#1F1A15" /><b>1</b><i>/{seats}</i></div>
             </div>
-            <div style={{ fontSize: 13, lineHeight: 1.5, color: MUTED }}>Une fois publiée, les demandes pour rejoindre arrivent dans l&apos;app — et la sortie s&apos;organise dessous.</div>
           </div>
         </div>
 
