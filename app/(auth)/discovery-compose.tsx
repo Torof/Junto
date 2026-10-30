@@ -373,7 +373,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   dateArrow: { color: colors.textSecondary, fontSize: fontSizes.lg },
   footer: { borderTopWidth: 1, borderTopColor: colors.borderMuted, paddingHorizontal: spacing.md, paddingTop: spacing.sm, gap: spacing.sm },
   counter: { color: colors.textPrimary, fontSize: fontSizes.sm, textAlign: 'center' },
-  cta: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center' },
+  cta: { backgroundColor: colors.brand, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center' },
   ctaDisabled: { opacity: 0.4 },
   ctaText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
   pauseBtn: { backgroundColor: colors.surfaceAlt, borderRadius: radius.full, paddingVertical: spacing.sm + 2, alignItems: 'center' },

@@ -120,9 +120,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   avatarOverlap: { marginLeft: -9 },
   members: { color: WHITE, fontSize: fontSizes.sm, fontWeight: '700' },
   joinBtn: {
-    backgroundColor: colors.cta, borderRadius: radius.full,
+    backgroundColor: colors.brand, borderRadius: radius.full,
     paddingVertical: spacing.md - 2, alignItems: 'center',
-    ...glow(colors.cta),
+    ...glow(colors.brand),
   },
   joinBusy: { opacity: 0.6 },
   joinText: { color: WHITE, fontSize: fontSizes.md, fontWeight: '800' },

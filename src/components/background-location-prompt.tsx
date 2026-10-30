@@ -140,7 +140,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   primary: {
     width: '100%',
-    backgroundColor: colors.cta,
+    backgroundColor: colors.brand,
     borderRadius: radius.sm,
     paddingVertical: spacing.sm + 2,
     alignItems: 'center',

@@ -206,7 +206,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   topBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, paddingHorizontal: spacing.md },
   back: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
   title: { flex: 1, color: colors.textPrimary, fontFamily: fonts.title, fontSize: 22 },
-  add: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cta, alignItems: 'center', justifyContent: 'center', ...glow(colors.cta) },
+  add: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center', ...glow(colors.brand) },
   searchBlock: { marginHorizontal: spacing.md, marginTop: spacing.md, padding: spacing.sm + 6, borderRadius: 18, backgroundColor: colors.surfaceAlt, gap: spacing.sm + 4 },
   search: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, backgroundColor: colors.surface,
@@ -242,6 +242,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   clear: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', textDecorationLine: 'underline' },
   myPos: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.sm, marginTop: spacing.xs },
   myPosText: { color: colors.cta, fontSize: fontSizes.md, fontWeight: '700' },
-  apply: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.lg },
+  apply: { backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.lg },
   applyText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
 });

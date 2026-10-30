@@ -707,7 +707,7 @@ export default function ProOfferingEditScreen() {
       {/* Sticky primary action — always one thumb away. */}
       <View style={[styles.ctaBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) + spacing.sm }]}>
         <PressableScale
-          style={[styles.cta, !canSubmit && styles.ctaDisabled, canSubmit && glow(colors.cta)]}
+          style={[styles.cta, !canSubmit && styles.ctaDisabled, canSubmit && glow(colors.brand)]}
           onPress={handleSubmit}
           disabled={saving}
         >
@@ -873,7 +873,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.background, borderTopWidth: 1, borderTopColor: colors.line,
   },
   cta: {
-    backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 6, alignItems: 'center',
+    backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 6, alignItems: 'center',
   },
   ctaDisabled: { opacity: 0.5 },
   ctaText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },

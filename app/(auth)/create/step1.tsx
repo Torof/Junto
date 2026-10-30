@@ -151,7 +151,7 @@ export default function CreateStep1() {
       )}
 
       <PressableScale
-        style={[styles.nextButton, glow(colors.cta), !isValid && styles.buttonDisabled]}
+        style={[styles.nextButton, glow(colors.brand), !isValid && styles.buttonDisabled]}
         onPress={() => isValid && router.push('/(auth)/create/step2')}
         disabled={!isValid}
       >
@@ -205,7 +205,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.surfaceAlt,
   },
   counterValue: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: '700', minWidth: 40, textAlign: 'center' },
-  nextButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.xl },
+  nextButton: { backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.xl },
   buttonDisabled: { opacity: 0.4 },
   nextText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
 });

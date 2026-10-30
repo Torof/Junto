@@ -362,7 +362,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
 
           {inSheet && nextSlots.length > 0 ? (
             <PressableScale
-              style={[styles.bookBtn, glow(colors.cta)]}
+              style={[styles.bookBtn, glow(colors.brand)]}
               onPress={() => goBook()}
             >
               <AppText style={styles.bookBtnText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</AppText>
@@ -486,7 +486,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
           ) : null}
           <AppText style={styles.stickyNote}>{t('booking.paySite', { defaultValue: 'Paiement sur place' })}</AppText>
         </View>
-        <PressableScale style={[styles.stickyCta, glow(colors.cta)]} onPress={() => goBook()}>
+        <PressableScale style={[styles.stickyCta, glow(colors.brand)]} onPress={() => goBook()}>
           <AppText style={styles.bookBtnText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</AppText>
         </PressableScale>
       </View>
@@ -544,7 +544,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   stickyUnit: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '600' },
   stickyNote: { color: colors.textMuted, fontSize: fontSizes.xs, marginTop: 1 },
   stickyCta: {
-    backgroundColor: colors.cta, borderRadius: radius.full,
+    backgroundColor: colors.brand, borderRadius: radius.full,
     paddingVertical: spacing.sm + 4, paddingHorizontal: spacing.xl,
   },
   equipLine: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
@@ -566,7 +566,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   slotChipMore: { paddingHorizontal: spacing.sm, paddingVertical: spacing.sm },
   slotChipMoreText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
   bookBtn: {
-    backgroundColor: colors.cta, borderRadius: radius.full,
+    backgroundColor: colors.brand, borderRadius: radius.full,
     paddingVertical: spacing.sm + 5, alignItems: 'center',
     marginTop: spacing.md,
   },

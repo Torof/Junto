@@ -311,7 +311,7 @@ export function OfferingPage({ offering, isOwner }: Props) {
             ) : null}
             <AppText style={styles.sub}>{t('booking.paySite', { defaultValue: 'Paiement sur place' })}</AppText>
           </View>
-          <PressableScale style={[styles.book, glow(colors.cta)]} onPress={book} accessibilityRole="button">
+          <PressableScale style={[styles.book, glow(colors.brand)]} onPress={book} accessibilityRole="button">
             <AppText style={styles.bookText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</AppText>
           </PressableScale>
         </View>
@@ -375,6 +375,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   stickyPrice: { color: colors.textPrimary, fontSize: fontSizes.lg + 2, fontWeight: '800', letterSpacing: -0.3 },
   stickyUnit: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '600' },
-  book: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 5, paddingHorizontal: spacing.lg + 4 },
+  book: { backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 5, paddingHorizontal: spacing.lg + 4 },
   bookText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '800' },
 });

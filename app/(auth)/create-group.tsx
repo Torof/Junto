@@ -166,7 +166,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   checkOn: { backgroundColor: colors.cta, borderColor: colors.cta },
-  cta: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center' },
+  cta: { backgroundColor: colors.brand, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center' },
   ctaDisabled: { opacity: 0.4 },
   ctaText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
 });

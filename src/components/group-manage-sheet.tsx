@@ -137,7 +137,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.sm,
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
   },
-  saveBtn: { width: 40, height: 40, borderRadius: radius.sm, backgroundColor: colors.cta, alignItems: 'center', justifyContent: 'center' },
+  saveBtn: { width: 40, height: 40, borderRadius: radius.sm, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center' },
   disabled: { opacity: 0.4 },
   membersHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.lg, marginBottom: spacing.xs },
   section: { color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },

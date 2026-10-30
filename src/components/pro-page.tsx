@@ -243,7 +243,7 @@ export function ProPage({ pro, isOwner }: Props) {
               <View style={styles.okChip}><AppText style={styles.okChipText}>{t('pro.page.upTo', { defaultValue: "jusqu'à {{count}} pers.", count: o.max_participants })}</AppText></View>
             ) : <View />}
             {!isOwner ? (
-              <PressableScale style={[styles.book, glow(colors.cta)]} onPress={() => book(o)} accessibilityRole="button">
+              <PressableScale style={[styles.book, glow(colors.brand)]} onPress={() => book(o)} accessibilityRole="button">
                 <AppText style={styles.bookText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</AppText>
               </PressableScale>
             ) : null}
@@ -414,7 +414,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   cardBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   okChip: { backgroundColor: '#E6F4EC', borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 6 },
   okChipText: { color: '#1E6B45', fontSize: fontSizes.sm - 1, fontWeight: '700' },
-  book: { backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: 14, paddingVertical: 8 },
+  book: { backgroundColor: colors.brand, borderRadius: radius.full, paddingHorizontal: 14, paddingVertical: 8 },
   bookText: { color: colors.onCta, fontSize: fontSizes.sm - 1, fontWeight: '800' },
   banner: { marginHorizontal: spacing.md, marginTop: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.surfaceAlt, borderRadius: radius.full, paddingVertical: 13 },
   bannerText: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },

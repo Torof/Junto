@@ -78,7 +78,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   cta: {
     marginTop: spacing.lg,
-    backgroundColor: colors.cta, borderRadius: radius.sm,
+    backgroundColor: colors.brand, borderRadius: radius.sm,
     paddingHorizontal: spacing.xl, paddingVertical: spacing.sm + 2,
   },
   ctaText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },

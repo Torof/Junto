@@ -593,7 +593,7 @@ export default function ProEditScreen() {
       {/* Sticky primary action. */}
       <View style={[styles.ctaBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) + spacing.sm }]}>
         <PressableScale
-          style={[styles.cta, !canSubmit && styles.ctaDisabled, canSubmit && glow(colors.cta)]}
+          style={[styles.cta, !canSubmit && styles.ctaDisabled, canSubmit && glow(colors.brand)]}
           onPress={handleSubmit}
           disabled={!canSubmit}
         >
@@ -809,7 +809,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: spacing.md, paddingTop: spacing.sm,
     backgroundColor: colors.background, borderTopWidth: 1, borderTopColor: colors.line,
   },
-  cta: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 6, alignItems: 'center' },
+  cta: { backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 6, alignItems: 'center' },
   ctaDisabled: { opacity: 0.4 },
   ctaText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },

@@ -390,7 +390,7 @@ const createStyles = (colors: AppColors) =>
 
     // 3 — outing sheet (the app's activity-sheet grammar)
     fab: {
-      position: 'absolute', right: 14, top: 18, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.cta,
+      position: 'absolute', right: 14, top: 18, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.brand,
       alignItems: 'center', justifyContent: 'center', ...shadows.raised,
     },
     sheet: {
@@ -465,7 +465,7 @@ const createStyles = (colors: AppColors) =>
     dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.borderMuted },
     dotActive: { backgroundColor: colors.cta, width: 20 },
     nextBtn: {
-      backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 6,
+      backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 6,
       alignItems: 'center', marginHorizontal: spacing.lg, marginBottom: spacing.sm,
     },
     nextText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },

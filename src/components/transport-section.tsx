@@ -514,7 +514,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   timeButtonText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700', letterSpacing: 0.3 },
   saveButton: {
-    backgroundColor: colors.cta, borderRadius: radius.md,
+    backgroundColor: colors.brand, borderRadius: radius.md,
     paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.sm,
   },
   saveText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: 'bold' },

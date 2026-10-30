@@ -548,7 +548,7 @@ export default function ProAgendaScreen() {
 
             {!sheetIsPast && (
               <Pressable
-                style={({ pressed }) => [styles.btnPrimary, styles.btnBig, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.btnPrimary, styles.btnBig, styles.btnBrand, pressed && styles.pressed]}
                 onPress={() => sheetDay && openManualSheet(sheetDay, dayOpen('am') || dayBookings('am').length === 0 ? 'am' : 'pm')}
               >
                 <Plus size={15} color={colors.onCta} strokeWidth={2.4} />
@@ -625,7 +625,7 @@ export default function ProAgendaScreen() {
               <Pressable style={styles.stepBtn} onPress={() => setMSize((s) => Math.min(50, s + 1))}><AppText style={styles.stepBtnText}>+</AppText></Pressable>
             </View>
 
-            <Pressable style={({ pressed }) => [styles.btnPrimary, styles.btnBig, pressed && styles.pressed]} onPress={submitManual}>
+            <Pressable style={({ pressed }) => [styles.btnPrimary, styles.btnBig, styles.btnBrand, pressed && styles.pressed]} onPress={submitManual}>
               <Send size={15} color={colors.onCta} strokeWidth={2.4} />
               <AppText style={styles.btnPrimaryText}>{t('booking.manualSubmit', { defaultValue: 'Ajouter' })}</AppText>
             </Pressable>
@@ -686,6 +686,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   btnPrimaryText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
   btnBig: { marginTop: spacing.md, paddingVertical: spacing.sm + 4 },
+  btnBrand: { backgroundColor: colors.brand },
   empty: { color: colors.textSecondary, fontSize: fontSizes.sm, marginBottom: spacing.sm },
   bkRow: { borderWidth: 1, borderColor: colors.lineStrong,
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2,

@@ -295,6 +295,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sheetFoot: { flexDirection: 'row', gap: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.line },
   sheetClear: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surfaceAlt, borderRadius: radius.full, paddingVertical: spacing.sm + 4 },
   sheetClearText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '800' },
-  sheetApply: { flex: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4 },
+  sheetApply: { flex: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 4 },
   sheetApplyText: { color: colors.onCta, fontSize: fontSizes.sm + 1, fontWeight: '700' },
 });

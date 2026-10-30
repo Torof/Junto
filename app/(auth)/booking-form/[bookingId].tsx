@@ -155,7 +155,7 @@ export default function BookingFormScreen() {
           </View>
         ))}
 
-        <PressableScale style={[styles.submit, glow(colors.cta), sending && styles.disabled]} onPress={submit} disabled={sending}>
+        <PressableScale style={[styles.submit, glow(colors.brand), sending && styles.disabled]} onPress={submit} disabled={sending}>
           <Send size={15} color={colors.onCta} strokeWidth={2.4} />
           <AppText style={styles.submitText}>{sending ? '…' : t('booking.formSubmit', { defaultValue: 'Envoyer la fiche' })}</AppText>
         </PressableScale>
@@ -191,7 +191,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   customInput: { fontWeight: '400' },
   submit: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
-    backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 5, marginTop: spacing.sm,
+    backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 5, marginTop: spacing.sm,
   },
   submitText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   disabled: { opacity: 0.45 },

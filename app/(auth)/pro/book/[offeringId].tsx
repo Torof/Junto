@@ -269,7 +269,7 @@ export default function BookOfferingScreen() {
             </View>
 
             <PressableScale
-              style={[styles.submit, glow(colors.cta), (!selected || sending) && styles.disabled]}
+              style={[styles.submit, glow(colors.brand), (!selected || sending) && styles.disabled]}
               onPress={submit}
               disabled={!selected || sending}
             >
@@ -339,7 +339,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   payNote: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: spacing.sm, paddingHorizontal: 2 },
   submit: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
-    backgroundColor: colors.cta, borderRadius: radius.full,
+    backgroundColor: colors.brand, borderRadius: radius.full,
     paddingVertical: spacing.sm + 5, marginTop: spacing.md,
   },
   submitText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },

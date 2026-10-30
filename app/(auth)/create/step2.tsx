@@ -656,7 +656,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: 'transparent',
   },
   durationValue: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', textAlign: 'center', flex: 1 },
-  nextButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.md },
+  nextButton: { backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.md },
   buttonDisabled: { opacity: 0.4 },
   nextText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   traceOptions: { flexDirection: 'column', gap: spacing.sm, marginBottom: spacing.md },

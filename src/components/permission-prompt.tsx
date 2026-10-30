@@ -94,7 +94,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   primary: {
     alignSelf: 'stretch',
     marginTop: spacing.sm,
-    backgroundColor: colors.cta,
+    backgroundColor: colors.brand,
     borderRadius: radius.full,
     paddingVertical: 14,
     alignItems: 'center',

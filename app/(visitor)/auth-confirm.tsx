@@ -106,7 +106,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   subtitle: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', lineHeight: 22 },
   primaryButton: {
     marginTop: spacing.md,
-    backgroundColor: colors.cta,
+    backgroundColor: colors.brand,
     borderRadius: radius.lg,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,

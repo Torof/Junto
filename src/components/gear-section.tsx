@@ -469,7 +469,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sheetActions: { flexDirection: 'row', gap: spacing.sm },
   saveBtn: {
     flex: 1, height: 48, borderRadius: radius.md,
-    backgroundColor: colors.cta,
+    backgroundColor: colors.brand,
     alignItems: 'center', justifyContent: 'center',
   },
   saveBtnText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '700' },

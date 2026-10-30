@@ -189,7 +189,7 @@ export default function CreateStep4() {
       </PressableScale>
 
       <PressableScale
-        style={[styles.publishButton, glow(colors.cta), isLoading && styles.buttonDisabled]}
+        style={[styles.publishButton, glow(colors.brand), isLoading && styles.buttonDisabled]}
         onPress={handlePublish}
         disabled={isLoading}
       >
@@ -244,7 +244,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   inviteFieldLabel: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   inviteFieldSub: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
-  publishButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.xl },
+  publishButton: { backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.xl },
   buttonDisabled: { opacity: 0.4 },
   publishText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
 });

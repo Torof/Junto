@@ -164,7 +164,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     flex: 1,
   },
   button: {
-    backgroundColor: colors.cta,
+    backgroundColor: colors.brand,
     borderRadius: radius.md,
     paddingVertical: spacing.md,
     alignItems: 'center',

@@ -572,7 +572,7 @@ const createStyles = (colors: AppColors) =>
     cancelButtonText: { color: colors.textSecondary, fontSize: fontSizes.md, fontWeight: '600' },
     submitButton: {
       flex: 1,
-      backgroundColor: colors.cta,
+      backgroundColor: colors.brand,
       borderRadius: radius.md,
       paddingVertical: spacing.sm + 2,
       alignItems: 'center',

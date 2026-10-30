@@ -562,7 +562,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   submitButton: {
     alignSelf: 'center',
     marginTop: spacing.lg,
-    backgroundColor: colors.cta,
+    backgroundColor: colors.brand,
     borderRadius: radius.sm,
     paddingVertical: 10,
     paddingHorizontal: 28,

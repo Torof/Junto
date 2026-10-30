@@ -190,7 +190,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   qrPlaceholder: { width: 220, height: 220, alignItems: 'center', justifyContent: 'center' },
   primaryBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
-    backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm + 2, marginTop: spacing.xl,
+    backgroundColor: colors.brand, borderRadius: radius.md, paddingVertical: spacing.sm + 2, marginTop: spacing.xl,
   },
   primaryText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
   secondaryBtn: {

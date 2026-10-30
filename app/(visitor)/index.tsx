@@ -196,7 +196,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginRight: spacing.md,
   },
   signInButton: {
-    backgroundColor: colors.cta,
+    backgroundColor: colors.brand,
     borderRadius: radius.full,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,

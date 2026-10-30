@@ -257,7 +257,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   fab: {
     position: 'absolute', alignSelf: 'center',
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: colors.cta, borderRadius: radius.full,
+    backgroundColor: colors.brand, borderRadius: radius.full,
     paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 2,
     ...shadows.raised,
   },
@@ -290,7 +290,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   nameActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm },
   nameCancel: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
   nameCancelText: { color: colors.textSecondary, fontSize: fontSizes.md, fontWeight: '700' },
-  nameSave: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg },
+  nameSave: { backgroundColor: colors.brand, borderRadius: radius.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg },
   nameSaveText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },
   disabled: { opacity: 0.5 },
 });

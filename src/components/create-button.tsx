@@ -37,12 +37,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   // recenter button above so the eye reads the action hierarchy
   // (Scott 2026-06-10). Sits just above the bottom-sheet drawer's
   // 2% snap (drawer reaches ~14-18px depending on screen size); 28
-  // gives an ~10px clearance.
+  // gives an ~10px clearance. Brand blue (askandgo, 2026-10-30): the « + »
+  // is one of the brand-blue actions; the route line keeps `mapAction`.
   button: {
     position: 'absolute',
     bottom: 28,
     right: spacing.md,
-    backgroundColor: colors.mapAction,
+    backgroundColor: colors.brand,
     borderRadius: radius.full,
     width: 48,
     height: 48,

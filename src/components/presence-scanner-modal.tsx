@@ -109,6 +109,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   permWrap: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', padding: spacing.lg, gap: spacing.md },
   permText: { color: colors.textPrimary, fontSize: fontSizes.md, textAlign: 'center' },
-  permButton: { backgroundColor: colors.cta, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 2, borderRadius: radius.sm },
+  permButton: { backgroundColor: colors.brand, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 2, borderRadius: radius.sm },
   permButtonText: { color: '#FFFFFF', fontSize: fontSizes.sm, fontWeight: '700' },
 });

@@ -183,7 +183,7 @@ export default function ProSpaceScreen() {
 
       {/* The hub's one primary action: publishing a new outing used to need
           Mes offres → Catalogue → Nouvelle activité (3 taps, audit 2026-10-08). */}
-      <PressableScale style={[styles.newOutingBtn, glow(colors.cta)]} onPress={() => router.push('/(auth)/pro/offering/edit')}>
+      <PressableScale style={[styles.newOutingBtn, glow(colors.brand)]} onPress={() => router.push('/(auth)/pro/offering/edit')}>
         <Plus size={18} color={colors.onCta} strokeWidth={2.6} />
         <AppText style={styles.newOutingText}>{t('booking.newOuting', { defaultValue: 'Nouvelle sortie' })}</AppText>
       </PressableScale>
@@ -342,7 +342,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   logo: { width: 48, height: 48, borderRadius: radius.card - 2, backgroundColor: colors.surfaceAlt },
   newOutingBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
-    backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 6,
+    backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 6,
   },
   newOutingText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   headName: { color: colors.textPrimary, fontSize: fontSizes.md + 1, fontWeight: '800' },

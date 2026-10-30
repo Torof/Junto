@@ -1869,7 +1869,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   fullMapLegendWrapper: { position: 'absolute', right: 12, zIndex: 10 },
   closeMapButton: { position: 'absolute', left: 20, width: 40, height: 40, borderRadius: radius.full, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', zIndex: 10, ...shadows.card },
-  navigateButton: { position: 'absolute', alignSelf: 'center', backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm + 2, zIndex: 10, ...glow(colors.cta) },
+  navigateButton: { position: 'absolute', alignSelf: 'center', backgroundColor: colors.brand, borderRadius: radius.full, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm + 2, zIndex: 10, ...glow(colors.brand) },
   navigateText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   presenceBlock: {
     backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.md,
@@ -1900,11 +1900,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   presenceCreatorText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   joinButton: {
-    backgroundColor: colors.cta,
+    backgroundColor: colors.brand,
     borderRadius: radius.full,
     paddingVertical: spacing.md + 2,
     alignItems: 'center',
-    ...glow(colors.cta),
+    ...glow(colors.brand),
   },
   fullButton: { flexDirection: 'row', backgroundColor: colors.error + '14', borderRadius: radius.full, paddingVertical: spacing.sm + 2, alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
   fullButtonText: { color: colors.error, fontSize: fontSizes.md, fontWeight: '700' },

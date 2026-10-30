@@ -289,7 +289,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderTopWidth: 1, borderTopColor: colors.line,
   },
   btn: { flex: 1, height: 52, borderRadius: radius.full, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
-  btnPrimary: { backgroundColor: colors.cta, ...glow(colors.cta) },
+  btnPrimary: { backgroundColor: colors.brand, ...glow(colors.brand) },
   btnPrimaryText: { color: '#FFFFFF', fontSize: fontSizes.md - 1, fontWeight: '700' },
   btnSecondary: { backgroundColor: colors.surfaceAlt },
   btnSecondaryText: { color: colors.textPrimary, fontSize: fontSizes.md - 1, fontWeight: '700' },

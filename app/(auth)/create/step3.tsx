@@ -72,7 +72,7 @@ export default function CreateStep3() {
       </PressableScale>
 
       <PressableScale
-        style={[styles.nextButton, glow(colors.cta)]}
+        style={[styles.nextButton, glow(colors.brand)]}
         onPress={() => router.push('/(auth)/create/step4')}
       >
         <AppText style={styles.nextText}>{t('create.next')}</AppText>
@@ -98,7 +98,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   optionTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700' },
   optionTitleActive: { color: colors.cta },
   optionDesc: { color: colors.textSecondary, fontSize: fontSizes.sm },
-  nextButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.xl },
+  nextButton: { backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.xl },
   nextText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   toggleRow: {
     flexDirection: 'row', alignItems: 'center', marginTop: spacing.xl,

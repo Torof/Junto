@@ -85,7 +85,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   icon: { fontSize: 48, marginBottom: spacing.lg },
   title: { color: colors.textPrimary, fontSize: fontSizes.xl, fontWeight: 'bold', textAlign: 'center', marginBottom: spacing.md },
   message: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', lineHeight: 22, marginBottom: spacing.xl },
-  contactButton: { backgroundColor: colors.cta, borderRadius: radius.md, paddingVertical: spacing.md, paddingHorizontal: spacing.xl, marginBottom: spacing.md, width: '100%', alignItems: 'center' },
+  contactButton: { backgroundColor: colors.brand, borderRadius: radius.md, paddingVertical: spacing.md, paddingHorizontal: spacing.xl, marginBottom: spacing.md, width: '100%', alignItems: 'center' },
   contactText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: 'bold' },
   deleteButton: { paddingVertical: spacing.sm, marginBottom: spacing.lg },
   deleteText: { color: colors.error, fontSize: fontSizes.sm },

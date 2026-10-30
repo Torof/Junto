@@ -124,6 +124,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   emptyTitle: { color: colors.textPrimary, fontFamily: fonts.title, fontSize: fontSizes.lg },
   emptyBody: { color: colors.textSecondary, fontSize: fontSizes.sm, lineHeight: 20 },
-  cta: { alignSelf: 'flex-start', backgroundColor: colors.cta, borderRadius: radius.full, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm + 2, marginTop: spacing.xs },
+  cta: { alignSelf: 'flex-start', backgroundColor: colors.brand, borderRadius: radius.full, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.sm + 2, marginTop: spacing.xs },
   ctaText: { color: '#FFFFFF', fontSize: fontSizes.sm + 1, fontWeight: '700' },
 });

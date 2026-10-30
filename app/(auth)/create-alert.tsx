@@ -344,7 +344,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
   // Create button
   createButton: {
-    backgroundColor: colors.cta,
+    backgroundColor: colors.brand,
     borderRadius: radius.sm,
     paddingVertical: spacing.sm + 2,
     alignItems: 'center',

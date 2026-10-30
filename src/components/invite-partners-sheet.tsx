@@ -191,7 +191,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginTop: spacing.md, maxHeight: 90,
   },
   cta: {
-    backgroundColor: colors.cta, borderRadius: radius.md,
+    backgroundColor: colors.brand, borderRadius: radius.md,
     paddingVertical: spacing.sm + 2, alignItems: 'center', marginTop: spacing.md,
   },
   ctaDisabled: { opacity: 0.4 },

@@ -283,7 +283,7 @@ export default function EditActivityScreen() {
       </View>
 
       <PressableScale
-        style={[styles.saveButton, glow(colors.cta), isSaving && styles.buttonDisabled]}
+        style={[styles.saveButton, glow(colors.brand), isSaving && styles.buttonDisabled]}
         onPress={handleSave}
         disabled={isSaving}
       >
@@ -341,7 +341,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   locked: { opacity: 0.4 },
   lockedHint: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: spacing.xs, fontStyle: 'italic' },
   rangeHint: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600', marginTop: spacing.sm },
-  saveButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.xl },
+  saveButton: { backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', marginTop: spacing.xl },
   buttonDisabled: { opacity: 0.4 },
   saveText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
 });

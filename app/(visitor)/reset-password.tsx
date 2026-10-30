@@ -202,7 +202,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.error, fontSize: fontSizes.sm, marginBottom: spacing.sm, textAlign: 'center',
   },
   primaryButton: {
-    backgroundColor: colors.cta, borderRadius: radius.md,
+    backgroundColor: colors.brand, borderRadius: radius.md,
     paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.sm,
   },
   buttonDisabled: { opacity: 0.6 },

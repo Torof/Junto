@@ -266,7 +266,7 @@ export default function PublicProfileScreen() {
               <AppText style={styles.messageText}>{t('publicProfile.sendMessage')}</AppText>
             </PressableScale>
           ) : requestReceived ? (
-            <PressableScale style={[styles.messageButton, glow(colors.cta)]} onPress={() => router.push('/(auth)/(tabs)/messagerie?tab=requests')}>
+            <PressableScale style={[styles.messageButton, glow(colors.brand)]} onPress={() => router.push('/(auth)/(tabs)/messagerie?tab=requests')}>
               <AppText style={styles.messageText}>{t('publicProfile.respondToRequest')}</AppText>
             </PressableScale>
           ) : requestAlreadySent ? (
@@ -278,7 +278,7 @@ export default function PublicProfileScreen() {
               <AppText style={styles.messageText}>{t('discovery.demoProfile', { defaultValue: 'Profil de démonstration' })}</AppText>
             </View>
           ) : (
-            <PressableScale style={[styles.messageButton, glow(colors.cta)]} onPress={() => {
+            <PressableScale style={[styles.messageButton, glow(colors.brand)]} onPress={() => {
               setRequestMessage(t('publicProfile.defaultRequestMessage', { name: profile?.display_name ?? '' }));
               setShowRequestModal(true);
             }}>
@@ -335,7 +335,7 @@ export default function PublicProfileScreen() {
             placeholderTextColor={colors.textSecondary}
           />
           <PressableScale
-            style={[styles.modalSendButton, glow(colors.cta), requestSending && { opacity: 0.4 }]}
+            style={[styles.modalSendButton, glow(colors.brand), requestSending && { opacity: 0.4 }]}
             onPress={async () => {
               if (!requestMessage.trim()) return;
               setRequestSending(true);
@@ -394,7 +394,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   content: { padding: spacing.md, paddingBottom: spacing.xl + 32 },
   actions: { marginTop: spacing.lg, gap: spacing.sm },
   messageButton: {
-    backgroundColor: colors.cta, borderRadius: radius.full,
+    backgroundColor: colors.brand, borderRadius: radius.full,
     paddingVertical: spacing.md, alignItems: 'center',
   },
   messageText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
@@ -420,7 +420,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     minHeight: 100, textAlignVertical: 'top', marginBottom: spacing.md,
   },
   modalSendButton: {
-    backgroundColor: colors.cta, borderRadius: radius.full,
+    backgroundColor: colors.brand, borderRadius: radius.full,
     paddingVertical: spacing.md, alignItems: 'center',
   },
   modalSendText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },

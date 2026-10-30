@@ -485,7 +485,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   disabled: { opacity: 0.4 },
   saveBtn: {
     flex: 1, height: 42,
-    backgroundColor: colors.cta, borderRadius: radius.md,
+    backgroundColor: colors.brand, borderRadius: radius.md,
     alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.sm,
   },
   saveDisabled: { opacity: 0.5 },
@@ -509,7 +509,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   nameCancel: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
   nameCancelText: { color: colors.textSecondary, fontSize: fontSizes.md, fontWeight: '700' },
   nameSave: {
-    backgroundColor: colors.cta, borderRadius: radius.md,
+    backgroundColor: colors.brand, borderRadius: radius.md,
     paddingVertical: spacing.sm, paddingHorizontal: spacing.lg,
   },
   nameSaveText: { color: '#FFFFFF', fontSize: fontSizes.md, fontWeight: '800' },

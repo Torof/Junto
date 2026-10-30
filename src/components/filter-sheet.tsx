@@ -838,7 +838,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.borderMuted,
   },
-  applyButton: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', ...glow(colors.cta) },
+  applyButton: { backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 4, alignItems: 'center', ...glow(colors.brand) },
   applyText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
 
   emptyText: {

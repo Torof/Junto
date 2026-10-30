@@ -1360,7 +1360,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   navigateButton: {
     position: 'absolute', alignSelf: 'center',
-    backgroundColor: colors.cta,
+    backgroundColor: colors.brand,
     borderRadius: radius.full,
     paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 2,
     flexDirection: 'row', alignItems: 'center', gap: 6,
