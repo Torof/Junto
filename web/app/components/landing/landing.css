@@ -69,8 +69,9 @@
 .l-paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; max-width: 720px; }
 .l-path { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.22); border-radius: 14px; padding: 12px 14px; text-decoration: none; color: #FFFFFF; backdrop-filter: blur(6px); transition: background .15s; }
 .l-path:hover { background: rgba(255,255,255,0.18); }
-.l-path-icon { width: 36px; height: 36px; border-radius: 10px; background: #45A06D; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.l-path-icon.pro { background: #2563EB; font-size: 10px; font-weight: 800; letter-spacing: .5px; }
+.l-path-icon { width: 36px; height: 36px; border-radius: 10px; background: #1E7FD8; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+/* Pro = gold with ink text, the app's single pro colour (DECISIONS 2026-10-25). */
+.l-path-icon.pro { background: #F2B705; color: #1F1A15; font-size: 10px; font-weight: 800; letter-spacing: .5px; }
 .l-path-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .l-path-title { font-weight: 800; font-size: 15px; }
 .l-path-title .n { opacity: .7; }
