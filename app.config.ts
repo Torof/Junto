@@ -26,7 +26,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: './assets/askandgo_icon_square.png',
     resizeMode: 'contain',
-    backgroundColor: '#3F7A56',
+    backgroundColor: '#1E7FD8',
   },
   android: {
     package: IS_PREVIEW ? 'app.getjunto.preview' : 'app.getjunto',
@@ -36,10 +36,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
     softwareKeyboardLayoutMode: 'resize',
     adaptiveIcon: {
-      // Mark-only on transparent + solid green background → uniform green icon,
-      // no inner square / dark corners (Scott 2026-07-08).
+      // Mark-only on transparent + solid brand-blue background → uniform icon,
+      // no inner square / dark corners (Scott 2026-07-08; blue + final logo 2026-10-30).
       foregroundImage: './assets/askandgo_icon_fg.png',
-      backgroundColor: '#3F7A56',
+      backgroundColor: '#1E7FD8',
     },
     edgeToEdgeEnabled: true,
     intentFilters: [
@@ -102,7 +102,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         // Android draws the notification icon as a white silhouette: mark only.
         icon: './assets/askandgo_notification.png',
-        color: '#3F7A56',
+        color: '#1E7FD8',
       },
     ],
     [
