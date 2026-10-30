@@ -43,9 +43,9 @@ for name, d in V.items():
     ])
     # equipment chips
     import re
-    tw = tw.replace("{li('check',13,'#1E6B45',3)}Corde</span>", "§P0§", 1).replace("{li('check',13,'#1E6B45',3)}Matériel glacier</span>", "§P1§", 1).replace("{li('check',13,'#1E6B45',3)}Crampons, piolet</span>", "§P2§", 1)
+    tw = tw.replace("{li('check',13,'#246342',3)}Corde</span>", "§P0§", 1).replace("{li('check',13,'#246342',3)}Matériel glacier</span>", "§P1§", 1).replace("{li('check',13,'#246342',3)}Crampons, piolet</span>", "§P2§", 1)
     ok = '<span class="chip ok" style="font-size:12px;padding:5px 10px">'
-    prov = [f"{{li('check',13,'#1E6B45',3)}}{x}</span>" for x in d['prov']]
+    prov = [f"{{li('check',13,'#246342',3)}}{x}</span>" for x in d['prov']]
     tw = tw.replace("§P0§", prov[0]).replace("§P1§", prov[1] if len(prov) > 1 else "").replace("§P2§", prov[2] if len(prov) > 2 else "")
     if len(prov) < 3: tw = tw.replace(ok + "</span>", "")
     for a, b in zip(['Chaussures cramponnables', 'Baudrier et casque', 'Sac 35 L'], d['req']):

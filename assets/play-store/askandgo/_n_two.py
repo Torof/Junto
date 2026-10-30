@@ -62,7 +62,7 @@ dispo_body = f'''<div class="zoomwrap" style="background:#FFF">
 <div style="padding:14px 16px 0;font-size:14px;font-weight:700;color:{GREEN}">Voir son profil ›</div>
 <div style="margin-top:auto;padding:14px 16px 28px;display:flex;gap:10px;border-top:1px solid rgba(31,26,21,.08)">
   <span style="flex:1;border:1.5px solid {INK};border-radius:999px;padding:13px 0;text-align:center;font-size:15px;font-weight:800">Inviter à une sortie</span>
-  <span style="flex:1;background:{GREEN};color:#FFF;border-radius:999px;padding:13px 0;text-align:center;font-size:15px;font-weight:800;box-shadow:0 6px 16px rgba(47,164,106,.35)">Contacter</span>
+  <span style="flex:1;background:{BRAND};color:#FFF;border-radius:999px;padding:13px 0;text-align:center;font-size:15px;font-weight:800;box-shadow:0 6px 16px rgba(30,127,216,.35)">Contacter</span>
 </div></div>'''
 
 # ---------- 6 · the guided-outing page (components/offering-page.tsx) ----------
@@ -94,12 +94,12 @@ offering_body = f'''<div class="zoomwrap" style="background:#FFF">
   <div style="font-size:13.5px;line-height:1.45;margin-top:6px;color:#2E2A25">Le 4 000 des Écrins en deux jours : montée au refuge par le Glacier Blanc, départ nocturne, arête sommitale au lever du soleil. Bonne condition physique et une première expérience de cramponnage.</div></div>
 <div style="padding:14px 16px 0"><div style="font-size:16px;font-weight:800">Matériel</div>
   <div style="font-size:11px;font-weight:800;letter-spacing:.8px;color:{SEC};margin-top:8px">FOURNI</div>
-  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><span class="chip ok" style="font-size:12px;padding:5px 10px">{li('check',13,'#1E6B45',3)}Corde</span><span class="chip ok" style="font-size:12px;padding:5px 10px">{li('check',13,'#1E6B45',3)}Matériel glacier</span><span class="chip ok" style="font-size:12px;padding:5px 10px">{li('check',13,'#1E6B45',3)}Crampons, piolet</span></div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><span class="chip ok" style="font-size:12px;padding:5px 10px">{li('check',13,'#246342',3)}Corde</span><span class="chip ok" style="font-size:12px;padding:5px 10px">{li('check',13,'#246342',3)}Matériel glacier</span><span class="chip ok" style="font-size:12px;padding:5px 10px">{li('check',13,'#246342',3)}Crampons, piolet</span></div>
   <div style="font-size:11px;font-weight:800;letter-spacing:.8px;color:{SEC};margin-top:10px">À PRÉVOIR</div>
   <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><span class="chip" style="font-size:12px;padding:5px 10px">Chaussures cramponnables</span><span class="chip" style="font-size:12px;padding:5px 10px">Baudrier et casque</span><span class="chip" style="font-size:12px;padding:5px 10px">Sac 35 L</span></div></div>
 <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;padding:12px 16px 26px;border-top:1px solid rgba(31,26,21,.08);background:#FFF">
   <div><div style="font-size:19px;font-weight:800">520 € <span style="font-size:12px;color:{SEC};font-weight:600">/ pers.</span></div><div style="font-size:11.5px;color:{SEC}">Juin à septembre · nuit au refuge</div></div>
-  <span style="background:{GREEN};color:#FFF;border-radius:999px;padding:12px 26px;font-size:15px;font-weight:800;box-shadow:0 6px 16px rgba(47,164,106,.35)">Réserver</span>
+  <span style="background:{BRAND};color:#FFF;border-radius:999px;padding:12px 26px;font-size:15px;font-weight:800;box-shadow:0 6px 16px rgba(30,127,216,.35)">Réserver</span>
 </div></div>'''
 
 def keywords(items):
@@ -135,7 +135,7 @@ thread_body = f'''<div class="zoomwrap" style="background:#FFF">
  {msg('Karim D.', 'Rejoint 🙋 Je monte de Gap, 2 places dans la voiture', False, [('👍','2')])}
  {msg('', 'Parfait, à samedi 7h30 ☕', True)}
 </div>
-<div style="padding:10px 14px 24px;display:flex;align-items:center;gap:10px"><div style="flex:1;background:#F1EFEA;border-radius:999px;padding:11px 16px;font-size:14px;color:{SEC}">Écrire un message…</div><span style="width:40px;height:40px;border-radius:50%;background:{GREEN};display:inline-flex;align-items:center;justify-content:center">{li('chev',18,'#FFF',2.6)}</span></div></div>'''
+<div style="padding:10px 14px 24px;display:flex;align-items:center;gap:10px"><div style="flex:1;background:#F1EFEA;border-radius:999px;padding:11px 16px;font-size:14px;color:{SEC}">Écrire un message…</div><span style="width:40px;height:40px;border-radius:50%;background:{BRAND};display:inline-flex;align-items:center;justify-content:center">{li('chev',18,'#FFF',2.6)}</span></div></div>'''
 
 if which == '4':
     html = side_by_side("Rejoins les discussions<br>des pratiquants, sport par sport,<br>partout où tu vas.", '', canaux_body, thread_body,

@@ -4,7 +4,7 @@ IC=json.load(open(f'{S}/icons.json'))
 MAP='file:///home/torof/Desktop/Junto/web/public/hero-map-ecrins.jpg'
 PH=lambda k:f'photos/demo-channel-{k}.jpg'
 MARK=open('/home/torof/Desktop/Junto/assets/brand/askandgo-mark.svg').read().replace('#000000','currentColor')
-INK='#1F1A15'; GREEN='#2FA46A'; DEEP='#1D3A2A'; SEC='#6F665A'
+INK='#1F1A15'; GREEN='#246342'; DEEP='#246342'; SEC='#6F665A'; BRAND='#1E7FD8'  # askandgo identity 2026-10-30
 UNI={'ski-touring':'#4A7C59','climbing-sport':'#4A7C59','hiking':'#4A7C59','via-ferrata':'#4A7C59','trail-running':'#E11D48','paragliding':'#8B5CF6','canyoning':'#2563EB'}
 L={ # lucide-ish paths (24 grid)
 'pin':'<path d="M20 10c0 4.99-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 14.99 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
@@ -44,7 +44,7 @@ def callout(x,y,icon_html,title,sub,side='left',w=250):
     return f'<div class="co" style="left:{x}px;top:{y}px;width:{w}px;align-items:{al}"><div class="cob">{icon_html}</div><b>{title}</b><span>{sub}</span></div>'
 def tabbar(active=0):
     items=[('map','Carte'),('users','Partenaires'),('msg','Messages'),('menu','Menu')]
-    return '<div class="tabs">'+''.join(f'<div class="tab {"on" if i==active else ""}">{li(k,30,GREEN if i==active else SEC)}<span>{t}</span></div>' for i,(k,t) in enumerate(items))+'</div>'
+    return '<div class="tabs">'+''.join(f'<div class="tab {"on" if i==active else ""}">{li(k,30,BRAND if i==active else SEC)}<span>{t}</span></div>' for i,(k,t) in enumerate(items))+'</div>'
 def screen(title,sub,body,extra='',tilt=-3,top=None,pills='',scale=None):
     top=top or PHONE_TOP; scale=scale or SCALE
     return f'''<!doctype html><html lang="fr"><head><meta charset="utf-8">
@@ -64,7 +64,7 @@ h1{{position:relative;margin:150px 70px 0;text-align:center;font-size:82px;line-
 .hd .sm{{font-size:21px;color:{SEC};font-weight:600}}
 .zoomwrap{{width:405px;height:845px;transform:scale(1.5);transform-origin:0 0;flex-shrink:0;display:flex;flex-direction:column}}
 .tabs{{margin-top:auto;position:relative;z-index:2;display:flex;justify-content:space-around;padding:16px 10px 34px;border-top:1px solid rgba(31,26,21,.08);background:#FFF}}
-.tab{{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:17px;color:{SEC};font-weight:600}}.tab.on{{color:{GREEN}}}
+.tab{{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:17px;color:{SEC};font-weight:600}}.tab.on{{color:{INK};font-weight:700}}
 .sp{{display:inline-flex;flex-shrink:0}}.sp svg{{width:100%;height:100%}}
 .li{{flex-shrink:0}}
 .pin{{position:absolute;display:flex;align-items:center;gap:8px}}
@@ -82,7 +82,7 @@ h1{{position:relative;margin:150px 70px 0;text-align:center;font-size:82px;line-
 .row{{display:flex;align-items:center;gap:12px;margin-top:14px;font-size:22px}}
 .row .t{{flex:1;min-width:0}}.row .t b{{display:block;font-size:24px}}.row .t small{{color:{SEC};font-size:19px}}
 .chip{{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:8px 16px;font-size:19px;font-weight:700;background:#F1EFEA}}
-.chip.ok{{background:#E6F4EC;color:#1E6B45}}.chip.miss{{background:#FBE7E4;color:#B3261E}}
+.chip.ok{{background:rgba(36,99,66,.12);color:{GREEN}}}.chip.miss{{background:#FBE7E4;color:#B3261E}}
 .gp{{background:{GREEN};color:#FFF;border-radius:999px;padding:8px 16px;font-size:19px;font-weight:800;white-space:nowrap}}
 .bub{{max-width:78%;border-radius:20px;padding:12px 16px;font-size:21px;line-height:1.3;background:#F1EFEA;border:1px solid rgba(31,26,21,.12);margin-top:10px;border-bottom-left-radius:6px}}
 .bub.own{{align-self:flex-end;background:{GREEN};color:#FFF;border-color:{GREEN};border-bottom-left-radius:20px;border-bottom-right-radius:6px}}
@@ -93,8 +93,9 @@ h1{{position:relative;margin:150px 70px 0;text-align:center;font-size:82px;line-
 .tile>*{{position:relative}}
 .tt{{display:flex;justify-content:space-between}}.tt .sc{{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.22);border-radius:999px;padding:6px 12px;font-size:17px;font-weight:700;margin-left:auto}}
 .tb{{display:flex;flex-direction:column;gap:8px}}.tb b{{font-size:26px;line-height:1.15}}.tm{{display:flex;align-items:center;gap:18px;font-size:18px;font-weight:600}}.tm span{{display:inline-flex;align-items:center;gap:5px}}
-.mark{{position:absolute;left:50%;top:58px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;font-size:27px;font-weight:800;color:{DEEP};opacity:.85}}
-.mark .sp{{width:38px;height:38px;color:{DEEP}}}
+.mark{{position:absolute;left:50%;top:58px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;font-size:30px;font-weight:800;letter-spacing:-.5px}}
+.mark .sp{{width:48px;height:48px;border-radius:12px;background:{BRAND};color:#FFF;padding:7px}}
+.mark .a{{color:{BRAND}}}.mark .n{{color:{GREEN}}}
 </style></head><body>
 <svg class="arcs" viewBox="0 0 1080 1920" fill="none" stroke="#FFF" stroke-opacity=".55" stroke-width="3">
 <circle cx="920" cy="300" r="260"/><circle cx="920" cy="300" r="380"/><circle cx="920" cy="300" r="520"/>
@@ -102,7 +103,7 @@ h1{{position:relative;margin:150px 70px 0;text-align:center;font-size:82px;line-
 <h1>{title}</h1><div class="bar"></div><div class="sub">{sub}</div>{pills}
 <div class="phone"><div class="scr">{body}</div></div>
 {extra}
-<div class="mark"><span class="sp">{MARK}</span>Askandgo</div>
+<div class="mark"><span class="sp">{MARK}</span><span><span class="a">ask</span><span class="n">and</span><span class="a">go</span></span></div>
 </body></html>'''
 
 out={}
@@ -118,7 +119,7 @@ body=f'''<div style="position:absolute;inset:0;background:url({MAP}) center/cove
 {pin('paragliding',300,950,'Déco du Chalvet','sam. 14h · thermiques',2)}
 <div style="position:absolute;left:24px;right:24px;bottom:150px;display:flex;align-items:flex-end;justify-content:space-between">
  <div style="background:#FFF;border-radius:999px;padding:14px 22px;font-size:21px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.14);display:flex;align-items:center;gap:10px">{li('eye',22)}Voir la liste · 7</div>
- <div style="width:68px;height:68px;border-radius:50%;background:{GREEN};display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(47,164,106,.45)">{li('plus',34,'#FFF',2.8)}</div></div>
+ <div style="width:68px;height:68px;border-radius:50%;background:{BRAND};display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(30,127,216,.45)">{li('plus',34,'#FFF',2.8)}</div></div>
 <div style="position:absolute;left:0;right:0;bottom:0">{tabbar(0)}</div>'''
 extra=callout(26,900,sp('climbing-sport',54,INK),'Quoi','le sport, dans le pin','left',212)+callout(838,1040,li('pin',52,INK),'Où','posé sur le spot exact','right',212)+callout(26,1460,li('cal',50,INK),'Quand','et le niveau attendu','left',212)
 out['1-carte']=screen('Où que tu ailles,<br>vois qui part.','Chaque sortie est posée sur la carte, pile là où ça se passe. Filtre par sport, par date — ou lance la tienne.',body,extra)
@@ -129,7 +130,7 @@ body=f'''<div class="hd" style="padding-bottom:6px"><div class="av" style="backg
  <div class="row"><div class="av">LM</div><div class="t"><b>Léa conduit · 3 places</b><small>Briançon → Ailefroide · départ 7h00</small></div><span class="gp">Monter</span></div>
  <div class="row"><div class="av">SB</div><div class="t"><b>Sam conduit · 1 place</b><small>Gap → Ailefroide · départ 6h15</small></div><span class="chip">complet</span></div></div>
 <div class="card alt"><div class="sec">{li('bag',24,GREEN)}Matériel</div>
- <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px"><span class="chip ok">{li('check',18,'#1E6B45',3)}Corde 60 m · Léa</span><span class="chip ok">{li('check',18,'#1E6B45',3)}12 dégaines · Sam</span><span class="chip ok">{li('check',18,'#1E6B45',3)}Casque · toi</span><span class="chip miss">Jeu de friends · manque 1</span></div></div>
+ <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px"><span class="chip ok">{li('check',18,'#246342',3)}Corde 60 m · Léa</span><span class="chip ok">{li('check',18,'#246342',3)}12 dégaines · Sam</span><span class="chip ok">{li('check',18,'#246342',3)}Casque · toi</span><span class="chip miss">Jeu de friends · manque 1</span></div></div>
 <div class="card alt"><div class="sec">{li('msg',24,GREEN)}Discussion · 4</div>
  <div style="display:flex;flex-direction:column"><div class="bub"><span class="who">Sam B.</span>Je serai 10 min en retard, commencez sans moi.</div><div class="bub own">Pas de souci, on t'attend au parking. Pense à ton casque !</div><div class="bub"><span class="who">Léa M.</span>J'ai mis la trace GPX, 650 m de D+ 👍</div></div></div>
 <div class="card alt"><div class="sec">{li('pin',24,GREEN)}Rendez-vous</div>
@@ -195,7 +196,7 @@ body=f'''<div class="zoomwrap"><div style="display:flex;align-items:center;gap:1
  <div style="display:flex;flex-wrap:wrap;gap:8px">{sportchip('climbing-sport',29,'6a','up')}{sportchip('ski-touring',11,'Intermédiaire','dot')}{sportchip('trail-running',6,'Confirmé','up')}</div></div>
 <div class="card" style="margin:0 16px 14px;padding:14px;gap:8px;display:flex;flex-direction:column"><div style="display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800">{li('users',20,GREEN)}Ses partenaires disent…</div>
  <div style="display:flex;flex-wrap:wrap">{peer('Ponctuel',38,'#C9A227')}{peer('Préparé',17,'#8E9AA8')}{peer('Prudent',12,'#8E9AA8')}{peer('Conciliant',9,'#B87333')}</div></div>
-<div style="margin:6px 16px 0;background:{GREEN};border-radius:999px;padding:14px;text-align:center;color:#FFF;font-size:17px;font-weight:800;box-shadow:0 8px 20px rgba(47,164,106,.4)">Demander le contact</div></div>
+<div style="margin:6px 16px 0;background:{BRAND};border-radius:999px;padding:14px;text-align:center;color:#FFF;font-size:17px;font-weight:800;box-shadow:0 8px 20px rgba(30,127,216,.4)">Demander le contact</div></div>
 {tabbar(3)}'''
 extra=callout(26,900,li('pin',50,INK),'Présence','vérifiée sur place, sortie après sortie','left',212)+callout(838,1160,li('users',50,INK),'Niveau','confirmé par ceux qui ont grimpé avec elle','right',212)
 out['5-confiance']=screen('Des inconnus, oui.<br>Des inconnus fiables.','Pas de notes, pas de classement. Une fiabilité qui se construit dehors, et des niveaux confirmés par les partenaires.',body,extra)

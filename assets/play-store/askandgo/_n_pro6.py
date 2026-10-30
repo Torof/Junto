@@ -55,7 +55,7 @@ body = f'''<div class="zoomwrap" style="background:#FFF">
     <div style="display:flex;align-items:center;gap:8px"><span class="chip" style="font-size:12px;padding:3px 8px;gap:5px;background:{UNI['ski-touring']};color:#FFF">{sp('mountaineering',14,'#FFF')}Alpinisme</span><span style="font-size:12px;color:{SEC};font-weight:600">2 jours</span></div>
     <div style="font-size:17px;font-weight:800;line-height:1.15">Dôme des Écrins · 2 jours</div>
     <div style="display:flex;gap:12px;font-size:12.5px;color:{SEC};font-weight:600"><span style="display:inline-flex;align-items:center;gap:4px">{lx('bar',13,SEC)}Intermédiaire</span><span style="display:inline-flex;align-items:center;gap:4px">{li('users',13,SEC)}jusqu'à 2 pers.</span></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px"><span style="font-size:18px;font-weight:800">520 € <span style="font-size:12px;color:{SEC};font-weight:600">/ pers.</span></span><span style="background:{GREEN};color:#FFF;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:800">Réserver</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px"><span style="font-size:18px;font-weight:800">520 € <span style="font-size:12px;color:{SEC};font-weight:600">/ pers.</span></span><span style="background:{BRAND};color:#FFF;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:800">Réserver</span></div>
   </div>
   <div style="margin-top:8px;border-radius:14px;border:1.5px solid rgba(31,26,21,.12);padding:11px 14px;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:700">Voir les 4 sorties<span>›</span></div>
 

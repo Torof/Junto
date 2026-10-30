@@ -54,7 +54,7 @@ body = f'''<div style="position:absolute;inset:0;background:url({MAP}) center/co
 {realpin('trail-running', 40, 690, 'Trail à la frontale', 'ven. 19h', '12 km')}
 {realpin('paragliding', 300, 820, 'Déco du Chalvet', 'sam. 14h')}
 {realpin('canyoning', 110, 950, 'Canyon du Fournel', 'dim. 10h', 'Tous niveaux')}
-<div style="position:absolute;right:24px;bottom:150px"><div style="width:68px;height:68px;border-radius:50%;background:{GREEN};display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(47,164,106,.45)">{li('plus',34,'#FFF',2.8)}</div></div>
+<div style="position:absolute;right:24px;bottom:150px"><div style="width:68px;height:68px;border-radius:50%;background:{BRAND};display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(30,127,216,.45)">{li('plus',34,'#FFF',2.8)}</div></div>
 {drawer_handle(104)}
 <div style="position:absolute;left:0;right:0;bottom:0">{tabbar(0)}</div>'''
 
