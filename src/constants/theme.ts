@@ -23,9 +23,10 @@
 //   - Color: tokens only; text on solid accent fills = `colors.onCta`.
 //     Two accents (askandgo identity, Scott 2026-10-30): `brand` (blue
 //     #1E7FD8) = the ONE main action of a screen (submit/book/join/send/
-//     publish), the « + » buttons and the logo — never a large surface,
-//     never repeated per list row; `cta` (green) = everything else (tabs,
-//     links, pills, selected states, own bubbles, badges, secondary buttons).
+//     publish), the « + » buttons, the active tab of the bottom bar
+//     (2026-10-30) and the logo — never a large surface, never repeated per
+//     list row; `cta` (green) = everything else (links, section titles,
+//     pills, filters, selected states, own bubbles, badges, secondary buttons).
 //     No emoji in UI labels (lucide + SportIcon) — one deliberate exception:
 //     the Découverte vibe pills keep theirs (they describe a person, not the
 //     app; Scott 2026-10-23, constants/discovery-vibes.ts).

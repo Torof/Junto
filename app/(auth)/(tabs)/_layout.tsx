@@ -14,11 +14,12 @@ import { conversationService } from '@/services/conversation-service';
 import { invitationService } from '@/services/invitation-service';
 import { supabase } from '@/services/supabase';
 
-// Active tab: the icon sits in a light accent pill (Scott 2026-10-23, option B).
+// Active tab: the icon sits in a light accent pill (Scott 2026-10-23, option B),
+// brand blue since 2026-10-30 (Scott: green is everywhere, the bar carries the dynamism).
 function TabPill({ focused, children }: { focused: boolean; children: React.ReactNode }) {
   const colors = useColors();
   return (
-    <View style={{ width: 58, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: focused ? colors.cta + '24' : 'transparent' }}>
+    <View style={{ width: 58, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: focused ? colors.brand + '24' : 'transparent' }}>
       {children}
     </View>
   );
@@ -30,7 +31,7 @@ function TabIcon({ icon: IconComponent, focused }: { icon: LucideIcon; focused: 
     <TabPill focused={focused}>
       <IconComponent
         size={24}
-        color={focused ? colors.cta : colors.textSecondary}
+        color={focused ? colors.brand : colors.textSecondary}
         strokeWidth={focused ? 2.4 : 2}
       />
     </TabPill>
@@ -71,7 +72,7 @@ function MessageTabIcon({ focused }: { focused: boolean }) {
   return (
     <TabPill focused={focused}>
       <View style={styles.bellContainer}>
-        <MessageCircle size={24} color={focused ? colors.cta : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
+        <MessageCircle size={24} color={focused ? colors.brand : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
         {hasUnread && <View style={styles.dot} />}
       </View>
     </TabPill>
