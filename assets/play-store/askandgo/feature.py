@@ -49,7 +49,7 @@ body{{font-family:Outfit,system-ui,sans-serif;color:{INK};background:#E4EDDF;pos
 h1{{position:absolute;left:64px;top:138px;margin:0;width:470px;font-size:60px;line-height:1.02;font-weight:800;color:{DEEP};letter-spacing:-1.2px}}
 .bar{{position:absolute;left:64px;top:292px;width:72px;height:6px;border-radius:3px;background:{GREEN}}}
 .sub{{position:absolute;left:64px;top:322px;width:460px;font-size:23px;line-height:1.3;color:#4B584D;font-weight:500}}
-.map{{position:absolute;left:574px;top:34px;width:416px;height:432px;border-radius:30px;overflow:hidden;background:url({MAP}) 62% 48%/190% auto;box-shadow:0 30px 60px rgba(31,26,21,.26);border:7px solid {INK}}}
+.map{{position:absolute;left:574px;top:34px;width:416px;height:432px;border-radius:30px;overflow:hidden;background:url({MAP}) 62% 48%/190% auto;box-shadow:0 24px 60px rgba(31,26,21,.38),0 0 40px rgba(31,26,21,.22);border:7px solid {INK}}}
 .pin{{position:absolute;display:flex;align-items:center;gap:6px}}
 .pin span{{font-weight:800;font-size:15px;white-space:nowrap;text-shadow:0 0 5px #FFF,0 0 5px #FFF,0 0 8px #FFF}}
 </style></head><body>
