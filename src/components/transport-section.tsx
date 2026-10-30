@@ -14,6 +14,7 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { transportService } from '@/services/transport-service';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { JuntoMapView } from '@/components/map-view';
+import { MapStyleButton } from '@/components/map-style-button';
 import { geocodeService } from '@/services/geocode-service';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { supabase } from '@/services/supabase';
@@ -426,6 +427,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
             <AppText style={styles.mapPickerHint} numberOfLines={1}>
               {t('transport.mapPickHint', { defaultValue: 'Touche la carte pour placer ton départ' })}
             </AppText>
+            <MapStyleButton scope="secondary" />
           </View>
           <View style={[styles.mapPickerFooter, { paddingBottom: insets.bottom + spacing.md }]}>
             <Pressable

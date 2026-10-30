@@ -19,6 +19,7 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { JuntoMapView } from '@/components/map-view';
+import { MapStyleButton } from '@/components/map-style-button';
 import { useCreateStore } from '@/store/create-store';
 import { useSports } from '@/hooks/use-sports';
 import { sportHasDistance, sportHasElevation } from '@/constants/sport-levels';
@@ -183,6 +184,7 @@ export default function CreateStep2() {
             return undefined;
           })()}
         />
+        <MapStyleButton scope="secondary" style={styles.mapStyleButton} />
         {placingPin && (
           <View style={styles.mapOverlay} pointerEvents="none">
             <View style={[
@@ -558,6 +560,7 @@ const createPinButtonStyles = (colors: AppColors, tint: string, isPlacing: boole
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   mapContainer: { flex: 1 },
+  mapStyleButton: { position: 'absolute', top: spacing.md, right: spacing.md },
   mapOverlay: { position: 'absolute', bottom: spacing.md, left: spacing.md, right: spacing.md, alignItems: 'center' },
   mapHintPill: {
     paddingHorizontal: spacing.sm + 2,

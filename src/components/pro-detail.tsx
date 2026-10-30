@@ -29,6 +29,7 @@ import { pickAndUploadProPhotos, removeProPhoto, pickAndUploadCommunityPhotos, r
 import { getFriendlyError } from '@/utils/friendly-error';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { JuntoMapView } from './map-view';
+import { MapStyleButton } from './map-style-button';
 import { PhotoGallery } from './photo-gallery';
 import { PhotoManager } from './photo-manager';
 import { PhotoLightbox } from './photo-lightbox';
@@ -923,6 +924,7 @@ export function ProDetail({ pro, isOwner, initialTab, soloTab, onEdit, inSheet =
           <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)} hitSlop={8}>
             <X size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
+          <MapStyleButton scope="secondary" style={styles.fullMapStyleButton} />
           <Pressable
             style={[styles.navigateButton, { bottom: insets.bottom + 24 }]}
             onPress={() => openLink(`https://www.google.com/maps/dir/?api=1&destination=${pro.primary_lat},${pro.primary_lng}`)}
@@ -1351,6 +1353,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   catMiniRatingText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '600' },
   catMiniTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '700', lineHeight: 20 },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
+  fullMapStyleButton: { position: 'absolute', top: spacing.sm + 2, right: spacing.md },
   closeMapButton: {
     position: 'absolute', top: spacing.sm + 4, left: spacing.md,
     width: 36, height: 36, borderRadius: radius.full,

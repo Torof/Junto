@@ -37,6 +37,7 @@ import { geoJsonLineStringToGpx } from '@/utils/geojson-to-gpx';
 import { useCreateStore } from '@/store/create-store';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
+import { MapStyleButton } from '@/components/map-style-button';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
 import { PickActivitySheet } from '@/components/pick-activity-sheet';
 import { PickTraceSheet } from '@/components/pick-trace-sheet';
@@ -1159,6 +1160,7 @@ export default function ConversationScreen() {
                   <View style={styles.tracePreviewTitleWrap}>
                     <AppText style={styles.tracePreviewTitle} numberOfLines={1}>{tracePreview.name}</AppText>
                   </View>
+                  <MapStyleButton scope="secondary" />
                 </View>
                 <View style={[styles.tracePreviewActions, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
                   <View style={styles.traceActionRow}>

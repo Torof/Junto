@@ -13,6 +13,7 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { JuntoMapView } from '@/components/map-view';
+import { MapStyleButton } from '@/components/map-style-button';
 import { TraceDrawModal } from '@/components/trace-draw-modal';
 import { TraceShareSheet } from '@/components/trace-share-sheet';
 import { useGpxTraces, useCreateGpxTrace, useRenameGpxTrace, useDeleteGpxTrace } from '@/hooks/use-gpx-traces';
@@ -182,6 +183,7 @@ export default function GpxTracesScreen() {
           <Pressable style={[styles.closeBtn, { top: insets.top + spacing.sm }]} onPress={() => setPreview(null)} hitSlop={8}>
             <X size={20} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
+          <MapStyleButton scope="secondary" style={[styles.styleBtn, { top: insets.top + spacing.sm }]} />
           {preview ? (
             <View style={[styles.previewBanner, { top: insets.top + spacing.sm }]} pointerEvents="none">
               <AppText style={styles.previewName} numberOfLines={1}>{preview.name}</AppText>
@@ -268,8 +270,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center',
     zIndex: 10, borderWidth: 1, borderColor: colors.borderStrong,
   },
+  styleBtn: { position: 'absolute', right: 20, zIndex: 10 },
   previewBanner: {
-    position: 'absolute', alignSelf: 'center', zIndex: 10, alignItems: 'center',
+    // maxWidth keeps the banner clear of the close and map-style buttons.
+    position: 'absolute', alignSelf: 'center', zIndex: 10, alignItems: 'center', maxWidth: '62%',
     backgroundColor: colors.background + 'F0', borderRadius: radius.full,
     paddingHorizontal: spacing.md, paddingVertical: spacing.xs,
     borderWidth: 1, borderColor: colors.borderMuted,

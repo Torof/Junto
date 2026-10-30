@@ -25,6 +25,7 @@ import { useSports } from '@/hooks/use-sports';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
+import { MapStyleButton } from '@/components/map-style-button';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { PressableScale } from '@/components/pressable-scale';
 import { useInitialLocation } from '@/hooks/use-initial-location';
@@ -749,6 +750,7 @@ export default function ProOfferingEditScreen() {
           >
             <AppText style={styles.fullMapCloseText}>✕</AppText>
           </Pressable>
+          <MapStyleButton scope="secondary" style={styles.fullMapStyleButton} />
           <Pressable
             style={[styles.fullMapConfirm, { bottom: insets.bottom + 24 }, pickerPinLng === null && styles.fullMapConfirmDisabled]}
             onPress={confirmMapPick}
@@ -878,6 +880,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   ctaDisabled: { opacity: 0.5 },
   ctaText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
+  fullMapStyleButton: { position: 'absolute', top: spacing.sm + 2, left: spacing.md, zIndex: 10 },
   fullMapCloseBtn: { borderWidth: 1, borderColor: colors.lineStrong, ...shadows.card,
     position: 'absolute',
     top: spacing.sm + 4,
@@ -900,7 +903,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: spacing.xs,
     paddingVertical: spacing.sm + 4,
     borderRadius: radius.full,
-    backgroundColor: colors.cta,
+    backgroundColor: colors.brand,
   },
   fullMapConfirmDisabled: { opacity: 0.5 },
   fullMapConfirmText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },

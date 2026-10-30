@@ -25,7 +25,7 @@ import dayjs from 'dayjs';
 import i18n from '@/i18n';
 import 'dayjs/locale/fr';
 
-import { useMapStyleStore, MAP_STYLE_URLS, MAP_STYLE_JSONS, MAP_STYLE_ATTRIBUTIONS } from '@/store/map-style-store';
+import { useMapStyleStore, MAP_STYLE_URLS, MAP_STYLE_JSONS, MAP_STYLE_ATTRIBUTIONS, type MapStyleScope } from '@/store/map-style-store';
 
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -147,6 +147,10 @@ interface MapViewProps {
   zoomEnabled?: boolean;
   rotateEnabled?: boolean;
   pitchEnabled?: boolean;
+  // Which background setting this map follows: the main map's, or the one
+  // shared by every secondary map (default). Only the carte tab and the
+  // visitor map pass 'main'.
+  styleScope?: MapStyleScope;
 }
 
 // Underlying rnmapbox MapView instance type — carries getCoordinateFromView.
@@ -248,10 +252,11 @@ export function JuntoMapView({
   zoomEnabled = true,
   rotateEnabled = true,
   pitchEnabled = true,
+  styleScope = 'secondary',
 }: MapViewProps) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const mapStyleKey = useMapStyleStore((s) => s.style);
+  const mapStyleKey = useMapStyleStore((s) => (styleScope === 'main' ? s.style : s.secondaryStyle));
   const [currentZoom, setCurrentZoom] = useState(zoom);
   // The fan (Scott 2026-10-27, mockup « halo »): a cluster whose points share
   // one spot can't be zoomed apart, so its tap spreads the pins on a circle

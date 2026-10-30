@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X, Undo2, Trash2, Pencil, Magnet, Waypoints } from 'lucide-react-native';
 import { JuntoMapView, type MapPin, type JuntoMapRef } from './map-view';
+import { MapStyleButton } from './map-style-button';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -300,6 +301,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
         <Pressable style={[styles.closeBtn, { top: insets.top + spacing.sm }]} onPress={onClose} hitSlop={8}>
           <X size={20} color={colors.textPrimary} strokeWidth={2.4} />
         </Pressable>
+        <MapStyleButton scope="secondary" style={[styles.styleBtn, { top: insets.top + spacing.sm }]} />
 
         <View style={[styles.topBanner, { top: insets.top + spacing.sm + 44 }]} pointerEvents="none">
           <AppText style={styles.topBannerText}>
@@ -458,6 +460,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderMuted,
     backgroundColor: colors.surface,
   },
+  styleBtn: { position: 'absolute', right: 20, zIndex: 10 },
   closeBtn: {
     position: 'absolute', left: 20, width: 36, height: 36, borderRadius: radius.sm,
     backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center',

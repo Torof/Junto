@@ -406,6 +406,7 @@ export default function CarteScreen() {
         <>
             {mapReady && (
             <JuntoMapView
+              styleScope="main"
               center={center}
               zoom={initialZoom}
               activities={filteredActivitiesByType}

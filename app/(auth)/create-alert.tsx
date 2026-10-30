@@ -16,6 +16,7 @@ import type { AppColors } from '@/constants/colors';
 import { alertService } from '@/services/alert-service';
 import { SportDropdown } from '@/components/sport-dropdown';
 import { JuntoMapView } from '@/components/map-view';
+import { MapStyleButton } from '@/components/map-style-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LEVELS } from '@/types/activity-form';
@@ -249,6 +250,7 @@ export default function CreateAlertScreen() {
           <Pressable style={styles.mapClose} onPress={() => setShowMap(false)}>
             <X size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
+          <MapStyleButton scope="secondary" style={styles.mapStyleButton} />
         </SafeAreaView>
       </Modal>
     </View>
@@ -393,6 +395,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderStrong,
   },
+  mapStyleButton: { position: 'absolute', top: spacing.xl + spacing.md - 2, right: spacing.md },
   mapClose: {
     position: 'absolute',
     top: spacing.xl + spacing.md,

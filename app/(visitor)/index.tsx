@@ -144,6 +144,7 @@ export default function VisitorMapScreen() {
       >
         {mapMounted && (
           <JuntoMapView
+            styleScope="main"
             center={center}
             zoom={initialZoom}
             activities={activities ?? []}

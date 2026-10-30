@@ -26,6 +26,7 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { pickAndUploadProPinImage } from '@/utils/pro-pin-image-upload';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
+import { MapStyleButton } from '@/components/map-style-button';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { PressableScale } from '@/components/pressable-scale';
 import { useInitialLocation } from '@/hooks/use-initial-location';
@@ -672,6 +673,7 @@ export default function ProEditScreen() {
           >
             <X size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
+          <MapStyleButton scope="secondary" style={styles.fullMapStyleButton} />
           <View style={[styles.fullMapHint, { top: insets.top + spacing.sm + 4 + 44 }]} pointerEvents="none">
             <AppText style={styles.fullMapHintText}>
               {pickerPinLng !== null
@@ -813,6 +815,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   ctaDisabled: { opacity: 0.4 },
   ctaText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
+  fullMapStyleButton: { position: 'absolute', top: spacing.sm + 2, right: spacing.md, zIndex: 10 },
   fullMapCloseBtn: {
     position: 'absolute', top: spacing.sm + 4, left: spacing.md,
     width: 36, height: 36, borderRadius: 18,
@@ -831,7 +834,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   fullMapConfirm: {
     position: 'absolute', alignSelf: 'center',
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: colors.cta,
+    backgroundColor: colors.brand,
     borderRadius: radius.full,
     paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 2,
   },

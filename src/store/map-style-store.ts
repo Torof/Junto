@@ -84,26 +84,39 @@ export const MAP_STYLE_ATTRIBUTIONS: Partial<Record<MapStyleKey, string>> = {
 };
 
 const STORAGE_KEY = 'junto_map_style';
+const SECONDARY_STORAGE_KEY = 'junto_map_style_secondary';
 const DEFAULT_STYLE: MapStyleKey = 'outdoors';
+
+// Which map a style applies to: the main map (carte tab, visitor map) or every
+// secondary map (trace library and drawing, an outing's or a pro's full map,
+// pickers, previews) — two independent, remembered choices (Scott 2026-10-30).
+export type MapStyleScope = 'main' | 'secondary';
 
 interface MapStyleStore {
   style: MapStyleKey;
+  secondaryStyle: MapStyleKey;
   loaded: boolean;
   load: () => Promise<void>;
   setStyle: (style: MapStyleKey) => void;
+  setSecondaryStyle: (style: MapStyleKey) => void;
 }
 
 export const useMapStyleStore = create<MapStyleStore>((set) => ({
   style: DEFAULT_STYLE,
+  secondaryStyle: DEFAULT_STYLE,
   loaded: false,
   load: async () => {
+    const valid = (v: string | null): v is MapStyleKey => !!v && (MAP_STYLE_ORDER as string[]).includes(v);
     try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored && (MAP_STYLE_ORDER as string[]).includes(stored)) {
-        set({ style: stored as MapStyleKey, loaded: true });
-      } else {
-        set({ loaded: true });
-      }
+      const [stored, storedSecondary] = await Promise.all([
+        AsyncStorage.getItem(STORAGE_KEY),
+        AsyncStorage.getItem(SECONDARY_STORAGE_KEY),
+      ]);
+      set({
+        ...(valid(stored) ? { style: stored } : {}),
+        ...(valid(storedSecondary) ? { secondaryStyle: storedSecondary } : {}),
+        loaded: true,
+      });
     } catch {
       set({ loaded: true });
     }
@@ -111,5 +124,9 @@ export const useMapStyleStore = create<MapStyleStore>((set) => ({
   setStyle: (style) => {
     set({ style });
     AsyncStorage.setItem(STORAGE_KEY, style).catch(() => {});
+  },
+  setSecondaryStyle: (secondaryStyle) => {
+    set({ secondaryStyle });
+    AsyncStorage.setItem(SECONDARY_STORAGE_KEY, secondaryStyle).catch(() => {});
   },
 }));

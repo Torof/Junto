@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, Modal, StyleSheet } from 'react-native';
+import { Pressable, Modal, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { AppText } from '@/components/app-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -7,28 +7,30 @@ import { Layers } from 'lucide-react-native';
 import { spacing, radius, fontSizes } from '@/constants/theme';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
-import { useMapStyleStore, MAP_STYLE_ORDER, type MapStyleKey } from '@/store/map-style-store';
+import { useMapStyleStore, MAP_STYLE_ORDER, type MapStyleKey, type MapStyleScope } from '@/store/map-style-store';
 
-// Positioned by the parent (carte.tsx) inside the top-left controls
-// row. The modal panel still anchors near the button's real screen
-// position via safeArea + the row's expected top offset.
-export function MapStyleButton() {
+// Main scope (default): positioned by carte.tsx inside the top-left controls
+// row; the modal panel anchors near the button's real screen position via
+// safeArea + the row's expected top offset. Secondary scope: the caller places
+// the button over its map (`style`, absolute) and the panel opens centered —
+// it changes the background shared by every secondary map (Scott 2026-10-30).
+export function MapStyleButton({ scope = 'main', style }: { scope?: MapStyleScope; style?: StyleProp<ViewStyle> }) {
   const { t } = useTranslation();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors, insets.top), [colors, insets.top]);
   const [open, setOpen] = useState(false);
-  const current = useMapStyleStore((s) => s.style);
-  const setStyle = useMapStyleStore((s) => s.setStyle);
+  const current = useMapStyleStore((s) => (scope === 'main' ? s.style : s.secondaryStyle));
+  const setStyle = useMapStyleStore((s) => (scope === 'main' ? s.setStyle : s.setSecondaryStyle));
 
   return (
     <>
-      <Pressable style={styles.button} onPress={() => setOpen(true)} hitSlop={8} accessibilityLabel={t('drawer.mapStyle')}>
+      <Pressable style={[styles.button, style]} onPress={() => setOpen(true)} hitSlop={8} accessibilityLabel={t('drawer.mapStyle')}>
         <Layers size={20} color={colors.textPrimary} strokeWidth={2.2} />
       </Pressable>
 
       <Modal visible={open} animationType="fade" transparent onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
+        <Pressable style={[styles.backdrop, scope === 'secondary' && styles.backdropCentered]} onPress={() => setOpen(false)}>
           <Pressable style={styles.panel} onPress={() => {}}>
             <AppText style={styles.panelTitle}>{t('drawer.mapStyle')}</AppText>
             {MAP_STYLE_ORDER.map((key: MapStyleKey) => {
@@ -80,6 +82,7 @@ const createStyles = (colors: AppColors, safeTop: number) => StyleSheet.create({
     paddingLeft: spacing.md + 40 + spacing.sm,
     alignItems: 'flex-start',
   },
+  backdropCentered: { paddingTop: 0, paddingLeft: 0, alignItems: 'center', justifyContent: 'center' },
   panel: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,

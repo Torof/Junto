@@ -10,6 +10,7 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { JuntoMapView } from '@/components/map-view';
+import { MapStyleButton } from '@/components/map-style-button';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { discoveryService } from '@/services/discovery-service';
 
@@ -67,6 +68,7 @@ export default function DiscoveryZoneScreen() {
             rotateEnabled={false}
             pitchEnabled={false}
           />
+          <MapStyleButton scope="secondary" style={styles.mapStyleButton} />
           <View style={[styles.caption, { bottom: insets.bottom + spacing.md }]} pointerEvents="none">
             <AppText style={styles.captionText}>
               {coords.radius
@@ -87,6 +89,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   unavailable: { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center' },
   mapWrap: { flex: 1 },
+  mapStyleButton: { position: 'absolute', top: spacing.md, right: spacing.md },
   pin: { width: 18, height: 18, borderRadius: 9, backgroundColor: colors.cta, borderWidth: 3, borderColor: '#FFFFFF' },
   caption: { position: 'absolute', left: spacing.md, right: spacing.md, alignItems: 'center' },
   captionText: {

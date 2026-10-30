@@ -36,6 +36,7 @@ import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/uti
 import { FavoriteButton } from '@/components/favorite-button';
 import { formatLevelRange } from '@/constants/sport-levels';
 import { JuntoMapView, type MapPin } from './map-view';
+import { MapStyleButton } from './map-style-button';
 import { MapLegend } from './map-legend';
 import { TraceDrawModal } from './trace-draw-modal';
 import { TracePickerModal } from './trace-picker-modal';
@@ -1542,6 +1543,7 @@ export function ActivityDetail({
           <Pressable style={[styles.closeMapButton, { top: insets.top + spacing.sm }]} onPress={() => setShowFullMap(false)} hitSlop={8}>
             <XIcon size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>
+          <MapStyleButton scope="secondary" style={[styles.fullMapStyleButton, { top: insets.top + spacing.sm }]} />
           <Pressable
             style={[styles.navigateButton, { bottom: insets.bottom + 24 }]}
             onPress={() => {
@@ -1868,6 +1870,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   fullMapContainer: { flex: 1, backgroundColor: colors.background },
   fullMapLegendWrapper: { position: 'absolute', right: 12, zIndex: 10 },
+  fullMapStyleButton: { position: 'absolute', right: 20, zIndex: 10 },
   closeMapButton: { position: 'absolute', left: 20, width: 40, height: 40, borderRadius: radius.full, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', zIndex: 10, ...shadows.card },
   navigateButton: { position: 'absolute', alignSelf: 'center', backgroundColor: colors.brand, borderRadius: radius.full, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm + 2, zIndex: 10, ...glow(colors.brand) },
   navigateText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '700' },
