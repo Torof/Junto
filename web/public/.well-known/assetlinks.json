@@ -12,5 +12,18 @@
         "5D:7E:AD:FA:E3:51:39:3D:7E:BC:86:4B:6E:2E:F9:CE:B7:CC:A1:D2:13:EC:01:03:E7:67:B5:75:7B:D4:DC:17"
       ]
     }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.getjunto.preview",
+      "sha256_cert_fingerprints": [
+        "06:E7:A5:4E:34:98:32:8D:75:A1:97:96:25:DA:D1:A7:73:DC:8A:23:C2:49:39:75:DE:0A:3D:5A:B6:0B:E1:79"
+      ]
+    }
   }
 ]
