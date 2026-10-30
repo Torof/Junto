@@ -1174,8 +1174,8 @@ export default function ConversationScreen() {
                     </Pressable>
                   </View>
                   <Pressable style={[styles.traceActionButton, styles.traceActionButtonPrimary]} onPress={handleUseInActivity}>
-                    <Plus size={16} color={colors.textPrimary} strokeWidth={2.4} />
-                    <AppText style={styles.traceActionText}>{t('messagerie.traceUseInActivity')}</AppText>
+                    <Plus size={16} color={colors.onCta} strokeWidth={2.4} />
+                    <AppText style={[styles.traceActionText, styles.traceActionTextPrimary]}>{t('messagerie.traceUseInActivity')}</AppText>
                   </Pressable>
                 </View>
               </>
@@ -1917,6 +1917,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.md,
   },
   traceActionButtonPrimary: { backgroundColor: colors.brand },
+  traceActionTextPrimary: { color: colors.onCta },
   traceActionText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   menuBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   menuSheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.lg, paddingBottom: spacing.xl + 16 },
