@@ -4,7 +4,7 @@ import { Tabs, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Map, MessageCircle, Menu, UserSearch, ArrowLeft, Users, type LucideIcon } from 'lucide-react-native';
+import { Map, MessageCircle, Menu, UserSearch, ArrowLeft, Users, Plus, type LucideIcon } from 'lucide-react-native';
 import { MenuSheet } from '@/components/menu-sheet';
 import { AppText, useFontStyle } from '@/components/app-text';
 import { useColors } from '@/hooks/use-theme';
@@ -230,7 +230,12 @@ export default function TabsLayout() {
               accessibilityRole="button"
               style={styles.headerAction}
             >
-              <Users size={18} color={colors.cta} strokeWidth={2.4} />
+              <View>
+                <Users size={18} color={colors.cta} strokeWidth={2.4} />
+                <View style={styles.headerActionPlus}>
+                  <Plus size={9} color={colors.onCta} strokeWidth={3.5} />
+                </View>
+              </View>
               <AppText style={styles.headerActionText}>{t('group.createTitle', { defaultValue: 'Nouveau groupe' })}</AppText>
             </Pressable>
           ),
@@ -272,7 +277,13 @@ export default function TabsLayout() {
 }
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
-  headerAction: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: spacing.md - 2, paddingLeft: spacing.sm },
+  headerAction: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingRight: spacing.md - 2, paddingLeft: spacing.sm },
+  // Small « + » badge on the group icon — lucide has no users-plus glyph.
+  headerActionPlus: {
+    position: 'absolute', right: -5, bottom: -4, width: 13, height: 13, borderRadius: 7,
+    backgroundColor: colors.cta, borderWidth: 1.5, borderColor: colors.background,
+    alignItems: 'center', justifyContent: 'center',
+  },
   headerActionText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
   bellContainer: {
     width: 28,
