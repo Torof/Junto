@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import dayjs from 'dayjs';
 import { X, Share2, Pencil, Star, ChevronRight, Clock, BarChart3, MapPin, Users, Camera } from 'lucide-react-native';
+import { GearPills } from '@/components/gear-pills';
 import { AppText } from '@/components/app-text';
 import { UserAvatar } from '@/components/user-avatar';
 import { FavoriteButton } from '@/components/favorite-button';
@@ -216,23 +217,8 @@ export function OfferingPage({ offering, isOwner }: Props) {
         {(offering.equipment_provided?.length > 0 || offering.equipment_required?.length > 0) ? (
           <>
             <View style={styles.head}><AppText style={styles.sec}>{t('proOffering.sectionEquipment', { defaultValue: 'Matériel' })}</AppText></View>
-            <View style={styles.gear}>
-              {offering.equipment_provided?.length > 0 ? (
-                <View style={styles.gearCol}>
-                  <AppText style={styles.gearLabel}>{t('proOffering.equipProvidedLabel', { defaultValue: 'Fourni' })}</AppText>
-                  {offering.equipment_provided.map((g, i) => (
-                    <View key={`p-${i}`} style={styles.gearLine}><View style={[styles.dot, { backgroundColor: colors.cta }]} /><AppText style={styles.gearText}>{g}</AppText></View>
-                  ))}
-                </View>
-              ) : null}
-              {offering.equipment_required?.length > 0 ? (
-                <View style={styles.gearCol}>
-                  <AppText style={styles.gearLabel}>{t('proOffering.equipRequiredLabel', { defaultValue: 'À prévoir' })}</AppText>
-                  {offering.equipment_required.map((g, i) => (
-                    <View key={`r-${i}`} style={styles.gearLine}><View style={[styles.dot, { backgroundColor: colors.textMuted }]} /><AppText style={styles.gearText}>{g}</AppText></View>
-                  ))}
-                </View>
-              ) : null}
+            <View style={styles.inset}>
+              <GearPills provided={offering.equipment_provided ?? []} required={offering.equipment_required ?? []} />
             </View>
           </>
         ) : null}
@@ -350,12 +336,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   link: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
   inset: { paddingHorizontal: spacing.md + 2 },
   body: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20 },
-  gear: { flexDirection: 'row', gap: 14, paddingHorizontal: spacing.md + 2 },
-  gearCol: { flex: 1, gap: 6 },
-  gearLabel: { color: colors.textSecondary, fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
-  gearLine: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  dot: { width: 6, height: 6, borderRadius: 3, marginTop: 7 },
-  gearText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20 },
   ratingBlock: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: spacing.md + 2, paddingBottom: spacing.sm + 4 },
   ratingBig: { color: colors.textPrimary, fontSize: 30, fontWeight: '800', letterSpacing: -0.5, lineHeight: 34 },
   review: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: spacing.md + 2, paddingBottom: spacing.sm + 4 },

@@ -10,7 +10,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Pencil, Backpack, Check as CheckIcon, Euro } from 'lucide-react-native';
+import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Pencil, Euro } from 'lucide-react-native';
+import { GearPills } from '@/components/gear-pills';
 import { FavoriteButton } from './favorite-button';
 import { fontSizes, fonts, spacing, radius, shadows , glow} from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -390,26 +391,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
       {(offering.equipment_provided?.length > 0 || offering.equipment_required?.length > 0) && (
         <View style={styles.section}>
           <AppText style={styles.sectionTitle}>{t('proOffering.sectionEquipment', { defaultValue: 'Matériel' })}</AppText>
-          <View style={styles.equipBlockSection}>
-            {offering.equipment_provided?.length > 0 && (
-              <View style={styles.equipLine}>
-                <CheckIcon size={15} color={colors.cta} strokeWidth={2.6} style={styles.equipIcon} />
-                <AppText style={styles.equipText}>
-                  <AppText style={styles.equipLabel}>{t('proOffering.equipProvidedLabel', { defaultValue: 'Fourni' })}</AppText>
-                  {' — '}{offering.equipment_provided.join(', ')}.
-                </AppText>
-              </View>
-            )}
-            {offering.equipment_required?.length > 0 && (
-              <View style={styles.equipLine}>
-                <Backpack size={15} color={colors.textSecondary} strokeWidth={2.2} style={styles.equipIcon} />
-                <AppText style={styles.equipText}>
-                  <AppText style={styles.equipLabel}>{t('proOffering.equipRequiredLabel', { defaultValue: 'À apporter' })}</AppText>
-                  {' — '}{offering.equipment_required.join(', ')}.
-                </AppText>
-              </View>
-            )}
-          </View>
+          <GearPills provided={offering.equipment_provided ?? []} required={offering.equipment_required ?? []} />
         </View>
       )}
 
@@ -531,7 +513,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   statValue: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   descBody: { color: colors.textPrimary, fontSize: fontSizes.md, lineHeight: 22, marginTop: spacing.sm },
   equipBlock: { marginTop: spacing.sm + 2, gap: 6 },
-  equipBlockSection: { gap: 6 },
   priceText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   scrollContentSticky: { paddingBottom: 110 },
   stickyBar: {
@@ -547,10 +528,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.brand, borderRadius: radius.full,
     paddingVertical: spacing.sm + 4, paddingHorizontal: spacing.xl,
   },
-  equipLine: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
-  equipIcon: { marginTop: 2 },
-  equipText: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm, lineHeight: 20 },
-  equipLabel: { color: colors.textPrimary, fontWeight: '700' },
   slotsLabel: {
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.6, marginTop: spacing.md, marginBottom: spacing.sm,
