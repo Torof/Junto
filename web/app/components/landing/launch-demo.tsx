@@ -213,7 +213,7 @@ export default function LaunchDemo() {
           <div className="l-tiles">
             <div className="l-tile">
               <div className="l-tile-head">
-                <div className="l-tile-icon"><IconCar size={22} color="#2FA46A" /></div>
+                <div className="l-tile-icon"><IconCar size={22} color="#246342" /></div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}><span className="l-tile-title">Covoiturage</span><span className="l-tile-sub">2 voitures · 3 places restantes</span></div>
               </div>
               <div className="l-line"><div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}><span className="l-line-name">Julie R. conduit</span><span className="l-line-sub">depuis Briançon · départ 8h15</span></div><a href="#telecharger" className="l-btn sm">Une place</a></div>
@@ -222,7 +222,7 @@ export default function LaunchDemo() {
             </div>
             <div className="l-tile">
               <div className="l-tile-head">
-                <div className="l-tile-icon"><IconBackpack size={22} color="#2FA46A" /></div>
+                <div className="l-tile-icon"><IconBackpack size={22} color="#246342" /></div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}><span className="l-tile-title">Matériel</span><span className="l-tile-sub">4 objets déclarés · 1 manque</span></div>
               </div>
               <div className="l-line"><span style={{ fontSize: 14 }}><b>Corde 70 m</b> <span className="l-muted">· Thomas</span></span><span className="l-badge-green">partagée</span></div>
@@ -231,7 +231,7 @@ export default function LaunchDemo() {
             </div>
             <div className="l-tile">
               <div className="l-tile-head">
-                <div className="l-tile-icon"><IconChat size={22} color="#2FA46A" /></div>
+                <div className="l-tile-icon"><IconChat size={22} color="#246342" /></div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}><span className="l-tile-title">Chat de la sortie</span><span className="l-tile-sub">les participants, et personne d&apos;autre</span></div>
               </div>
               <div className="l-bubble-row"><div className="l-avatar" style={{ width: 28, height: 28, fontSize: 10 }}>KD</div><div className="l-bubble">Je serai 10 min en retard, commencez sans moi.</div></div>

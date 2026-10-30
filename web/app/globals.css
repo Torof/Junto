@@ -5,11 +5,11 @@
   --navy: #1E2F4D;
   --navy-deep: #14223B;
   --navy-dark: #0F1828;
-  /* Brand accent — vert vif #2FA46A (site + app share it, 2026-07-08). The
-     standalone juncture LOGO uses the deeper vert montagne #3F7A56 as its
-     signature; in-context site marks follow this accent. Names kept as
-     --orange* for a minimal diff. */
-  --orange: #2FA46A;
+  /* askandgo identity (2026-10-30): green #246342 for links and accents,
+     brand blue #1E7FD8 (--brand) for action buttons. Names kept as --orange*
+     for a minimal diff. */
+  --orange: #246342;
+  --brand: #1E7FD8;
   --orange-soft: #7BC6A0;
   --cream: #F4E9D3;
   --cream-soft: #FBF5E6;
@@ -23,7 +23,7 @@
   --bg: #0D1B2A;
   --surface: #1B3A5C;
   --surface-2: #142D48;
-  --cta: #2FA46A;
+  --cta: #246342;
   --text: #F5F5F0;
   --text-secondary: #8A9BB0;
   --success: #2ECC71;

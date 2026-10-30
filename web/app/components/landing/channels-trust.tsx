@@ -93,7 +93,7 @@ export default function ChannelsTrust() {
             <div className="l-chan-compose">
               <label htmlFor="canal-compose" className="sr-only">Écrire dans le canal</label>
               <input id="canal-compose" type="text" placeholder="Écrire dans le canal…" readOnly />
-              <a href="#telecharger" className="l-btn-outline" aria-label="Proposer une sortie"><IconPlus size={14} color="#3F7A56" width2={2.6} /><span>Proposer une sortie</span></a>
+              <a href="#telecharger" className="l-btn-outline" aria-label="Proposer une sortie"><IconPlus size={14} color="#246342" width2={2.6} /><span>Proposer une sortie</span></a>
             </div>
           </div>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: '#6B6259' }}>Un canal, c&apos;est un lieu et un sport. On y parle conditions, matos, envies — et quand quelqu&apos;un propose, la sortie apparaît dans le fil, prête à rejoindre.</p>
@@ -123,7 +123,7 @@ export default function ChannelsTrust() {
                 <div className="l-pf-stats">
                   <div><b>20</b><small style={{ color: '#2ECC71' }}>Terminées</small></div>
                   <i />
-                  <div><b>12</b><small style={{ color: '#2FA46A' }}>Créées</small></div>
+                  <div><b>12</b><small style={{ color: '#246342' }}>Créées</small></div>
                   <i />
                   <div><b>14</b><small style={{ color: '#4B7CB8' }}>Rejointes</small></div>
                 </div>

@@ -89,7 +89,7 @@ function NotFound() {
       <p style={{ color: 'var(--text-secondary)', textAlign: 'center', maxWidth: 360, marginBottom: 24 }}>
         Cette activité n&apos;existe plus. Découvre les autres sorties sur askandgo.
       </p>
-      <a href={APK_DOWNLOAD_URL} style={{ background: 'var(--cta)', padding: '12px 24px', borderRadius: 999, fontWeight: 700 }}>
+      <a href={APK_DOWNLOAD_URL} style={{ background: 'var(--brand)', padding: '12px 24px', borderRadius: 999, fontWeight: 700 }}>
         Télécharger askandgo
       </a>
     </main>
