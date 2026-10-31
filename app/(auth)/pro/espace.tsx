@@ -293,7 +293,7 @@ export default function ProSpaceScreen() {
         <Tile
           styles={styles}
           icon={<Mountain size={18} color={colors.cta} strokeWidth={2.2} />}
-          title={t('booking.hubOutings', { defaultValue: 'Mes sorties' })}
+          title={t('booking.hubOutings', { defaultValue: 'Mon catalogue de sorties' })}
           sub={t('booking.hubOutingsCount', { defaultValue: '{{count}} au catalogue', count: offerings?.length ?? 0 })}
           onPress={() => router.push(`/(auth)/pro/${userId}?tab=catalog`)}
         />
@@ -307,12 +307,12 @@ export default function ProSpaceScreen() {
           badge={unreadClients || undefined}
           onPress={() => router.push('/(auth)/pro/messages')}
         />
-        {/* « Ma page pro » — two explicit actions instead of one tap (Scott 2026-10-31). */}
+        {/* « Ma page professionnelle » — two explicit actions instead of one tap (Scott 2026-10-31). */}
         <View style={styles.tile}>
           <View style={styles.tileTop}>
             <View style={styles.ico}><Eye size={18} color={colors.cta} strokeWidth={2.2} /></View>
           </View>
-          <AppText style={styles.tileTitle}>{t('booking.hubPageShort', { defaultValue: 'Ma page pro' })}</AppText>
+          <AppText style={styles.tileTitle}>{t('booking.hubPageShort', { defaultValue: 'Ma page professionnelle' })}</AppText>
           <View style={styles.pageBtns}>
             <PressableScale style={styles.pageBtn} onPress={() => router.push(`/(auth)/pro/${userId}`)} accessibilityRole="button">
               <AppText style={styles.pageBtnText}>{t('booking.hubPageView', { defaultValue: 'Voir' })}</AppText>
@@ -410,7 +410,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm + 2 },
   tile: {
-    width: '48%', flexGrow: 1, backgroundColor: colors.surface,
+    width: '100%', backgroundColor: colors.surface,
     borderRadius: radius.card, padding: spacing.sm + 5,
     borderWidth: 1, borderColor: colors.lineStrong, ...shadows.card,
   },

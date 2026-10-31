@@ -857,7 +857,20 @@ export function ProDetail({ pro, isOwner, initialTab, soloTab, onEdit, inSheet =
                           </View>
                         </View>
 
-                        <AppText style={[styles.expCta, { color: accent }]}>{t('pro.seeDetail', { defaultValue: 'Voir le détail ›' })}</AppText>
+                        {/* Explicit buttons, not a trailing link (Scott 2026-10-31) —
+                            the owner edits straight from the catalogue. */}
+                        <View style={styles.expBtns}>
+                          <Pressable style={({ pressed }) => [styles.expBtn, { backgroundColor: accent + '18' }, pressed && styles.expBtnPressed]}
+                            onPress={() => openOffering(o)} accessibilityRole="button">
+                            <AppText style={[styles.expBtnText, { color: accent }]}>{t('pro.seeDetailBtn', { defaultValue: 'Voir le détail' })}</AppText>
+                          </Pressable>
+                          {isOwner ? (
+                            <Pressable style={({ pressed }) => [styles.expBtn, { backgroundColor: accent + '18' }, pressed && styles.expBtnPressed]}
+                              onPress={() => router.push(`/(auth)/pro/offering/edit?id=${o.id}`)} accessibilityRole="button">
+                              <AppText style={[styles.expBtnText, { color: accent }]}>{t('booking.hubPageEdit', { defaultValue: 'Modifier' })}</AppText>
+                            </Pressable>
+                          ) : null}
+                        </View>
                       </View>
                     </Pressable>
                   );
@@ -1328,7 +1341,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   expLineTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 5 },
   expLineIcon: { marginTop: 2 },
   expLineText: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm, lineHeight: 18 },
-  expCta: { fontSize: fontSizes.sm, fontWeight: '600', marginTop: spacing.xs, alignSelf: 'flex-end' },
+  expBtns: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  expBtn: { flex: 1, alignItems: 'center', paddingVertical: spacing.sm + 1, borderRadius: radius.full },
+  expBtnPressed: { opacity: 0.7 },
+  expBtnText: { fontSize: fontSizes.sm, fontWeight: '700' },
   // Aperçu catalogue carousel — text-forward mini cards (no photo).
   catHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
   catSeeAll: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
