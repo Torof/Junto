@@ -307,13 +307,21 @@ export default function ProSpaceScreen() {
           badge={unreadClients || undefined}
           onPress={() => router.push('/(auth)/pro/messages')}
         />
-        <Tile
-          styles={styles}
-          icon={<Eye size={18} color={colors.cta} strokeWidth={2.2} />}
-          title={t('booking.hubPageShort', { defaultValue: 'Ma page pro' })}
-          sub={t('booking.hubPageSubEdit', { defaultValue: 'Voir et modifier' })}
-          onPress={() => router.push(`/(auth)/pro/${userId}`)}
-        />
+        {/* « Ma page pro » — two explicit actions instead of one tap (Scott 2026-10-31). */}
+        <View style={styles.tile}>
+          <View style={styles.tileTop}>
+            <View style={styles.ico}><Eye size={18} color={colors.cta} strokeWidth={2.2} /></View>
+          </View>
+          <AppText style={styles.tileTitle}>{t('booking.hubPageShort', { defaultValue: 'Ma page pro' })}</AppText>
+          <View style={styles.pageBtns}>
+            <PressableScale style={styles.pageBtn} onPress={() => router.push(`/(auth)/pro/${userId}`)} accessibilityRole="button">
+              <AppText style={styles.pageBtnText}>{t('booking.hubPageView', { defaultValue: 'Voir' })}</AppText>
+            </PressableScale>
+            <PressableScale style={styles.pageBtn} onPress={() => router.push('/(auth)/pro/edit')} accessibilityRole="button">
+              <AppText style={styles.pageBtnText}>{t('booking.hubPageEdit', { defaultValue: 'Modifier' })}</AppText>
+            </PressableScale>
+          </View>
+        </View>
       </View>
 
       <Pressable style={styles.deleteBtn} onPress={confirmDelete} disabled={deleting} accessibilityRole="button">
@@ -413,6 +421,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   tileTitle: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },
   tileSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 2 },
+  pageBtns: { flexDirection: 'row', gap: spacing.xs + 2, marginTop: spacing.sm },
+  pageBtn: {
+    flex: 1, alignItems: 'center', paddingVertical: spacing.xs + 3, borderRadius: radius.full,
+    backgroundColor: colors.cta + '18',
+  },
+  pageBtnText: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
   badge: {
     minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.error,
     alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6,

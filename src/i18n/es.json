@@ -2274,6 +2274,8 @@
     "hubOutings": "Mis salidas",
     "hubOutingsCount_one": "{{count}} en el catálogo",
     "hubOutingsCount_other": "{{count}} en el catálogo",
+    "hubPageView": "Ver",
+    "hubPageEdit": "Editar",
     "hubPageShort": "Mi página pro",
     "hubPageSubEdit": "Ver y editar",
     "bookTitle": "Reservar",

@@ -2274,6 +2274,8 @@
     "hubOutings": "My outings",
     "hubOutingsCount_one": "{{count}} in the catalog",
     "hubOutingsCount_other": "{{count}} in the catalog",
+    "hubPageView": "View",
+    "hubPageEdit": "Edit",
     "hubPageShort": "My pro page",
     "hubPageSubEdit": "View and edit",
     "bookTitle": "Book",

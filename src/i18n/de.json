@@ -2274,6 +2274,8 @@
     "hubOutings": "Meine Touren",
     "hubOutingsCount_one": "{{count}} im Katalog",
     "hubOutingsCount_other": "{{count}} im Katalog",
+    "hubPageView": "Ansehen",
+    "hubPageEdit": "Bearbeiten",
     "hubPageShort": "Meine Pro-Seite",
     "hubPageSubEdit": "Ansehen und bearbeiten",
     "bookTitle": "Buchen",
