@@ -1920,6 +1920,7 @@
     "traceDraw": "Dibujar"
   },
   "proOffering": {
+    "coverRemove": "Quitar la portada",
     "cover": "Foto de portada",
     "coverPick": "Elegir una foto",
     "coverChange": "Cambiar",
@@ -2113,6 +2114,14 @@
       "school_office": "Oficina / escuela",
       "other": "Otro"
     },
+    "fieldProfessions": "Tus oficios",
+    "professionsPlaceholder": "Elige uno o varios oficios…",
+    "professionsHint": "Marca todos los oficios que ejerces: tu página los muestra todos.",
+    "professionFeatured": "Destacado",
+    "professionFeaturedHint": "El que se ve primero en tu página y en tu pin. Toca un oficio para destacarlo.",
+    "professionsPick": "Tus oficios",
+    "coverSection": "Foto de portada de tu página",
+    "coverFromGallery": "O elige entre las fotos de tu página:",
     "fieldProfession": "Profesión",
     "professionPick": "Elige tu profesión",
     "professionPlaceholder": "Elegir…",

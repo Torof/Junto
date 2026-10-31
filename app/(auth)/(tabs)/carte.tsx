@@ -75,6 +75,12 @@ function panDistance(lat1: number, lng1: number, lat2: number, lng2: number): nu
 // The « Découvrir askandgo » offer stands during the account's first week.
 const INTRO_OFFER_DAYS = 7;
 
+// A pro matches the profession filter on ANY of their professions (00562).
+function holdsProfession(p: { profession: string | null; professions?: string[] }, wanted: string[]): boolean {
+  const held = p.professions?.length ? p.professions : p.profession ? [p.profession] : [];
+  return held.some((c) => wanted.includes(c));
+}
+
 export default function CarteScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -188,12 +194,12 @@ export default function CarteScreen() {
     if (!showProOfferings) return [];
     let list = pros ?? [];
     if (sportKeys.length > 0) list = list.filter((p) => (p.sport_keys ?? []).some((k) => sportKeys.includes(k)));
-    if (professions.length > 0) list = list.filter((p) => !!p.profession && professions.includes(p.profession));
+    if (professions.length > 0) list = list.filter((p) => holdsProfession(p, professions));
     return list;
   }, [pros, showProOfferings, sportKeys, professions]);
   const filteredOfferingsByProfession = useMemo(() => {
     if (professions.length === 0) return filteredOfferingsByType;
-    const keep = new Set((pros ?? []).filter((p) => !!p.profession && professions.includes(p.profession)).map((p) => p.user_id));
+    const keep = new Set((pros ?? []).filter((p) => holdsProfession(p, professions)).map((p) => p.user_id));
     return filteredOfferingsByType.filter((o) => keep.has(o.pro_id));
   }, [filteredOfferingsByType, professions, pros]);
 

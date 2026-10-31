@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
-import { X, Check, Trash2, ChevronDown, ChevronUp, ChevronRight, Plus, MapPin } from 'lucide-react-native';
+import { X, Check, Trash2, ChevronDown, ChevronUp, ChevronRight, Plus, MapPin, Star } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius, glow } from '@/constants/theme';
@@ -24,6 +24,10 @@ import { proOfferingService } from '@/services/pro-offering-service';
 import { PRO_PROFESSIONS, isProProfession, type ProProfession } from '@/constants/professions';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { useDeleteProPage } from '@/hooks/use-delete-pro-page';
+import { useProPhotos } from '@/hooks/use-pro-photos';
+import { PRO_GOLD } from '@/constants/pin-style';
+import { CoverPicker, type CoverChange } from '@/components/cover-picker';
+import { uploadProCover } from '@/utils/pro-photo-upload';
 import { pickAndUploadProPinImage } from '@/utils/pro-pin-image-upload';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { JuntoMapView } from '@/components/map-view';
@@ -91,8 +95,17 @@ export default function ProEditScreen() {
   const [showContact, setShowContact] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showLocation, setShowLocation] = useState(false);
-  // 00554: declared profession (required) + the outing featured on the page.
-  const [profession, setProfession] = useState<ProProfession | null>(null);
+  // 00562: every profession the pro holds (at least one); the FIRST is the
+  // one put forward (pin, page) and the pro can change it at any time.
+  const [professions, setProfessions] = useState<ProProfession[]>([]);
+  const profession: ProProfession | null = professions[0] ?? null;
+  const toggleProfession = (code: ProProfession) =>
+    setProfessions((list) => (list.includes(code) ? list.filter((c) => c !== code) : [...list, code]));
+  const featureProfession = (code: ProProfession) =>
+    setProfessions((list) => [code, ...list.filter((c) => c !== code)]);
+  // 00562: the page cover, chosen by the pro (approved — like the pin).
+  const [coverChange, setCoverChange] = useState<CoverChange>({ kind: 'unchanged' });
+  const { data: proPhotos } = useProPhotos(isApproved ? existing?.user_id : null);
   const [showProfessionPicker, setShowProfessionPicker] = useState(false);
   const [featuredOfferingId, setFeaturedOfferingId] = useState<string | null>(null);
 
@@ -114,7 +127,8 @@ export default function ProEditScreen() {
     setPinLat(existing.primary_lat);
     setPinIcon(existing.pin_icon);
     setPinImageUrl(existing.pin_image_url);
-    setProfession(isProProfession(existing.profession) ? existing.profession : null);
+    const declared = (existing.professions?.length ? existing.professions : [existing.profession]).filter(isProProfession);
+    setProfessions(declared);
     setFeaturedOfferingId(existing.featured_offering_id ?? null);
     // An approved pro sees slogan/description open (that is the page), a
     // pending/rejected one sees the application as they sent it.
@@ -237,12 +251,20 @@ export default function ProEditScreen() {
           if (pinImageUrl !== existing.pin_image_url) await proService.setPinImage(pinImageUrl);
           if (pinIcon !== existing.pin_icon) await proService.setPinIcon(pinIcon);
         }
+        if (professions.join() !== (existing?.professions ?? []).join()) {
+          await proService.setProfessions(professions);
+        }
+        if (isApproved && coverChange.kind !== 'unchanged') {
+          if (coverChange.kind === 'asset') await uploadProCover(coverChange.asset);
+          else await proService.setCover(coverChange.url);
+        }
         // A rejected pro editing their page re-submits for review.
         if (existing?.status === 'rejected') {
           await proService.resubmit();
         }
       } else {
         await proService.register(payload);
+        if (professions.length > 1) await proService.setProfessions(professions);
       }
       await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
       await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
@@ -437,16 +459,57 @@ export default function ProEditScreen() {
           />
         </Field>
 
-        <Field label={t('pro.fieldProfession', { defaultValue: 'Métier' })} styles={styles}>
+        <Field label={t('pro.fieldProfessions', { defaultValue: 'Tes métiers' })} styles={styles}>
           <Pressable style={styles.pickRow} onPress={() => setShowProfessionPicker(true)} accessibilityRole="button">
-            <AppText style={[styles.pickRowText, !profession && styles.pickRowPlaceholder]} numberOfLines={1}>
-              {profession
-                ? t(`pro.profession.${profession}`, { defaultValue: profession })
-                : t('pro.professionPlaceholder', { defaultValue: 'Choisir…' })}
+            <AppText style={[styles.pickRowText, professions.length === 0 && styles.pickRowPlaceholder]} numberOfLines={2}>
+              {professions.length > 0
+                ? professions.map((c) => t(`pro.profession.${c}`, { defaultValue: c })).join(' · ')
+                : t('pro.professionsPlaceholder', { defaultValue: 'Choisir un ou plusieurs métiers…' })}
             </AppText>
             <ChevronDown size={18} color={colors.textMuted} strokeWidth={2.2} />
           </Pressable>
+          <AppText style={styles.helper}>
+            {t('pro.professionsHint', { defaultValue: 'Coche tous les métiers que tu exerces : ta page les affiche tous.' })}
+          </AppText>
+          {professions.length >= 2 && (
+            <View style={styles.featuredBox}>
+              <AppText style={styles.featuredTitle}>{t('pro.professionFeatured', { defaultValue: 'Mis en avant' })}</AppText>
+              <AppText style={styles.helper}>
+                {t('pro.professionFeaturedHint', { defaultValue: 'Celui qu’on voit en premier sur ta page et sur ton pin. Touche un métier pour le mettre en avant.' })}
+              </AppText>
+              <View style={[styles.chipWrap, { marginTop: spacing.sm }]}>
+                {professions.map((code, i) => (
+                  <Pressable
+                    key={code}
+                    style={[styles.choiceChip, i === 0 && styles.featuredChip]}
+                    onPress={() => featureProfession(code)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: i === 0 }}
+                  >
+                    <View style={styles.featuredChipRow}>
+                      {i === 0 ? <Star size={14} color={PRO_GOLD} fill={PRO_GOLD} strokeWidth={2} /> : null}
+                      <AppText style={[styles.choiceChipText, i === 0 && styles.featuredChipText]}>
+                        {t(`pro.profession.${code}`, { defaultValue: code })}
+                      </AppText>
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          )}
         </Field>
+
+        {isApproved && (
+          <Field label={t('pro.coverSection', { defaultValue: 'Photo de couverture de ta page' })} styles={styles}>
+            <CoverPicker
+              savedUrl={existing?.cover_url ?? null}
+              gallery={proPhotos ?? []}
+              galleryHint={t('pro.coverFromGallery', { defaultValue: 'Ou choisis parmi les photos de ta page :' })}
+              change={coverChange}
+              onChange={setCoverChange}
+            />
+          </Field>
+        )}
 
         {/* The outing that opens the page (00554) — a choice only once there are two. */}
         {isApproved && (myOfferings?.length ?? 0) >= 2 && (
@@ -584,31 +647,36 @@ export default function ProEditScreen() {
       </View>
 
       {/* Full-screen map picker — drop the pin anywhere; "Confirmer" promotes it. */}
-      {/* Profession picker — one choice, closed list (00554). */}
+      {/* Professions picker — several choices, closed list (00554, 00562). */}
       <Modal visible={showProfessionPicker} animationType="slide" transparent onRequestClose={() => setShowProfessionPicker(false)}>
         <Pressable style={styles.sheetBackdrop} onPress={() => setShowProfessionPicker(false)}>
           <Pressable style={styles.sheet} onPress={() => {}}>
             <View style={styles.sheetHandle} />
-            <AppText style={styles.sheetTitle}>{t('pro.professionPick', { defaultValue: 'Choisis ton métier' })}</AppText>
+            <AppText style={styles.sheetTitle}>{t('pro.professionsPick', { defaultValue: 'Tes métiers' })}</AppText>
             <ScrollView style={styles.sheetList} showsVerticalScrollIndicator={false}>
               {PRO_PROFESSIONS.map((code) => {
-                const selected = profession === code;
+                const selected = professions.includes(code);
                 return (
                   <Pressable
                     key={code}
                     style={styles.sheetRow}
-                    onPress={() => { setProfession(code); setShowProfessionPicker(false); }}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected }}
+                    onPress={() => toggleProfession(code)}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: selected }}
                   >
                     <AppText style={[styles.sheetRowText, selected && styles.sheetRowTextSelected]}>
                       {t(`pro.profession.${code}`, { defaultValue: code })}
                     </AppText>
-                    {selected ? <Check size={18} color={colors.cta} strokeWidth={2.6} /> : null}
+                    <View style={[styles.checkBox, selected && styles.checkBoxOn]}>
+                      {selected ? <Check size={14} color={colors.onCta} strokeWidth={3} /> : null}
+                    </View>
                   </Pressable>
                 );
               })}
             </ScrollView>
+            <PressableScale style={[styles.cta, { marginTop: spacing.md }]} onPress={() => setShowProfessionPicker(false)} accessibilityRole="button">
+              <AppText style={styles.ctaText}>{t('common.done', { defaultValue: 'Terminé' })}</AppText>
+            </PressableScale>
           </Pressable>
         </Pressable>
       </Modal>
@@ -725,6 +793,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   choiceChipSelected: { borderColor: colors.cta, backgroundColor: colors.cta + '14' },
   choiceChipText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '600' },
   choiceChipTextSelected: { color: colors.cta, fontWeight: '700' },
+  featuredBox: { marginTop: spacing.sm, backgroundColor: colors.surfaceAlt, borderRadius: radius.card - 4, padding: spacing.sm + 2 },
+  featuredTitle: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '700' },
+  featuredChip: { borderColor: PRO_GOLD, backgroundColor: PRO_GOLD + '1F' },
+  featuredChipRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  featuredChipText: { fontWeight: '700' },
+  checkBox: {
+    width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: colors.lineStrong,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  checkBoxOn: { backgroundColor: colors.cta, borderColor: colors.cta },
   sheetBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.background, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: spacing.lg, paddingBottom: spacing.xl + 8, maxHeight: '80%' },
   sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, alignSelf: 'center', marginBottom: spacing.md, opacity: 0.4 },

@@ -97,8 +97,8 @@ export function ProPage({ pro, isOwner }: Props) {
     queryFn: () => userService.getPublicProfile(pro.user_id),
   });
 
-  // The cover: the pro's first gallery photo, else the logo, else a tint.
-  const coverUrl = photos[0]?.photo_url ?? pro.pin_image_url ?? null;
+  // The cover the pro chose (00562), else the tint — never « the first photo ».
+  const coverUrl = pro.cover_url ?? null;
   const avatarUrl = pro.pin_image_url ?? ownerProfile?.avatar_url ?? null;
   const sportKeys = useMemo(() => {
     const seen: { key: string; category: string }[] = [];
@@ -133,7 +133,9 @@ export function ProPage({ pro, isOwner }: Props) {
 
   const description = pro.description?.trim() ?? '';
   const descriptionOverflowing = description.length > COLLAPSED_DESCRIPTION_CHARS;
-  const professionLabel = pro.profession ? t(`pro.profession.${pro.profession}`, { defaultValue: pro.profession }) : null;
+  // Every profession (00562), the featured one first.
+  const professionCodes = pro.professions?.length ? pro.professions : pro.profession ? [pro.profession] : [];
+  const professionsLabel = professionCodes.map((c) => t(`pro.profession.${c}`, { defaultValue: c })).join(' · ');
 
   // Contact actions, only the ones the pro filled in — Itinéraire always.
   const actions: { key: string; icon: React.ReactNode; label: string; onPress: () => void }[] = [
@@ -178,11 +180,12 @@ export function ProPage({ pro, isOwner }: Props) {
             <UserAvatar name={pro.display_name} avatarUrl={avatarUrl} size={58} />
           </View>
           <AppText style={styles.name} numberOfLines={2}>{pro.display_name}</AppText>
+          {professionsLabel ? (
+            <AppText style={styles.professions} numberOfLines={2}>{professionsLabel}</AppText>
+          ) : null}
           <View style={styles.placeRow}>
             <MapPin size={13} color={WHITE} strokeWidth={2.4} />
-            <AppText style={styles.place} numberOfLines={1}>
-              {professionLabel ? `${professionLabel} · ` : ''}{pro.primary_location_name}
-            </AppText>
+            <AppText style={styles.place} numberOfLines={1}>{pro.primary_location_name}</AppText>
           </View>
           {sportKeys.length > 0 ? (
             <View style={styles.labels}>
@@ -391,6 +394,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   identity: { position: 'absolute', left: 18, right: 18, bottom: 12, gap: 5 },
   avatarRing: { alignSelf: 'flex-start', borderWidth: 3, borderColor: WHITE, borderRadius: 32, marginBottom: 3, ...shadows.card },
   name: { color: WHITE, fontSize: 22, fontWeight: '800', lineHeight: 25, letterSpacing: -0.4, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8, textShadowOffset: { width: 0, height: 1 } },
+  professions: { color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
   placeRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   place: { flex: 1, color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '600', opacity: 0.95, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
   labels: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },

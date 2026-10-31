@@ -1920,6 +1920,7 @@
     "traceDraw": "Dessiner"
   },
   "proOffering": {
+    "coverRemove": "Retirer la couverture",
     "cover": "Photo de couverture",
     "coverPick": "Choisir une photo",
     "coverChange": "Changer",
@@ -2113,6 +2114,14 @@
       "school_office": "Bureau / école",
       "other": "Autre"
     },
+    "fieldProfessions": "Tes métiers",
+    "professionsPlaceholder": "Choisir un ou plusieurs métiers…",
+    "professionsHint": "Coche tous les métiers que tu exerces : ta page les affiche tous.",
+    "professionFeatured": "Mis en avant",
+    "professionFeaturedHint": "Celui qu’on voit en premier sur ta page et sur ton pin. Touche un métier pour le mettre en avant.",
+    "professionsPick": "Tes métiers",
+    "coverSection": "Photo de couverture de ta page",
+    "coverFromGallery": "Ou choisis parmi les photos de ta page :",
     "fieldProfession": "Métier",
     "professionPick": "Choisis ton métier",
     "professionPlaceholder": "Choisir…",

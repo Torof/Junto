@@ -1920,6 +1920,7 @@
     "traceDraw": "Draw"
   },
   "proOffering": {
+    "coverRemove": "Remove the cover",
     "cover": "Cover photo",
     "coverPick": "Choose a photo",
     "coverChange": "Change",
@@ -2113,6 +2114,14 @@
       "school_office": "Office / school",
       "other": "Other"
     },
+    "fieldProfessions": "Your professions",
+    "professionsPlaceholder": "Choose one or more professions…",
+    "professionsHint": "Tick every profession you practise: your page shows them all.",
+    "professionFeatured": "Featured",
+    "professionFeaturedHint": "The one shown first on your page and on your pin. Tap a profession to feature it.",
+    "professionsPick": "Your professions",
+    "coverSection": "Your page's cover photo",
+    "coverFromGallery": "Or pick one of your page's photos:",
     "fieldProfession": "Profession",
     "professionPick": "Pick your profession",
     "professionPlaceholder": "Choose…",

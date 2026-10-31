@@ -25,6 +25,10 @@ export interface ProProfile {
   // 00554: declared profession (closed list, constants/professions) and the
   // outing featured on the page — both public columns.
   profession: ProProfession | null;
+  // 00562: every declared profession, the first one featured (= `profession`),
+  // and the cover the pro chose (NULL = no photo, the page shows its tint).
+  professions: ProProfession[];
+  cover_url: string | null;
   featured_offering_id: string | null;
   rejection_reason?: string | null;
   last_location_change_at: string;
@@ -66,6 +70,7 @@ export interface PendingProApplication {
   company_name: string | null;
   real_name: string | null;
   profession: string | null;
+  professions: string[];
   tagline: string | null;
   description: string | null;
   email: string | null;
@@ -100,6 +105,8 @@ export interface NearbyPro {
   pin_icon: string | null;
   // The declared profession (00554) — the pin's default picto and tint (00557).
   profession: string | null;
+  // All declared professions (00562) — the map's profession filter matches any.
+  professions: string[];
   tagline: string | null;
   description: string | null;
   // Review aggregate — present only on getNearby (map labels / hero).
@@ -119,7 +126,7 @@ export const proService = {
     const { data, error } = await supabase
       .from('pro_profiles')
       .select(
-        'user_id, display_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, pin_icon, status, last_location_change_at, created_at, updated_at, profession, featured_offering_id',
+        'user_id, display_name, tagline, description, website, email, phone, instagram, facebook, primary_lng, primary_lat, primary_location_name, pin_image_url, pin_icon, status, last_location_change_at, created_at, updated_at, profession, professions, cover_url, featured_offering_id',
       )
       .eq('user_id', userId)
       .maybeSingle();
@@ -133,7 +140,16 @@ export const proService = {
   getMine: async (): Promise<ProProfile | null> => {
     const { data, error } = await supabase.rpc('get_my_pro_application');
     if (error) throw error;
-    return (data?.[0] ?? null) as ProProfile | null;
+    const mine = data?.[0];
+    if (!mine) return null;
+    // 00562 columns, read off the own row (the RLS shows it at every status).
+    const { data: extra, error: extraError } = await supabase
+      .from('pro_profiles')
+      .select('professions, cover_url')
+      .eq('user_id', mine.user_id)
+      .maybeSingle();
+    if (extraError) throw extraError;
+    return { ...mine, professions: extra?.professions ?? [], cover_url: extra?.cover_url ?? null } as ProProfile;
   },
 
   register: async (input: RegisterAsProInput): Promise<void> => {
@@ -206,6 +222,18 @@ export const proService = {
     if (error) throw error;
   },
 
+  // 00562: the professions, first = featured (pin, page). Any status — the
+  // application form sets them right after register_as_pro.
+  setProfessions: async (professions: string[]): Promise<void> => {
+    const { error } = await supabase.rpc('set_pro_professions', { p_professions: professions });
+    if (error) throw error;
+  },
+
+  setCover: async (url: string | null): Promise<void> => {
+    const { error } = await supabase.rpc('set_pro_cover', { p_url: url ?? undefined });
+    if (error) throw error;
+  },
+
   setPinImage: async (pinImageUrl: string | null): Promise<void> => {
     const { error } = await supabase.rpc('set_pro_pin_image', {
       p_pin_image_url: pinImageUrl ?? undefined,
@@ -233,7 +261,7 @@ export const proService = {
     // must not pretend to be live.
     let query = supabase
       .from('pro_profiles')
-      .select('user_id, display_name, primary_lng, primary_lat, pin_image_url, pin_icon, profession, tagline, description, status')
+      .select('user_id, display_name, primary_lng, primary_lat, pin_image_url, pin_icon, profession, professions, tagline, description, status')
       .eq('status', 'approved')
       .order('display_name', { ascending: true })
       .limit(MAP_FETCH_CAP);

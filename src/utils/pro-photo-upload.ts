@@ -3,6 +3,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 import { supabase } from '@/services/supabase';
+import { proService } from '@/services/pro-service';
 import { proPhotoService, proOfferingPhotoService, proCommunityPhotoService } from '@/services/pro-photo-service';
 
 // Gallery photos are free-aspect (no crop) since users curate their own
@@ -119,10 +120,11 @@ export async function pickAndUploadProOfferingPhotos(
   return outcomes;
 }
 
-// Offering cover = the offering's FIRST photo (pro_offerings_with_coords.image_url
-// is its lowest order_index). The pro picks it explicitly in the offering form;
-// the asset stays local until save, since a new offering has no id to upload under.
-export async function pickOfferingCoverAsset(): Promise<ImagePicker.ImagePickerAsset | null> {
+// Covers (00562) — chosen by the pro, never « the first photo ». A new
+// picture is uploaded to storage only (not into the gallery); a gallery photo
+// is reused by URL. The asset stays local until save, since a new offering has
+// no id to upload under. The RPCs only accept URLs in the pro's own folder.
+export async function pickCoverAsset(): Promise<ImagePicker.ImagePickerAsset | null> {
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ['images'],
     allowsMultipleSelection: false,
@@ -132,22 +134,22 @@ export async function pickOfferingCoverAsset(): Promise<ImagePicker.ImagePickerA
   return result.assets[0] ?? null;
 }
 
-// Put an existing offering photo first (the reorder RPC takes the full set).
-export async function setOfferingCover(offeringId: string, photoId: string): Promise<void> {
-  const photos = await proOfferingPhotoService.listByOffering(offeringId);
-  if (photos[0]?.id === photoId) return;
-  const ids = [photoId, ...photos.map((p) => p.id).filter((id) => id !== photoId)];
-  await proOfferingPhotoService.reorder(offeringId, ids);
+export async function setOfferingCover(offeringId: string, url: string | null): Promise<void> {
+  const { error } = await supabase.rpc('set_offering_cover', { p_offering_id: offeringId, p_url: url ?? undefined });
+  if (error) throw error;
 }
 
-// Upload a picked asset into the offering gallery and make it the cover.
 export async function uploadOfferingCover(
   offeringId: string,
   asset: ImagePicker.ImagePickerAsset,
 ): Promise<void> {
-  const photoUrl = await uploadAsset(asset, `offering/${offeringId}/gallery`, `${Date.now()}-cover`);
-  const photoId = await proOfferingPhotoService.add(offeringId, photoUrl);
-  await setOfferingCover(offeringId, photoId);
+  const url = await uploadAsset(asset, `offering/${offeringId}/cover`, `${Date.now()}`);
+  await setOfferingCover(offeringId, url);
+}
+
+export async function uploadProCover(asset: ImagePicker.ImagePickerAsset): Promise<void> {
+  const url = await uploadAsset(asset, 'cover', `${Date.now()}`);
+  await proService.setCover(url);
 }
 
 // Community photos — anyone can add (max 5 per user per pro). Uploaded under

@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Pressable,
-  ScrollView,
   StyleSheet,
   Alert,
   Modal,
@@ -15,9 +14,7 @@ import { useRouter, useLocalSearchParams, Redirect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
-import { Check, Trash2, MapPin, ChevronDown, ChevronUp, Plus, ImagePlus } from 'lucide-react-native';
-import { Image } from 'expo-image';
-import type { ImagePickerAsset } from 'expo-image-picker';
+import { Check, Trash2, MapPin, ChevronDown, ChevronUp, Plus } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, fonts, spacing, radius, shadows, glow } from '@/constants/theme';
@@ -35,7 +32,8 @@ import { SportDropdown } from '@/components/sport-dropdown';
 import { OFFERING_LEVELS } from '@/types/pro-offering-form';
 import { OPEN_LEVEL } from '@/constants/sport-levels';
 import { useProOfferingPhotos } from '@/hooks/use-pro-photos';
-import { pickOfferingCoverAsset, setOfferingCover, uploadOfferingCover } from '@/utils/pro-photo-upload';
+import { setOfferingCover, uploadOfferingCover } from '@/utils/pro-photo-upload';
+import { CoverPicker, type CoverChange } from '@/components/cover-picker';
 
 // Single-screen form, mode keyed off the optional ?id= query param.
 // New offering → empty form, calls create. Existing → pre-filled, calls
@@ -113,21 +111,10 @@ export default function ProOfferingEditScreen() {
   });
   const toggleDetail = (k: DetailKey) => setOpenDetails((o) => ({ ...o, [k]: !o[k] }));
 
-  // Cover photo — chosen by the pro (Scott 2026-10-31), no longer « whatever
-  // photo came first ». Either a new picture from the phone (uploaded on save:
-  // a new offering has no id yet) or one of the offering's existing photos.
-  // Applied on save by putting it first in the gallery order.
+  // Cover chosen by the pro (00562) — applied on save (a new offering has
+  // no id yet to upload under).
   const { data: offeringPhotos } = useProOfferingPhotos(offeringId);
-  const [coverAsset, setCoverAsset] = useState<ImagePickerAsset | null>(null);
-  const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null);
-  const currentCoverId = coverPhotoId ?? offeringPhotos?.[0]?.id ?? null;
-  const coverUri = coverAsset?.uri
-    ?? offeringPhotos?.find((p) => p.id === currentCoverId)?.photo_url
-    ?? null;
-  const pickCover = async () => {
-    const asset = await pickOfferingCoverAsset();
-    if (asset) { setCoverAsset(asset); setCoverPhotoId(null); }
-  };
+  const [coverChange, setCoverChange] = useState<CoverChange>({ kind: 'unchanged' });
 
   useEffect(() => {
     if (!existing) return;
@@ -358,11 +345,11 @@ export default function ProOfferingEditScreen() {
         }
       };
       const saveCover = async (id: string) => {
-        if (!coverAsset && !coverPhotoId) return;
+        if (coverChange.kind === 'unchanged') return;
         try {
-          if (coverAsset) await uploadOfferingCover(id, coverAsset);
-          else if (coverPhotoId) await setOfferingCover(id, coverPhotoId);
-          await queryClient.invalidateQueries({ queryKey: ['pro-offering-photos', id] });
+          if (coverChange.kind === 'asset') await uploadOfferingCover(id, coverChange.asset);
+          else await setOfferingCover(id, coverChange.url);
+          await queryClient.invalidateQueries({ queryKey: ['pro-offering', id] });
         } catch {
           Burnt.toast({
             title: t('proOffering.coverNotSaved', { defaultValue: 'Sortie enregistrée, mais pas la photo de couverture — réessaie depuis Modifier.' }),
@@ -498,39 +485,13 @@ export default function ProOfferingEditScreen() {
 
         {/* ---------- L'essentiel ---------- */}
         <Field label={t('proOffering.cover', { defaultValue: 'Photo de couverture' })} styles={styles}>
-          <PressableScale style={styles.cover} onPress={pickCover} accessibilityRole="button"
-            accessibilityLabel={t('proOffering.coverPick', { defaultValue: 'Choisir une photo' })}>
-            {coverUri ? (
-              <>
-                <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} contentFit="cover" />
-                <View style={styles.coverChange}>
-                  <ImagePlus size={14} color={colors.textPrimary} strokeWidth={2.4} />
-                  <AppText style={styles.coverChangeText}>{t('proOffering.coverChange', { defaultValue: 'Changer' })}</AppText>
-                </View>
-              </>
-            ) : (
-              <View style={styles.coverEmpty}>
-                <ImagePlus size={26} color={colors.textSecondary} strokeWidth={2} />
-                <AppText style={styles.coverEmptyText}>{t('proOffering.coverAdd', { defaultValue: 'Ajouter une photo de couverture' })}</AppText>
-              </View>
-            )}
-          </PressableScale>
-          {(offeringPhotos?.length ?? 0) > 1 && (
-            <>
-              <AppText style={styles.helper}>{t('proOffering.coverFromGallery', { defaultValue: 'Ou choisis parmi les photos de la sortie :' })}</AppText>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.coverThumbs}>
-                {offeringPhotos?.map((p) => {
-                  const selected = !coverAsset && p.id === currentCoverId;
-                  return (
-                    <Pressable key={p.id} onPress={() => { setCoverPhotoId(p.id); setCoverAsset(null); }}
-                      style={[styles.coverThumb, selected && styles.coverThumbOn]}>
-                      <Image source={{ uri: p.photo_url }} style={StyleSheet.absoluteFill} contentFit="cover" />
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </>
-          )}
+          <CoverPicker
+            savedUrl={existing?.image_url ?? null}
+            gallery={offeringPhotos ?? []}
+            galleryHint={t('proOffering.coverFromGallery', { defaultValue: 'Ou choisis parmi les photos de la sortie :' })}
+            change={coverChange}
+            onChange={setCoverChange}
+          />
         </Field>
 
         <Field label={t('proOffering.sport')} styles={styles}>
@@ -879,25 +840,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: fontSizes.md,
   },
   textarea: { minHeight: 72, textAlignVertical: 'top' },
-  cover: {
-    height: 170, borderRadius: radius.card, overflow: 'hidden',
-    backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.lineStrong,
-  },
-  coverEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
-  coverEmptyText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
-  coverChange: {
-    position: 'absolute', right: spacing.sm, bottom: spacing.sm,
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: spacing.sm + 2, paddingVertical: 6, borderRadius: radius.full,
-    backgroundColor: colors.surface, ...shadows.card,
-  },
-  coverChangeText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700' },
-  coverThumbs: { gap: spacing.sm, paddingTop: spacing.xs + 2 },
-  coverThumb: {
-    width: 64, height: 64, borderRadius: radius.card - 6, overflow: 'hidden',
-    borderWidth: 2, borderColor: 'transparent',
-  },
-  coverThumbOn: { borderColor: colors.cta },
   row2: { flexDirection: 'row', gap: spacing.sm },
   placeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   adjustBtn: { paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm + 2, borderRadius: radius.full, backgroundColor: colors.surfaceAlt },

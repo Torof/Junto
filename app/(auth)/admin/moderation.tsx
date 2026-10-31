@@ -222,7 +222,7 @@ export default function ModerationScreen() {
                   <ProRow label="Raison sociale" value={item.company_name} styles={styles} />
                   <ProRow label="Page" value={item.display_name} styles={styles} />
                   <ProRow label="Responsable" value={item.real_name} styles={styles} />
-                  <ProRow label="Métier" value={item.profession ? t(`pro.profession.${item.profession}`, { defaultValue: item.profession }) : null} styles={styles} />
+                  <ProRow label="Métiers" value={(item.professions?.length ? item.professions : item.profession ? [item.profession] : []).map((c) => t(`pro.profession.${c}`, { defaultValue: c })).join(' · ') || null} styles={styles} />
                   <ProRow label="Lieu" value={item.primary_location_name} styles={styles}
                     onPress={item.primary_lat != null && item.primary_lng != null
                       ? () => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${item.primary_lat},${item.primary_lng}`)

@@ -1920,6 +1920,7 @@
     "traceDraw": "Zeichnen"
   },
   "proOffering": {
+    "coverRemove": "Titelbild entfernen",
     "cover": "Titelbild",
     "coverPick": "Foto auswählen",
     "coverChange": "Ändern",
@@ -2113,6 +2114,14 @@
       "school_office": "Büro / Schule",
       "other": "Andere"
     },
+    "fieldProfessions": "Deine Berufe",
+    "professionsPlaceholder": "Einen oder mehrere Berufe wählen…",
+    "professionsHint": "Hake alle Berufe an, die du ausübst: Deine Seite zeigt sie alle.",
+    "professionFeatured": "Hervorgehoben",
+    "professionFeaturedHint": "Der Beruf, den man zuerst auf deiner Seite und deinem Pin sieht. Tippe auf einen Beruf, um ihn hervorzuheben.",
+    "professionsPick": "Deine Berufe",
+    "coverSection": "Titelbild deiner Seite",
+    "coverFromGallery": "Oder wähle eines der Fotos deiner Seite:",
     "fieldProfession": "Beruf",
     "professionPick": "Wähle deinen Beruf",
     "professionPlaceholder": "Wählen…",

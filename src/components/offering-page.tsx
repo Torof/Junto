@@ -15,7 +15,6 @@ import { PressableScale } from '@/components/pressable-scale';
 import { SportIcon } from '@/components/sport-icon';
 import { StarRating } from '@/components/star-rating';
 import { useColors } from '@/hooks/use-theme';
-import { useProPhotos } from '@/hooks/use-pro-photos';
 import { fontSizes, spacing, radius, shadows, glow } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import type { ProOffering } from '@/services/pro-offering-service';
@@ -70,7 +69,6 @@ export function OfferingPage({ offering, isOwner }: Props) {
     queryKey: ['review-stats', 'pro', offering.pro_id],
     queryFn: () => reviewService.getProStats(offering.pro_id),
   });
-  const { data: proPhotos = [] } = useProPhotos(offering.pro_id);
   const { data: photos = [] } = useQuery({
     queryKey: ['pro-offering-photos', offering.id],
     queryFn: () => proOfferingPhotoService.listByOffering(offering.id),
@@ -89,7 +87,8 @@ export function OfferingPage({ offering, isOwner }: Props) {
   });
 
   const allPhotos = [...photos.map((p) => p.photo_url), ...communityPhotos.map((c) => c.photo_url)];
-  const coverUrl = offering.image_url ?? allPhotos[0] ?? proPhotos[0]?.photo_url ?? pro?.pin_image_url ?? null;
+  // The cover the pro chose (00562: image_url = cover_url), else the sport tint.
+  const coverUrl = offering.image_url ?? null;
   const hasRating = !!stats && stats.review_count > 0;
   const description = offering.description?.trim() ?? '';
   const descriptionOverflowing = description.length > COLLAPSED_DESCRIPTION_CHARS;
