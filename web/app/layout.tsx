@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'askandgo — Sorties outdoor entre passionnés',
+  title: 'askandgo — Vis l’outdoor à plusieurs',
   description:
-    'Rejoins une sortie, lance la tienne, trouve des partenaires où que tu sois — ou réserve avec un guide. Escalade, rando, parapente, canyon, vélo, ski de rando.',
+    'Vis l’outdoor à plusieurs : rejoins une sortie, lance la tienne, trouve des partenaires où que tu sois — ou réserve avec un guide. Escalade, rando, parapente, canyon, vélo, ski de rando.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

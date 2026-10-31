@@ -55,13 +55,14 @@ export const IconHash = (p: IconProps) => (
 );
 
 // The juncture mark — two arcs and two bars, colourable.
-// The askandgo mark (Scott 2026-10-23, version « A »): one stroke that is at
-// once a speech bubble, a question mark and an arrow leaving — ask, then go.
+// The askandgo mark (final, Scott 2026-10-30, « A bis 20° flèche 20° »): a
+// speech bubble whose tail leaves at 20°, a question mark, and an arrowhead in
+// the tail's axis — ask, then go. The arrow stroke is 0.75 × the bubble's.
 export function AskandgoMark({ size = 30, color = '#FFFFFF' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 2 100 100" fill="none" stroke={color} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M26 76 L40 64 H74 A16 16 0 0 0 90 48 V28 A16 16 0 0 0 74 12 H34 A16 16 0 0 0 18 28 V36 C18 44 21 49 27 51" />
-      <path d="M25 92 H10 V77" />
+      <path d="M36.24 74.34 L38.56 67.95 A6 6 0 0 1 44.2 64 H74 A16 16 0 0 0 90 48 V28 A16 16 0 0 0 74 12 H34 A16 16 0 0 0 18 28 V38 C18 44 20 47 25 52" />
+      <path d="M24.36 80.09 L29.86 91.88 L41.65 86.38" strokeWidth="6.75" />
     </svg>
   );
 }

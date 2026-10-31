@@ -51,8 +51,8 @@ function Card({ m }: { m: Dispo }) {
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{m.intents.map((i) => <span key={i} className="l-intent">{i}</span>)}</div>
       <div className="l-clamp2">{m.about}</div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 'auto' }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#3F7A56' }}>Inviter</span>
-        <a href="#telecharger" className="l-btn" style={{ fontSize: 13, padding: '10px 18px' }}>Contacter</a>
+        <span style={{ fontSize: 13, fontWeight: 700, color: '#246342' }}>Inviter</span>
+        <a href="#telecharger" className="l-btn list" style={{ fontSize: 13, padding: '10px 18px' }}>Contacter</a>
       </div>
     </div>
   );

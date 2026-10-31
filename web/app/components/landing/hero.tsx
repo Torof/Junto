@@ -64,7 +64,7 @@ export default function Hero({ outings, offers, playUrl }: { outings: OutingRow[
       ))}
 
       <nav className="l-nav" aria-label="Navigation principale">
-        <a href="#" className="l-nav-brand"><AskandgoMark /><span>askandgo</span></a>
+        <a href="#" className="l-nav-brand"><span className="l-nav-tile"><AskandgoMark size={26} /></span><span className="l-wordmark">ask<span className="and">and</span>go</span></a>
         <div className="l-nav-links">
           <a href="#departs">Rejoindre</a>
           <a href="#lancer">Lancer</a>

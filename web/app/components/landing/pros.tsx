@@ -99,7 +99,7 @@ export default function Pros({ offers }: { offers: OfferRow[] }) {
             <strong style={{ fontSize: 16 }}>Vous êtes guide, moniteur, ou un bureau ?</strong>
             <span style={{ fontSize: 15, lineHeight: 1.6, color: '#6B6259' }}>Une vitrine, vos offres épinglées sur la carte, un agenda, les réservations et les échanges clients — dans l&apos;app, sans commission.</span>
           </div>
-          <a href="#telecharger" className="l-btn" style={{ background: '#2563EB' }}>Créer ma page pro</a>
+          <a href="#telecharger" className="l-btn">Créer ma page pro</a>
         </div>
       </div>
     </section>

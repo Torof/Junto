@@ -42,7 +42,7 @@ export function OpenAppLink({ deepLink }: Props) {
       href={href}
       style={{
         display: 'inline-block',
-        background: 'var(--cta)',
+        background: 'var(--brand)',
         color: 'var(--text)',
         padding: '14px 28px',
         borderRadius: 999,
