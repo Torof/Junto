@@ -410,7 +410,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm + 2 },
   tile: {
-    width: '100%', backgroundColor: colors.surface,
+    width: '48%', flexGrow: 1, backgroundColor: colors.surface,
     borderRadius: radius.card, padding: spacing.sm + 5,
     borderWidth: 1, borderColor: colors.lineStrong, ...shadows.card,
   },
