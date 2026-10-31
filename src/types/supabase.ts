@@ -3627,16 +3627,25 @@ export type Database = {
       admin_get_pending_pro_applications: {
         Args: never
         Returns: {
+          account_created_at: string
           company_name: string
           created_at: string
+          description: string
           display_name: string
           email: string
+          facebook: string
+          instagram: string
           last_review_action: string
           last_review_at: string
           phone: string
+          primary_lat: number
+          primary_lng: number
           primary_location_name: string
           prior_review_count: number
+          profession: string
           real_name: string
+          tagline: string
+          updated_at: string
           user_id: string
           website: string
         }[]
