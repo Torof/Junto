@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
 
   const { data: pro, error } = await supabase
     .from('pro_profiles')
-    .select('display_name, company_name, real_name, profession, tagline, description, email, phone, website, instagram, facebook, primary_location_name, status, created_at')
+    .select('display_name, company_name, real_name, profession, professions, tagline, description, email, phone, website, instagram, facebook, primary_location_name, status, created_at')
     .eq('user_id', userId)
     .maybeSingle();
   if (error) return new Response('Lookup failed', { status: 500 });
@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
     ['Raison sociale', pro.company_name],
     ['Nom de la page', pro.display_name],
     ['Responsable', pro.real_name],
-    ['Métier', pro.profession ? (PROFESSIONS[pro.profession] ?? pro.profession) : null],
+    ['Métiers', ((pro.professions?.length ? pro.professions : pro.profession ? [pro.profession] : []) as string[]).map((c) => PROFESSIONS[c] ?? c).join(' · ') || null],
     ['Lieu', pro.primary_location_name],
     ['Accroche', pro.tagline],
     ['Description', pro.description],

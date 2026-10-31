@@ -2216,6 +2216,7 @@ export type Database = {
       }
       pro_offerings: {
         Row: {
+          cover_url: string | null
           created_at: string
           description: string
           distance_km: number | null
@@ -2240,6 +2241,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cover_url?: string | null
           created_at?: string
           description: string
           distance_km?: number | null
@@ -2264,6 +2266,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_url?: string | null
           created_at?: string
           description?: string
           distance_km?: number | null
@@ -2339,6 +2342,7 @@ export type Database = {
       pro_profiles: {
         Row: {
           company_name: string | null
+          cover_url: string | null
           created_at: string
           description: string | null
           display_name: string
@@ -2356,6 +2360,7 @@ export type Database = {
           primary_location: unknown
           primary_location_name: string
           profession: string | null
+          professions: string[]
           real_name: string | null
           rejection_reason: string | null
           reviewed_at: string | null
@@ -2368,6 +2373,7 @@ export type Database = {
         }
         Insert: {
           company_name?: string | null
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           display_name: string
@@ -2385,6 +2391,7 @@ export type Database = {
           primary_location: unknown
           primary_location_name: string
           profession?: string | null
+          professions?: string[]
           real_name?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
@@ -2397,6 +2404,7 @@ export type Database = {
         }
         Update: {
           company_name?: string | null
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           display_name?: string
@@ -2414,6 +2422,7 @@ export type Database = {
           primary_location?: unknown
           primary_location_name?: string
           profession?: string | null
+          professions?: string[]
           real_name?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
@@ -3643,6 +3652,7 @@ export type Database = {
           primary_location_name: string
           prior_review_count: number
           profession: string
+          professions: string[]
           real_name: string
           tagline: string
           updated_at: string
@@ -4751,6 +4761,10 @@ export type Database = {
         Args: { p_emoji: string; p_message_id: string }
         Returns: undefined
       }
+      set_offering_cover: {
+        Args: { p_offering_id: string; p_url?: string }
+        Returns: undefined
+      }
       set_offering_details: {
         Args: {
           p_equipment_provided: string[]
@@ -4782,9 +4796,14 @@ export type Database = {
         Args: { p_available: boolean; p_days: string[]; p_periods: string[] }
         Returns: undefined
       }
+      set_pro_cover: { Args: { p_url?: string }; Returns: undefined }
       set_pro_pin_icon: { Args: { p_pin_icon?: string }; Returns: undefined }
       set_pro_pin_image: {
         Args: { p_pin_image_url?: string }
+        Returns: undefined
+      }
+      set_pro_professions: {
+        Args: { p_professions: string[] }
         Returns: undefined
       }
       set_sport_level: {
