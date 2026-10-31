@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
-import { View, Pressable, FlatList, Modal, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, FlatList, Modal, StyleSheet, Alert, Linking } from 'react-native';
 import { AppText, AppTextInput } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
-import { useLocalSearchParams , Redirect } from 'expo-router';
+import { useLocalSearchParams , Redirect, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -31,6 +31,7 @@ export default function ModerationScreen() {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  const router = useRouter();
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
   const [tab, setTab] = useState<FilterTab>(tabParam === 'pros' ? 'pros' : 'pending');
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -206,8 +207,6 @@ export default function ModerationScreen() {
                   </View>
                   <AppText style={styles.time}>{dayjs(item.created_at).locale(i18n.language).fromNow()}</AppText>
                 </View>
-                <AppText style={styles.proLine}>Page : {item.display_name}</AppText>
-                {item.real_name && <AppText style={styles.proLine}>Responsable : {item.real_name}</AppText>}
                 {item.prior_review_count > 0 && (
                   <AppText style={styles.proHistoryWarning}>
                     ⚠️ Déjà passé en revue ×{item.prior_review_count} — dernier :{' '}
@@ -216,10 +215,31 @@ export default function ModerationScreen() {
                     {item.last_review_action === 'approve_pro' ? ' Désinscrit depuis — les avis/photos sont repartis avec (vérifier le passif avant de re-valider).' : ''}
                   </AppText>
                 )}
-                <AppText style={styles.proLineMuted}>{item.primary_location_name}</AppText>
-                {(item.email || item.phone || item.website) && (
-                  <AppText style={styles.proLineMuted} numberOfLines={1}>{[item.email, item.phone, item.website].filter(Boolean).join(' · ')}</AppText>
-                )}
+                {/* The WHOLE application (Scott 2026-10-31): the admin validates a
+                    pro on everything they declared, not a summary. Contacts are
+                    the pro's explicit fields → tappable for checking. */}
+                <View style={styles.proDetails}>
+                  <ProRow label="Raison sociale" value={item.company_name} styles={styles} />
+                  <ProRow label="Page" value={item.display_name} styles={styles} />
+                  <ProRow label="Responsable" value={item.real_name} styles={styles} />
+                  <ProRow label="Métier" value={item.profession ? t(`pro.profession.${item.profession}`, { defaultValue: item.profession }) : null} styles={styles} />
+                  <ProRow label="Lieu" value={item.primary_location_name} styles={styles}
+                    onPress={item.primary_lat != null && item.primary_lng != null
+                      ? () => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${item.primary_lat},${item.primary_lng}`)
+                      : undefined} />
+                  <ProRow label="Accroche" value={item.tagline} styles={styles} />
+                  <ProRow label="Description" value={item.description} styles={styles} />
+                  <ProRow label="E-mail" value={item.email} styles={styles} onPress={item.email ? () => Linking.openURL(`mailto:${item.email}`) : undefined} />
+                  <ProRow label="Téléphone" value={item.phone} styles={styles} onPress={item.phone ? () => Linking.openURL(`tel:${item.phone}`) : undefined} />
+                  <ProRow label="Site" value={item.website} styles={styles} onPress={item.website ? () => Linking.openURL(/^https?:\/\//i.test(item.website!) ? item.website! : `https://${item.website}`) : undefined} />
+                  <ProRow label="Instagram" value={item.instagram} styles={styles}
+                    onPress={item.instagram ? () => Linking.openURL(`https://instagram.com/${item.instagram!.replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')}`) : undefined} />
+                  <ProRow label="Facebook" value={item.facebook} styles={styles}
+                    onPress={item.facebook ? () => Linking.openURL(/^https?:\/\//i.test(item.facebook!) ? item.facebook! : `https://facebook.com/${item.facebook}`) : undefined} />
+                  <ProRow label="Demande" value={`envoyée le ${dayjs(item.created_at).format('DD/MM/YYYY HH:mm')}${item.updated_at !== item.created_at ? ` · modifiée le ${dayjs(item.updated_at).format('DD/MM/YYYY HH:mm')}` : ''}`} styles={styles} />
+                  <ProRow label="Compte" value={`créé le ${dayjs(item.account_created_at).format('DD/MM/YYYY')} · voir le profil`} styles={styles}
+                    onPress={() => router.push(`/(auth)/profile/${item.user_id}`)} />
+                </View>
                 <View style={styles.actionRow}>
                   <Pressable style={[styles.dismissButton, proBusyId === item.user_id && styles.disabled]} onPress={() => handleRejectPro(item)} disabled={proBusyId === item.user_id}>
                     <X size={15} color={colors.error} strokeWidth={2.6} />
@@ -405,6 +425,25 @@ export default function ModerationScreen() {
   );
 }
 
+function ProRow({ label, value, onPress, styles }: {
+  label: string; value: string | null | undefined; onPress?: () => void;
+  styles: ReturnType<typeof createStyles>;
+}) {
+  if (!value || !value.trim()) return null;
+  return (
+    <View style={styles.proRow}>
+      <AppText style={styles.proRowLabel}>{label}</AppText>
+      {onPress ? (
+        <Pressable style={{ flex: 1 }} onPress={onPress} accessibilityRole="link">
+          <AppText style={[styles.proRowValue, styles.proRowLink]}>{value}</AppText>
+        </Pressable>
+      ) : (
+        <AppText style={styles.proRowValue} selectable>{value}</AppText>
+      )}
+    </View>
+  );
+}
+
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   tabs: { flexDirection: 'row', padding: spacing.md, gap: spacing.sm },
@@ -443,7 +482,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   dismissButton: { borderWidth: 1, borderColor: colors.lineStrong, flex: 1, flexDirection: 'row', gap: 6, justifyContent: 'center', backgroundColor: colors.surfaceAlt, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
   dismissText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: 'bold' },
   proTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: spacing.sm },
-  proLine: { color: colors.textPrimary, fontSize: fontSizes.sm, marginTop: 2 },
+  proDetails: { marginTop: spacing.sm, gap: 6 },
+  proRow: { flexDirection: 'row', gap: spacing.sm },
+  proRowLabel: { width: 104, color: colors.textSecondary, fontSize: fontSizes.xs, fontWeight: '700', paddingTop: 1 },
+  proRowValue: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm },
+  proRowLink: { color: colors.cta, textDecorationLine: 'underline' },
   proLineMuted: { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2 },
   proHistoryWarning: { color: colors.warning, fontSize: fontSizes.xs, fontWeight: '600', marginTop: 6 },
   approveButton: { flex: 1, flexDirection: 'row', gap: 6, justifyContent: 'center', backgroundColor: colors.success, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },

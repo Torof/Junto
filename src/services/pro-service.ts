@@ -65,11 +65,20 @@ export interface PendingProApplication {
   display_name: string;
   company_name: string | null;
   real_name: string | null;
+  profession: string | null;
+  tagline: string | null;
+  description: string | null;
   email: string | null;
   phone: string | null;
   website: string | null;
+  instagram: string | null;
+  facebook: string | null;
   primary_location_name: string;
+  primary_lng: number | null;
+  primary_lat: number | null;
   created_at: string;
+  updated_at: string;
+  account_created_at: string;
   // Historique admin (00420 — contre-mesure blanchiment d'avis) : anciens
   // approve/reject sur ce user, visibles avant de re-valider.
   prior_review_count: number;
