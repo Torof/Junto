@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import { CalendarDays, MessagesSquare, Mountain, Eye, Phone, MessageCircle, Plus, ChevronRight } from 'lucide-react-native';
+import { CalendarDays, MessagesSquare, Mountain, Eye, Phone, MessageCircle, Plus, ChevronRight, Trash2 } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { proOfferingService } from '@/services/pro-offering-service';
 import { conversationService } from '@/services/conversation-service';
@@ -22,6 +22,7 @@ import { UserAvatar } from '@/components/user-avatar';
 import { PressableScale } from '@/components/pressable-scale';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { sportCategoryColor } from '@/utils/sport-category-color';
+import { useDeleteProPage } from '@/hooks/use-delete-pro-page';
 
 export default function ProSpaceScreen() {
   const colors = useColors();
@@ -31,6 +32,7 @@ export default function ProSpaceScreen() {
   const { session } = useAuth();
   const userId = session?.user?.id ?? null;
   const queryClient = useQueryClient();
+  const { confirmDelete, deleting } = useDeleteProPage();
 
   const { data: proProfile } = useQuery({
     queryKey: ['pro-profile', userId],
@@ -313,6 +315,15 @@ export default function ProSpaceScreen() {
           onPress={() => router.push(`/(auth)/pro/${userId}`)}
         />
       </View>
+
+      <Pressable style={styles.deleteBtn} onPress={confirmDelete} disabled={deleting} accessibilityRole="button">
+        <Trash2 size={16} color={colors.error} strokeWidth={2.4} />
+        <AppText style={styles.deleteBtnText}>
+          {deleting
+            ? t('pro.deleting', { defaultValue: 'Suppression…' })
+            : t('pro.deleteAction', { defaultValue: 'Supprimer ma page pro' })}
+        </AppText>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -338,6 +349,11 @@ function Tile({ icon, title, sub, badge, onPress, styles }: {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   scroll: { padding: spacing.md, paddingBottom: spacing.xl },
+  deleteBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    paddingVertical: spacing.sm + 2, marginTop: spacing.xl,
+  },
+  deleteBtnText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '700' },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4, marginBottom: spacing.sm + 4 },
   logo: { width: 48, height: 48, borderRadius: radius.card - 2, backgroundColor: colors.surfaceAlt },
   newOutingBtn: {
