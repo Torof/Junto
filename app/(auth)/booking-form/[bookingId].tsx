@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { AppText, AppTextInput } from '@/components/app-text';
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
+import { KeyboardDoneBar } from '@/components/keyboard-done-bar';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -103,7 +105,7 @@ export default function BookingFormScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: t('booking.formTitle', { defaultValue: 'Fiche du groupe' }) }} />
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView contentContainerStyle={styles.scroll}>
         <AppText style={styles.intro}>
           {t('booking.formIntro', {
             defaultValue: '{{pro}} a besoin de quelques infos pour préparer le matériel de ton groupe ({{count}} pers.).',
@@ -162,7 +164,8 @@ export default function BookingFormScreen() {
         <AppText style={styles.fine}>
           {t('booking.formPrivacy', { defaultValue: 'Ces infos ne sont visibles que du professionnel, pour cette sortie.' })}
         </AppText>
-      </ScrollView>
+      </KeyboardAwareScrollView>
+      <KeyboardDoneBar />
     </View>
   );
 }

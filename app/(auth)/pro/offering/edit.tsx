@@ -5,11 +5,11 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Modal,
 } from 'react-native';
 import { AppText, AppTextInput } from '@/components/app-text';
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
+import { KeyboardDoneBar } from '@/components/keyboard-done-bar';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, Redirect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -450,14 +450,8 @@ export default function ProOfferingEditScreen() {
   ];
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
+    <View style={styles.container}>
+      <KeyboardAwareScrollView contentContainerStyle={styles.content}>
         <AppText style={styles.title}>
           {isEdit
             ? t('proOffering.editOutingTitle', { defaultValue: 'Modifier la sortie' })
@@ -703,7 +697,7 @@ export default function ProOfferingEditScreen() {
             <AppText style={styles.deleteButtonText}>{t('proOffering.delete')}</AppText>
           </Pressable>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Sticky primary action — always one thumb away. */}
       <View style={[styles.ctaBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) + spacing.sm }]}>
@@ -761,7 +755,8 @@ export default function ProOfferingEditScreen() {
           </Pressable>
         </SafeAreaView>
       </Modal>
-    </KeyboardAvoidingView>
+      <KeyboardDoneBar />
+    </View>
   );
 }
 

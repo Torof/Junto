@@ -5,11 +5,11 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Modal,
 } from 'react-native';
 import { AppText, AppTextInput } from '@/components/app-text';
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
+import { KeyboardDoneBar } from '@/components/keyboard-done-bar';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -413,8 +413,8 @@ export default function ProEditScreen() {
   );
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <View style={{ flex: 1 }}>
+      <KeyboardAwareScrollView style={styles.container} contentContainerStyle={styles.content}>
         <AppText style={styles.title}>
           {isApproved
             ? t('pro.pageTitle', { defaultValue: 'Ma page pro' })
@@ -589,7 +589,7 @@ export default function ProEditScreen() {
             </AppText>
           </Pressable>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Sticky primary action. */}
       <View style={[styles.ctaBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) + spacing.sm }]}>
@@ -693,7 +693,8 @@ export default function ProEditScreen() {
           </Pressable>
         </SafeAreaView>
       </Modal>
-    </KeyboardAvoidingView>
+      <KeyboardDoneBar />
+    </View>
   );
 }
 

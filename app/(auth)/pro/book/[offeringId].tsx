@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { AppText, AppTextInput } from '@/components/app-text';
+import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
+import { KeyboardDoneBar } from '@/components/keyboard-done-bar';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -143,7 +145,7 @@ export default function BookOfferingScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: t('booking.bookTitle', { defaultValue: 'Réserver' }) }} />
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.head}>
           <SportIcon sportKey={offering.sport_key} size={26} />
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -280,7 +282,8 @@ export default function BookOfferingScreen() {
             </PressableScale>
           </>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
+      <KeyboardDoneBar />
     </View>
   );
 }
