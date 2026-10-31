@@ -1920,6 +1920,12 @@
     "traceDraw": "Dessiner"
   },
   "proOffering": {
+    "cover": "Photo de couverture",
+    "coverPick": "Choisir une photo",
+    "coverChange": "Changer",
+    "coverAdd": "Ajouter une photo de couverture",
+    "coverFromGallery": "Ou choisis parmi les photos de la sortie :",
+    "coverNotSaved": "Sortie enregistrée, mais pas la photo de couverture — réessaie depuis Modifier.",
     "page": {
       "guided": "SORTIE ENCADRÉE",
       "by": "par {{name}}",

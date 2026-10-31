@@ -1920,6 +1920,12 @@
     "traceDraw": "Zeichnen"
   },
   "proOffering": {
+    "cover": "Titelbild",
+    "coverPick": "Foto auswählen",
+    "coverChange": "Ändern",
+    "coverAdd": "Titelbild hinzufügen",
+    "coverFromGallery": "Oder wähle eines der Fotos der Tour:",
+    "coverNotSaved": "Tour gespeichert, aber nicht das Titelbild — versuche es erneut über Bearbeiten.",
     "page": {
       "guided": "GEFÜHRTE TOUR",
       "by": "von {{name}}",

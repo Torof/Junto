@@ -1920,6 +1920,12 @@
     "traceDraw": "Draw"
   },
   "proOffering": {
+    "cover": "Cover photo",
+    "coverPick": "Choose a photo",
+    "coverChange": "Change",
+    "coverAdd": "Add a cover photo",
+    "coverFromGallery": "Or pick one of the outing's photos:",
+    "coverNotSaved": "Outing saved, but not the cover photo — try again from Edit.",
     "page": {
       "guided": "GUIDED OUTING",
       "by": "by {{name}}",

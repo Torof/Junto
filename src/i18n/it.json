@@ -1920,6 +1920,12 @@
     "traceDraw": "Disegna"
   },
   "proOffering": {
+    "cover": "Foto di copertina",
+    "coverPick": "Scegli una foto",
+    "coverChange": "Cambia",
+    "coverAdd": "Aggiungi una foto di copertina",
+    "coverFromGallery": "Oppure scegli tra le foto dell'uscita:",
+    "coverNotSaved": "Uscita salvata, ma non la foto di copertina — riprova da Modifica.",
     "page": {
       "guided": "USCITA GUIDATA",
       "by": "di {{name}}",

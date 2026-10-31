@@ -1920,6 +1920,12 @@
     "traceDraw": "Dibujar"
   },
   "proOffering": {
+    "cover": "Foto de portada",
+    "coverPick": "Elegir una foto",
+    "coverChange": "Cambiar",
+    "coverAdd": "Añadir una foto de portada",
+    "coverFromGallery": "O elige entre las fotos de la salida:",
+    "coverNotSaved": "Salida guardada, pero no la foto de portada — vuelve a intentarlo desde Editar.",
     "page": {
       "guided": "SALIDA GUIADA",
       "by": "por {{name}}",

@@ -119,6 +119,37 @@ export async function pickAndUploadProOfferingPhotos(
   return outcomes;
 }
 
+// Offering cover = the offering's FIRST photo (pro_offerings_with_coords.image_url
+// is its lowest order_index). The pro picks it explicitly in the offering form;
+// the asset stays local until save, since a new offering has no id to upload under.
+export async function pickOfferingCoverAsset(): Promise<ImagePicker.ImagePickerAsset | null> {
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsMultipleSelection: false,
+    quality: 0.85,
+  });
+  if (result.canceled || result.assets.length === 0) return null;
+  return result.assets[0] ?? null;
+}
+
+// Put an existing offering photo first (the reorder RPC takes the full set).
+export async function setOfferingCover(offeringId: string, photoId: string): Promise<void> {
+  const photos = await proOfferingPhotoService.listByOffering(offeringId);
+  if (photos[0]?.id === photoId) return;
+  const ids = [photoId, ...photos.map((p) => p.id).filter((id) => id !== photoId)];
+  await proOfferingPhotoService.reorder(offeringId, ids);
+}
+
+// Upload a picked asset into the offering gallery and make it the cover.
+export async function uploadOfferingCover(
+  offeringId: string,
+  asset: ImagePicker.ImagePickerAsset,
+): Promise<void> {
+  const photoUrl = await uploadAsset(asset, `offering/${offeringId}/gallery`, `${Date.now()}-cover`);
+  const photoId = await proOfferingPhotoService.add(offeringId, photoUrl);
+  await setOfferingCover(offeringId, photoId);
+}
+
 // Community photos — anyone can add (max 5 per user per pro). Uploaded under
 // the contributor's own `<uid>/community/<proId>/…` path so the storage
 // insert_own policy allows it; optionally linked to a review via reviewId.
