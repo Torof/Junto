@@ -310,7 +310,7 @@ export default function ProSpaceScreen() {
         <Tile
           styles={styles}
           icon={<Eye size={18} color={colors.cta} strokeWidth={2.2} />}
-          title={t('booking.hubPageShort', { defaultValue: 'Ma page' })}
+          title={t('booking.hubPageShort', { defaultValue: 'Ma page pro' })}
           sub={t('booking.hubPageSubEdit', { defaultValue: 'Voir et modifier' })}
           onPress={() => router.push(`/(auth)/pro/${userId}`)}
         />
