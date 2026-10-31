@@ -1398,6 +1398,239 @@
     "am": "ochtend",
     "pm": "middag"
    }
+  },
+  "pt": {
+   "notif": {
+    "join_request": {
+     "title": "{{name}} quer juntar-se à tua atividade",
+     "body": "« {{title}} »"
+    },
+    "request_accepted": {
+     "title": "Estás na atividade!",
+     "body": "« {{title}} »"
+    },
+    "request_refused": {
+     "title": "Pedido recusado",
+     "body": "« {{title}} »"
+    },
+    "participant_joined": {
+     "title": "Novo participante",
+     "body": "{{name}} juntou-se a « {{title}} »"
+    },
+    "participant_left": {
+     "title": "{{name}} saiu de « {{title}} »",
+     "body": "{{reason}}"
+    },
+    "participant_left_late": {
+     "title": "{{name}} saiu de « {{title}} »",
+     "body": "Saída tardia — penalização de fiabilidade aplicada, podes retirá-la a partir da atividade."
+    },
+    "participant_removed": {
+     "title": "Já não fazes parte da atividade",
+     "body": "« {{title}} »"
+    },
+    "activity_cancelled": {
+     "title": "Atividade cancelada",
+     "body": "« {{title}} » — {{reason}}",
+     "no_reason": {
+      "title": "Atividade cancelada",
+      "body": "« {{title}} »"
+     },
+     "creator_gone": {
+      "title": "Atividade cancelada",
+      "body": "« {{title}} » — o organizador saiu do askandgo"
+     }
+    },
+    "activity_updated": {
+     "title": "Atividade alterada",
+     "body": "« {{title}} » mudou — verifica a hora e o ponto de encontro.",
+     "trace": {
+      "title": "Percurso alterado",
+      "body": "« {{title}} » tem um novo percurso — dá uma vista de olhos ao trajeto."
+     }
+    },
+    "alert_match": {
+     "title": "Nova atividade para o teu alerta",
+     "body": "« {{title}} »"
+    },
+    "contact_request": {
+     "title": "{{name}} quer entrar em contacto contigo",
+     "body": "",
+     "invite": {
+      "title": "{{name}} convida-te para uma atividade",
+      "body": "« {{title}} »"
+     }
+    },
+    "contact_request_accepted": {
+     "title": "{{name}} aceitou o teu pedido de contacto",
+     "body": ""
+    },
+    "activity_invitation": {
+     "title": "{{name}} convida-te para uma atividade",
+     "body": "« {{title}} »"
+    },
+    "invitation_accepted": {
+     "title": "{{name}} aceitou o teu convite",
+     "body": "« {{title}} »"
+    },
+    "invite_activity_gone": {
+     "title": "Esta atividade já não está disponível",
+     "body": "« {{title}} »"
+    },
+    "group_added": {
+     "title": "{{name}} adicionou-te ao grupo",
+     "body": "{{group}}"
+    },
+    "seat_request": {
+     "title": "Pedido de boleia",
+     "body": "{{name}} pede um lugar para « {{title}} »",
+     "pickup": {
+      "title": "Pedido de boleia",
+      "body": "{{name}} pede um lugar para « {{title}} » a partir de {{pickup}}"
+     }
+    },
+    "seat_request_accepted": {
+     "title": "Lugar confirmado!",
+     "body": "{{name}} aceitou o teu pedido para « {{title}} »"
+    },
+    "seat_request_declined": {
+     "title": "Sem lugar",
+     "body": "{{name}} recusou o teu pedido para « {{title}} »"
+    },
+    "seat_request_expired": {
+     "title": "Pedido sem resposta",
+     "body": "O teu pedido de boleia para « {{title}} » expirou sem resposta do condutor."
+    },
+    "driver_left": {
+     "title": "Lugar cancelado",
+     "body": "{{name}} saiu de « {{title}} » — encontra outro lugar"
+    },
+    "seat_passenger_left": {
+     "title": "Lugar libertado",
+     "body": "{{name}} já não participa em « {{title}} » — o lugar no teu carro ficou livre"
+    },
+    "join_request_blocked": {
+     "title": "Pedido retirado",
+     "body": "O pedido de {{name}} para « {{title}} » foi retirado: existe um bloqueio com um participante."
+    },
+    "booking_request": {
+     "title": "Novo pedido de reserva",
+     "body_one": "{{name}} · « {{title}} » · {{date}}, {{period}} · 1 pess.",
+     "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pess."
+    },
+    "booking_accepted": {
+     "title": "Reserva confirmada!",
+     "body": "{{name}} confirmou « {{title}} » a {{date}}, {{period}}. Pagamento no local."
+    },
+    "booking_declined": {
+     "title": "Horário indisponível",
+     "body": "{{name}} não está disponível para « {{title}} » a {{date}}. Experimenta outro horário."
+    },
+    "booking_cancelled": {
+     "title": "Atividade cancelada",
+     "body": "« {{title}} » de {{date}} foi cancelada.",
+     "by_client": {
+      "title": "Reserva cancelada",
+      "body": "{{name}} cancelou « {{title}} » de {{date}}."
+     },
+     "by_pro": {
+      "title": "Atividade cancelada",
+      "body": "{{name}} cancelou « {{title}} » de {{date}}. Contacta-o para reagendar."
+     },
+     "pro_gone": {
+      "title": "Atividade cancelada",
+      "body": "« {{title}} » de {{date}} foi cancelada — o profissional já não está no askandgo."
+     },
+     "client_gone": {
+      "title": "Reserva cancelada",
+      "body": "A reserva de « {{title}} » de {{date}} foi cancelada."
+     }
+    },
+    "booking_expired": {
+     "title": "Pedido expirado",
+     "body": "O teu pedido para « {{title}} » de {{date}}, {{period}} expirou sem resposta. Podes pedir outro horário."
+    },
+    "presence_pre_warning": {
+     "title": "{{title}}",
+     "body": "Começa daqui a 2 h — prepara-te para validar a tua presença no local"
+    },
+    "presence_pre_warning_10min": {
+     "title": "{{title}}",
+     "body": "Começa daqui a 10 min — lembra-te de validar a tua presença no local"
+    },
+    "presence_validate_warning": {
+     "title": "Valida a tua presença",
+     "body": "Lê o QR do organizador — válido até 3 h após o fim de « {{title}} »."
+    },
+    "presence_validate_overdue": {
+     "title": "Presença não validada",
+     "body": "Lê o QR do organizador até 3 h após o fim de « {{title}} », senão contará como falta.",
+     "duo": {
+      "title": "Presença não validada",
+      "body": "Lê o QR do organizador até 3 h após o fim de « {{title}} », senão a atividade não será contabilizada."
+     }
+    },
+    "presence_confirmed": {
+     "title": "Presença confirmada",
+     "body": "A tua presença foi validada para « {{title}} »"
+    },
+    "qr_create_reminder": {
+     "title": "{{title}}",
+     "body": "Gera o QR de presença para os teus participantes"
+    },
+    "rate_participants": {
+     "title": "Avalia os teus companheiros",
+     "body": "« {{title}} » — conta-nos como correu."
+    },
+    "presence_self_declare": {
+     "title": "Estiveste lá?",
+     "body": "« {{title}} » — diz-nos num gesto, tens 48 h."
+    },
+    "review_received": {
+     "title": "Nova avaliação",
+     "body": "{{name}} deixou uma avaliação ({{rating}}★) sobre {{label}}",
+     "updated": {
+      "title": "Avaliação alterada",
+      "body": "{{name}} alterou a avaliação ({{rating}}★) sobre {{label}}"
+     }
+    },
+    "review_reply": {
+     "title": "Resposta à tua avaliação",
+     "body": "{{name}} respondeu à tua avaliação sobre {{label}}"
+    },
+    "pro_renamed": {
+     "title": "Montra pro renomeada",
+     "body": "{{old}} → {{new}}"
+    },
+    "badge_unlocked": {
+     "title": "Novo badge!",
+     "body": "Agora és {{label}}"
+    },
+    "pro_approved": {
+     "title": "Página pro validada",
+     "body": "A tua página pro está online. Já podes publicar as tuas atividades."
+    },
+    "pro_rejected": {
+     "title": "Pedido pro recusado",
+     "body": "O teu pedido de página pro não foi validado. Corrige as tuas informações e envia-o de novo.",
+     "reason": {
+      "title": "Pedido pro recusado",
+      "body": "{{reason}}"
+     }
+    },
+    "new_message": {
+     "title": "{{name}} · {{context}}",
+     "body": "{{preview}}",
+     "dm": {
+      "title": "{{name}}",
+      "body": "{{preview}}"
+     }
+    }
+   },
+   "period": {
+    "am": "manhã",
+    "pm": "tarde"
+   }
   }
  }
 }

@@ -1,0 +1,8 @@
+{
+  "ios": {
+    "NSLocationWhenInUseUsageDescription": "A tua localização centra o mapa em ti, encontra atividades e conversas por perto e confirma a tua presença no dia de uma atividade. Nunca é mostrada aos outros.",
+    "NSLocationAlwaysAndWhenInUseUsageDescription": "Em segundo plano, o askandgo só consulta a tua localização nas 24 horas antes de uma atividade em que participas, para confirmar a tua chegada sem teres de abrir a app.",
+    "NSLocationAlwaysUsageDescription": "Em segundo plano, o askandgo só consulta a tua localização nas 24 horas antes de uma atividade em que participas, para confirmar a tua chegada sem teres de abrir a app.",
+    "NSCameraUsageDescription": "A câmara só é usada para ler códigos QR (presença, contactos). Nenhuma foto é tirada."
+  }
+}
