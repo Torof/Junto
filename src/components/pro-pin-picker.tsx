@@ -106,18 +106,21 @@ export function ProPinPicker({
         {tiles.map((tile) => {
           const selected = tile.way === way;
           return (
-            <Pressable
-              key={tile.way}
-              style={[styles.tile, selected && styles.tileSelected]}
-              onPress={() => onTile(tile.way)}
-              disabled={tile.way === 'photo' && pinImageBusy}
-              accessibilityRole="button"
-              accessibilityState={{ selected }}
-            >
+            <View key={tile.way} style={[styles.tile, selected && styles.tileSelected]}>
               <View style={styles.tilePin} pointerEvents="none">{tile.pin}</View>
               <AppText style={styles.tileTitle}>{tile.title}</AppText>
               <AppText style={styles.tileSub} numberOfLines={2}>{tile.sub}</AppText>
-            </Pressable>
+              {/* The touch target sits ON TOP of the pin drawing (SVG), so the
+                  drawing can never swallow the tap; it darkens on press. */}
+              <Pressable
+                style={({ pressed }) => [StyleSheet.absoluteFill, styles.hit, pressed && styles.hitPressed]}
+                onPress={() => onTile(tile.way)}
+                disabled={tile.way === 'photo' && pinImageBusy}
+                accessibilityRole="button"
+                accessibilityLabel={tile.title}
+                accessibilityState={{ selected }}
+              />
+            </View>
           );
         })}
       </View>
@@ -137,15 +140,16 @@ export function ProPinPicker({
             {PRO_PIN_ICONS.map((opt) => {
               const selected = pinIcon === opt.key;
               return (
-                <Pressable
-                  key={opt.key}
-                  style={[styles.chip, selected && styles.chipSelected]}
-                  onPress={() => chooseUniverse(opt.key)}
-                  accessibilityLabel={universeLabel(opt.key)}
-                  accessibilityState={{ selected }}
-                >
+                <View key={opt.key} style={[styles.chip, selected && styles.chipSelected]}>
                   <View style={styles.chipPin} pointerEvents="none"><ProPin displayName="" pinIcon={opt.key} /></View>
-                </Pressable>
+                  <Pressable
+                    style={({ pressed }) => [StyleSheet.absoluteFill, styles.hit, pressed && styles.hitPressed]}
+                    onPress={() => chooseUniverse(opt.key)}
+                    accessibilityRole="button"
+                    accessibilityLabel={universeLabel(opt.key)}
+                    accessibilityState={{ selected }}
+                  />
+                </View>
               );
             })}
           </View>
@@ -208,11 +212,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   captionText: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '600' },
   tiles: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm + 2 },
   tile: {
-    flex: 1, backgroundColor: colors.surface, borderRadius: radius.card - 4,
+    flex: 1, backgroundColor: colors.surface, borderRadius: radius.card - 4, overflow: 'hidden',
     borderWidth: 1.5, borderColor: colors.lineStrong, paddingVertical: spacing.sm + 2, paddingHorizontal: 2, minHeight: 104,
     alignItems: 'center',
   },
   tileSelected: { borderColor: PRO_GOLD, backgroundColor: PRO_GOLD + '1F' },
+  hit: { borderRadius: radius.card - 4 },
+  hitPressed: { backgroundColor: colors.textPrimary + '14' },
   tilePin: { height: 52, alignItems: 'center', justifyContent: 'center', transform: [{ scale: 0.8 }] },
   tileTitle: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '700', marginTop: 2 },
   tileSub: { color: colors.textSecondary, fontSize: 10.5, lineHeight: 13, textAlign: 'center', minHeight: 13 },
