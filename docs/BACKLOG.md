@@ -40,6 +40,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 
 - [x] 1. Scott — Vercel : ajouter askandgo.io + www au projet du site, recopier les enregistrements DNS chez GoDaddy. Garder getjunto.app sur le projet SANS redirection (Android vérifie `assetlinks.json` sur chaque domaine et ne suit pas les redirections).
 - [ ] 2. Scott — Resend : ajouter le domaine, enregistrements SPF / DKIM / MX de retour chez GoDaddy ; Supabase SMTP → expéditeur `askandgo <noreply@askandgo.io>`.
+  - [ ] 2 bis. Scott — Resend : créer une clé API puis `npx supabase secrets set RESEND_API_KEY=…` (e-mail des demandes pro vers contact@askandgo.io, Edge `notify-pro-application`, mig 00561 — muet tant que la clé manque ; part de noreply@askandgo.io, donc après l'étape 2).
 - [x] 3. Scott — réception de `contact@askandgo.io` : domaine personnalisé Proton (MX, SPF, 3 DKIM, un seul DMARC), testé le 2026-10-29.
 - [x] 4. Scott — Supabase Auth : Site URL `https://askandgo.io`, adresses de retour `https://askandgo.io/**` (garder getjunto.app le temps de la transition).
 - [ ] 5. Scott — coller les deux modèles `docs/email-templates/*.html` dans Supabase.
