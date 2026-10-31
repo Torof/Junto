@@ -9,7 +9,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const LANGS = ['fr', 'en', 'it', 'es', 'de'];
+const LANGS = ['fr', 'en', 'it', 'es', 'de', 'nl'];
 const out = { generatedFrom: 'src/i18n/*.json (npm run push:templates)', languages: {} };
 for (const lang of LANGS) {
   const json = JSON.parse(readFileSync(resolve(root, `src/i18n/${lang}.json`), 'utf8'));

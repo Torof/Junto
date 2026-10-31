@@ -67,6 +67,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     it: './locales/ios/it.json',
     es: './locales/ios/es.json',
     de: './locales/ios/de.json',
+    nl: './locales/ios/nl.json',
   },
   ios: {
     supportsTablet: false,

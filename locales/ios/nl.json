@@ -1,0 +1,8 @@
+{
+  "ios": {
+    "NSLocationWhenInUseUsageDescription": "Je locatie centreert de kaart op jou, vindt activiteiten en gesprekken in de buurt en bevestigt op de dag van een activiteit dat je er bent. Ze wordt nooit aan anderen getoond.",
+    "NSLocationAlwaysAndWhenInUseUsageDescription": "Op de achtergrond kijkt askandgo alleen in de 24 uur vóór een activiteit waaraan je meedoet naar je locatie, om je aankomst te bevestigen zonder dat je de app hoeft te openen.",
+    "NSLocationAlwaysUsageDescription": "Op de achtergrond kijkt askandgo alleen in de 24 uur vóór een activiteit waaraan je meedoet naar je locatie, om je aankomst te bevestigen zonder dat je de app hoeft te openen.",
+    "NSCameraUsageDescription": "De camera wordt alleen gebruikt om QR-codes te scannen (aanwezigheid, contacten). Er wordt geen foto gemaakt."
+  }
+}

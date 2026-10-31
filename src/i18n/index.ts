@@ -7,12 +7,14 @@ import 'dayjs/locale/fr';
 import 'dayjs/locale/it';
 import 'dayjs/locale/es';
 import 'dayjs/locale/de';
+import 'dayjs/locale/nl';
 
 import fr from './fr.json';
 import en from './en.json';
 import it from './it.json';
 import es from './es.json';
 import de from './de.json';
+import nl from './nl.json';
 
 // Multilingual foundation (Scott 2026-10-14). The app language is resolved
 // from a local PREFERENCE: 'auto' (the phone's language, narrowed to what we
@@ -22,8 +24,8 @@ import de from './de.json';
 // reader's language. Adding a language = a JSON file + its dayjs locale +
 // one entry in SUPPORTED_LANGUAGES (+ the DB CHECK in 00445).
 // it/es/de added 2026-10-14 (model translation, native proofread pending —
-// neighbours who visit the Hautes-Alpes).
-export const SUPPORTED_LANGUAGES = ['fr', 'en', 'it', 'es', 'de'] as const;
+// neighbours who visit the Hautes-Alpes). nl added 2026-10-31 (same way, mig 00563).
+export const SUPPORTED_LANGUAGES = ['fr', 'en', 'it', 'es', 'de', 'nl'] as const;
 export type AppLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 export type LanguagePreference = 'auto' | AppLanguage;
 
@@ -64,6 +66,7 @@ i18n.use(initReactI18next).init({
     it: { translation: it },
     es: { translation: es },
     de: { translation: de },
+    nl: { translation: nl },
   },
   lng: initial,
   fallbackLng: FALLBACK,

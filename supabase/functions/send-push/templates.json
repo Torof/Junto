@@ -1165,6 +1165,239 @@
     "am": "vormittags",
     "pm": "nachmittags"
    }
+  },
+  "nl": {
+   "notif": {
+    "join_request": {
+     "title": "{{name}} wil meedoen aan je activiteit",
+     "body": "“{{title}}”"
+    },
+    "request_accepted": {
+     "title": "Je doet mee!",
+     "body": "“{{title}}”"
+    },
+    "request_refused": {
+     "title": "Verzoek afgewezen",
+     "body": "“{{title}}”"
+    },
+    "participant_joined": {
+     "title": "Nieuwe deelnemer",
+     "body": "{{name}} doet mee aan “{{title}}”"
+    },
+    "participant_left": {
+     "title": "{{name}} heeft “{{title}}” verlaten",
+     "body": "{{reason}}"
+    },
+    "participant_left_late": {
+     "title": "{{name}} heeft “{{title}}” verlaten",
+     "body": "Late afmelding — betrouwbaarheidsstraf toegepast, je kunt die opheffen vanuit de activiteit."
+    },
+    "participant_removed": {
+     "title": "Je doet niet meer mee aan de activiteit",
+     "body": "“{{title}}”"
+    },
+    "activity_cancelled": {
+     "title": "Activiteit geannuleerd",
+     "body": "“{{title}}” — {{reason}}",
+     "no_reason": {
+      "title": "Activiteit geannuleerd",
+      "body": "“{{title}}”"
+     },
+     "creator_gone": {
+      "title": "Activiteit geannuleerd",
+      "body": "“{{title}}” — de organisator heeft askandgo verlaten"
+     }
+    },
+    "activity_updated": {
+     "title": "Activiteit gewijzigd",
+     "body": "“{{title}}” is gewijzigd — check het tijdstip en het verzamelpunt.",
+     "trace": {
+      "title": "Route gewijzigd",
+      "body": "“{{title}}” heeft een nieuwe route — bekijk de track even."
+     }
+    },
+    "alert_match": {
+     "title": "Nieuwe activiteit voor je alert",
+     "body": "“{{title}}”"
+    },
+    "contact_request": {
+     "title": "{{name}} wil contact met je",
+     "body": "",
+     "invite": {
+      "title": "{{name}} nodigt je uit voor een activiteit",
+      "body": "“{{title}}”"
+     }
+    },
+    "contact_request_accepted": {
+     "title": "{{name}} heeft je contactverzoek geaccepteerd",
+     "body": ""
+    },
+    "activity_invitation": {
+     "title": "{{name}} nodigt je uit voor een activiteit",
+     "body": "“{{title}}”"
+    },
+    "invitation_accepted": {
+     "title": "{{name}} heeft je uitnodiging geaccepteerd",
+     "body": "“{{title}}”"
+    },
+    "invite_activity_gone": {
+     "title": "Deze activiteit is niet meer beschikbaar",
+     "body": "“{{title}}”"
+    },
+    "group_added": {
+     "title": "{{name}} heeft je aan de groep toegevoegd",
+     "body": "{{group}}"
+    },
+    "seat_request": {
+     "title": "Verzoek om mee te rijden",
+     "body": "{{name}} vraagt een plekje voor “{{title}}”",
+     "pickup": {
+      "title": "Verzoek om mee te rijden",
+      "body": "{{name}} vraagt een plekje voor “{{title}}” vanaf {{pickup}}"
+     }
+    },
+    "seat_request_accepted": {
+     "title": "Plek bevestigd!",
+     "body": "{{name}} heeft je verzoek voor “{{title}}” geaccepteerd"
+    },
+    "seat_request_declined": {
+     "title": "Geen plek",
+     "body": "{{name}} heeft je verzoek voor “{{title}}” afgewezen"
+    },
+    "seat_request_expired": {
+     "title": "Verzoek onbeantwoord",
+     "body": "Je meerijverzoek voor “{{title}}” is verlopen zonder antwoord van de bestuurder."
+    },
+    "driver_left": {
+     "title": "Plek geannuleerd",
+     "body": "{{name}} heeft “{{title}}” verlaten — zoek een andere plek"
+    },
+    "seat_passenger_left": {
+     "title": "Plek vrijgekomen",
+     "body": "{{name}} doet niet meer mee aan “{{title}}” — de plek in je auto is weer vrij"
+    },
+    "join_request_blocked": {
+     "title": "Verzoek ingetrokken",
+     "body": "Het verzoek van {{name}} voor “{{title}}” is ingetrokken: er is een blokkering met een deelnemer."
+    },
+    "booking_request": {
+     "title": "Nieuwe boekingsaanvraag",
+     "body_one": "{{name}} · “{{title}}” · {{date}}, {{period}} · 1 pers.",
+     "body_other": "{{name}} · “{{title}}” · {{date}}, {{period}} · {{count}} pers."
+    },
+    "booking_accepted": {
+     "title": "Boeking bevestigd!",
+     "body": "{{name}} heeft “{{title}}” bevestigd op {{date}}, {{period}}. Betaling ter plaatse."
+    },
+    "booking_declined": {
+     "title": "Tijdslot niet beschikbaar",
+     "body": "{{name}} is niet beschikbaar voor “{{title}}” op {{date}}. Probeer een ander tijdslot."
+    },
+    "booking_cancelled": {
+     "title": "Activiteit geannuleerd",
+     "body": "“{{title}}” van {{date}} is geannuleerd.",
+     "by_client": {
+      "title": "Boeking geannuleerd",
+      "body": "{{name}} heeft “{{title}}” van {{date}} geannuleerd."
+     },
+     "by_pro": {
+      "title": "Activiteit geannuleerd",
+      "body": "{{name}} heeft “{{title}}” van {{date}} geannuleerd. Neem contact op om een nieuwe datum te plannen."
+     },
+     "pro_gone": {
+      "title": "Activiteit geannuleerd",
+      "body": "“{{title}}” van {{date}} is geannuleerd — de professional zit niet meer op askandgo."
+     },
+     "client_gone": {
+      "title": "Boeking geannuleerd",
+      "body": "De boeking van “{{title}}” van {{date}} is geannuleerd."
+     }
+    },
+    "booking_expired": {
+     "title": "Aanvraag verlopen",
+     "body": "Je aanvraag voor “{{title}}” van {{date}}, {{period}} is verlopen zonder antwoord. Je kunt een ander tijdslot aanvragen."
+    },
+    "presence_pre_warning": {
+     "title": "{{title}}",
+     "body": "Begint over 2 u — maak je klaar om ter plaatse je aanwezigheid te bevestigen"
+    },
+    "presence_pre_warning_10min": {
+     "title": "{{title}}",
+     "body": "Begint over 10 min — vergeet niet ter plaatse je aanwezigheid te bevestigen"
+    },
+    "presence_validate_warning": {
+     "title": "Bevestig je aanwezigheid",
+     "body": "Scan de QR-code van de organisator — geldig tot 3 u na het einde van “{{title}}”."
+    },
+    "presence_validate_overdue": {
+     "title": "Aanwezigheid niet bevestigd",
+     "body": "Scan de QR-code van de organisator binnen 3 u na het einde van “{{title}}”, anders telt het als afwezig.",
+     "duo": {
+      "title": "Aanwezigheid niet bevestigd",
+      "body": "Scan de QR-code van de organisator binnen 3 u na het einde van “{{title}}”, anders telt de activiteit niet mee."
+     }
+    },
+    "presence_confirmed": {
+     "title": "Aanwezigheid bevestigd",
+     "body": "Je aanwezigheid is bevestigd voor “{{title}}”"
+    },
+    "qr_create_reminder": {
+     "title": "{{title}}",
+     "body": "Maak de aanwezigheids-QR voor je deelnemers aan"
+    },
+    "rate_participants": {
+     "title": "Beoordeel je mededeelnemers",
+     "body": "“{{title}}” — laat ons weten hoe het ging."
+    },
+    "presence_self_declare": {
+     "title": "Was je erbij?",
+     "body": "“{{title}}” — laat het weten met één tik, je hebt 48 u."
+    },
+    "review_received": {
+     "title": "Nieuwe review",
+     "body": "{{name}} heeft een review ({{rating}}★) achtergelaten voor {{label}}",
+     "updated": {
+      "title": "Review gewijzigd",
+      "body": "{{name}} heeft zijn review ({{rating}}★) voor {{label}} gewijzigd"
+     }
+    },
+    "review_reply": {
+     "title": "Reactie op je review",
+     "body": "{{name}} heeft gereageerd op je review over {{label}}"
+    },
+    "pro_renamed": {
+     "title": "Pro-pagina hernoemd",
+     "body": "{{old}} → {{new}}"
+    },
+    "badge_unlocked": {
+     "title": "Nieuwe badge!",
+     "body": "Je bent nu {{label}}"
+    },
+    "pro_approved": {
+     "title": "Pro-pagina goedgekeurd",
+     "body": "Je pro-pagina staat online. Je kunt nu je activiteiten publiceren."
+    },
+    "pro_rejected": {
+     "title": "Pro-aanvraag afgewezen",
+     "body": "Je aanvraag voor een pro-pagina is niet goedgekeurd. Pas je gegevens aan en dien hem opnieuw in.",
+     "reason": {
+      "title": "Pro-aanvraag afgewezen",
+      "body": "{{reason}}"
+     }
+    },
+    "new_message": {
+     "title": "{{name}} · {{context}}",
+     "body": "{{preview}}",
+     "dm": {
+      "title": "{{name}}",
+      "body": "{{preview}}"
+     }
+    }
+   },
+   "period": {
+    "am": "ochtend",
+    "pm": "middag"
+   }
   }
  }
 }
