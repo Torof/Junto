@@ -279,6 +279,8 @@ export function OfferingPage({ offering, isOwner }: Props) {
                 </Pressable>
               );
             })}
+            {/* Always four slots: one photo stays a thumbnail, not a full-width square. */}
+            {Array.from({ length: Math.max(0, 4 - allPhotos.length) }, (_, i) => <View key={`slot-${i}`} style={styles.thumbSlot} />)}
           </View>
         ) : (
           <View style={[styles.inset, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
@@ -345,6 +347,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   thumbs: { flexDirection: 'row', gap: 6, paddingHorizontal: spacing.md + 2 },
   thumbWrap: { flex: 1, aspectRatio: 1, borderRadius: 10, overflow: 'hidden', backgroundColor: colors.surfaceAlt },
   thumb: { width: '100%', height: '100%' },
+  thumbSlot: { flex: 1 },
   thumbMore: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,12,9,0.5)', alignItems: 'center', justifyContent: 'center' },
   thumbMoreText: { color: WHITE, fontSize: fontSizes.sm, fontWeight: '800' },
   sticky: {
