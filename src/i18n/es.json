@@ -2125,6 +2125,9 @@
     "registerSubtitleShort": "Con cuatro datos basta. El resto se completa después, desde tu página.",
     "pinSection": "Tu pin en el mapa",
     "pin": {
+      "intro": "Es el icono que te representa en el mapa. Elige qué muestra: tu oficio, un universo, un deporte o tu foto.",
+      "metierHint": "El icono de tu oficio",
+      "photoTileHint": "Tu logo o una foto",
       "metier": "Profesión",
       "univers": "Universo",
       "sport": "Deporte",

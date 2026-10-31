@@ -69,16 +69,17 @@ export function ProPinPicker({
 
   // Each tile shows the pin that way would give THIS pro.
   const tiles: { way: Way; title: string; sub: string; pin: React.ReactNode }[] = [
-    { way: 'metier', title: t('pro.pin.metier', { defaultValue: 'Métier' }), sub: professionLabel,
+    { way: 'metier', title: t('pro.pin.metier', { defaultValue: 'Métier' }),
+      sub: hasProfession ? t('pro.pin.metierHint', { defaultValue: 'Le picto de ton métier' }) : professionLabel,
       pin: <ProPin displayName={displayName} profession={profession} /> },
     { way: 'univers', title: t('pro.pin.univers', { defaultValue: 'Univers' }),
-      sub: isUniverse && pinIcon ? universeLabel(pinIcon) : t('pro.pin.universHint', { defaultValue: 'Montagne, eau…' }),
+      sub: t('pro.pin.universHint', { defaultValue: 'Montagne, eau…' }),
       pin: <ProPin displayName={displayName} pinIcon={isUniverse ? pinIcon : 'mountain'} /> },
     { way: 'sport', title: t('pro.pin.sport', { defaultValue: 'Sport' }),
-      sub: sportKey ? sportLabel(sportKey) : t('pro.pin.sportHint', { defaultValue: 'Un des sports' }),
+      sub: t('pro.pin.sportHint', { defaultValue: 'Un des sports' }),
       pin: <ProPin displayName={displayName} pinIcon={sportKey ?? 'hiking'} /> },
     { way: 'photo', title: t('pro.pin.photo', { defaultValue: 'Photo' }),
-      sub: pinImageBusy ? t('pro.pinLogoBusy', { defaultValue: 'Envoi…' }) : pinImageUrl ? t('pro.pin.yourPhoto', { defaultValue: 'Ta photo' }) : t('pro.pin.import', { defaultValue: 'Importer…' }),
+      sub: pinImageBusy ? t('pro.pinLogoBusy', { defaultValue: 'Envoi…' }) : t('pro.pin.photoTileHint', { defaultValue: 'Ton logo ou une photo' }),
       pin: pinImageUrl
         ? <ProPin displayName={displayName} pinImageUrl={pinImageUrl} />
         : <View style={styles.photoPlaceholder}><ImagePlus size={18} color={colors.textSecondary} strokeWidth={2.2} /></View> },
@@ -93,6 +94,9 @@ export function ProPinPicker({
   return (
     <View style={styles.card}>
       <AppText style={styles.label}>{t('pro.pinSection', { defaultValue: 'Ton pin sur la carte' })}</AppText>
+      <AppText style={styles.intro}>
+        {t('pro.pin.intro', { defaultValue: 'C’est l’icône qui te représente sur la carte. Choisis ce qu’elle montre : ton métier, un univers, un sport ou ta photo.' })}
+      </AppText>
       <View style={styles.preview}>
         <ProPin displayName={displayName} pinIcon={pinIcon} profession={profession} pinImageUrl={pinImageUrl} />
         <View style={styles.captionChip}><AppText style={styles.captionText} numberOfLines={1}>{caption}</AppText></View>
@@ -110,7 +114,7 @@ export function ProPinPicker({
               accessibilityRole="button"
               accessibilityState={{ selected }}
             >
-              <View style={styles.tilePin}>{tile.pin}</View>
+              <View style={styles.tilePin} pointerEvents="none">{tile.pin}</View>
               <AppText style={styles.tileTitle}>{tile.title}</AppText>
               <AppText style={styles.tileSub} numberOfLines={2}>{tile.sub}</AppText>
             </Pressable>
@@ -140,7 +144,7 @@ export function ProPinPicker({
                   accessibilityLabel={universeLabel(opt.key)}
                   accessibilityState={{ selected }}
                 >
-                  <View style={styles.chipPin}><ProPin displayName="" pinIcon={opt.key} /></View>
+                  <View style={styles.chipPin} pointerEvents="none"><ProPin displayName="" pinIcon={opt.key} /></View>
                 </Pressable>
               );
             })}
@@ -190,7 +194,8 @@ export function ProPinPicker({
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   card: { backgroundColor: colors.surfaceAlt, borderRadius: radius.card, padding: spacing.sm + 4, marginBottom: spacing.md },
-  label: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '700', marginBottom: spacing.xs + 2 },
+  label: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '700', marginBottom: spacing.xs },
+  intro: { color: colors.textSecondary, fontSize: fontSizes.xs, lineHeight: 16, marginBottom: spacing.sm },
   preview: {
     height: 128, borderRadius: radius.card - 4, backgroundColor: colors.surface,
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
@@ -204,7 +209,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   tiles: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm + 2 },
   tile: {
     flex: 1, backgroundColor: colors.surface, borderRadius: radius.card - 4,
-    borderWidth: 1.5, borderColor: colors.lineStrong, paddingVertical: spacing.sm, paddingHorizontal: 2,
+    borderWidth: 1.5, borderColor: colors.lineStrong, paddingVertical: spacing.sm + 2, paddingHorizontal: 2, minHeight: 104,
     alignItems: 'center',
   },
   tileSelected: { borderColor: PRO_GOLD, backgroundColor: PRO_GOLD + '1F' },

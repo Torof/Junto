@@ -2125,6 +2125,9 @@
     "registerSubtitleShort": "Vier Angaben reichen. Der Rest lässt sich später auf deiner Seite ergänzen.",
     "pinSection": "Dein Pin auf der Karte",
     "pin": {
+      "intro": "Das ist das Symbol, das dich auf der Karte zeigt. Wähle, was es darstellt: deinen Beruf, ein Universum, eine Sportart oder dein Foto.",
+      "metierHint": "Das Symbol deines Berufs",
+      "photoTileHint": "Dein Logo oder ein Foto",
       "metier": "Beruf",
       "univers": "Universum",
       "sport": "Sportart",

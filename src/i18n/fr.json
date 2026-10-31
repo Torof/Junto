@@ -2125,6 +2125,9 @@
     "registerSubtitleShort": "Quatre infos suffisent. Le reste se complète plus tard, depuis ta page.",
     "pinSection": "Ton pin sur la carte",
     "pin": {
+      "intro": "C’est l’icône qui te représente sur la carte. Choisis ce qu’elle montre : ton métier, un univers, un sport ou ta photo.",
+      "metierHint": "Le picto de ton métier",
+      "photoTileHint": "Ton logo ou une photo",
       "metier": "Métier",
       "univers": "Univers",
       "sport": "Sport",

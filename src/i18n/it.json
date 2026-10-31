@@ -2125,6 +2125,9 @@
     "registerSubtitleShort": "Bastano quattro informazioni. Il resto si completa dopo, dalla tua pagina.",
     "pinSection": "Il tuo pin sulla mappa",
     "pin": {
+      "intro": "È l'icona che ti rappresenta sulla mappa. Scegli cosa mostra: il tuo mestiere, un universo, uno sport o la tua foto.",
+      "metierHint": "L'icona del tuo mestiere",
+      "photoTileHint": "Il tuo logo o una foto",
       "metier": "Professione",
       "univers": "Universo",
       "sport": "Sport",
