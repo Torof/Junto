@@ -194,7 +194,7 @@ export function MenuSheet({ open, onClose }: Props) {
               no more « Devenir pro » buried in Paramètres › Compte. */}
           {isApprovedPro ? (
             <MenuItem
-              icon={<Briefcase size={20} color={colors.textPrimary} strokeWidth={2.2} />}
+              icon={<Briefcase size={20} color={PRO_GOLD} strokeWidth={2.2} />}
               label={t('menu.proSpace', { defaultValue: 'Espace pro' })}
               badge={proBadge > 0 ? String(proBadge) : null}
               onPress={() => go('/(auth)/pro/espace')}
