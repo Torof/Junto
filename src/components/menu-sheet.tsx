@@ -196,6 +196,7 @@ export function MenuSheet({ open, onClose }: Props) {
             <MenuItem
               icon={<Briefcase size={20} color={PRO_GOLD} strokeWidth={2.2} />}
               label={t('menu.proSpace', { defaultValue: 'Espace pro' })}
+              labelColor={PRO_GOLD}
               badge={proBadge > 0 ? String(proBadge) : null}
               onPress={() => go('/(auth)/pro/espace')}
               styles={styles}
