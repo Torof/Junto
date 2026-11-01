@@ -34,6 +34,16 @@ export const formsState = (b: AgendaItem): { done: number; total: number } | nul
   return { done: Math.min(b.participant_info?.length ?? 0, b.party_size ?? 0), total: b.party_size ?? 0 };
 };
 
+// Same count as the DB (00566): places ACCEPTED on the half-day, all outings.
+// True when accepting this request would overflow its outing's places.
+export const wouldOverflow = (b: AgendaItem, items: AgendaItem[]) => {
+  if (b.status !== 'pending' || b.max_participants == null) return false;
+  const taken = items
+    .filter((x) => x.kind === 'booking' && x.status === 'accepted' && x.day === b.day && x.period === b.period)
+    .reduce((n, x) => n + (x.party_size ?? 0), 0);
+  return taken + (b.party_size ?? 0) > b.max_participants;
+};
+
 // Square sport tile — solid for a confirmed booking, tinted for a request.
 export function SportTile({ b, size = 40 }: { b: AgendaItem; size?: number }) {
   const colors = useColors();

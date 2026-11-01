@@ -19,6 +19,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { bookingService, type AgendaItem, type BookingPeriod } from '@/services/booking-service';
 import { proService } from '@/services/pro-service';
 import { UserAvatar } from '@/components/user-avatar';
+import { AgendaBookingCard, ClientAvatar, wouldOverflow } from '@/components/agenda-booking';
 import { PressableScale } from '@/components/pressable-scale';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { sportCategoryColor } from '@/utils/sport-category-color';
@@ -222,6 +223,7 @@ export default function ProSpaceScreen() {
               <View style={[styles.slotChip, { backgroundColor: sc + '1F' }]}>
                 <AppText style={[styles.slotChipText, { color: sc }]}>{periodTag(b.period)}</AppText>
               </View>
+              <ClientAvatar b={b} size={32} onProfile={b.client_id ? () => router.push(`/(auth)/profile/${b.client_id}`) : undefined} />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <AppText style={styles.todayName} numberOfLines={1}>{b.client_name ?? '—'} · {b.party_size} pers.</AppText>
                 <AppText style={styles.todaySub} numberOfLines={1}>
@@ -252,32 +254,16 @@ export default function ProSpaceScreen() {
               ? t('booking.requestsWaitingPlural', { defaultValue: 'en attente' })
               : t('booking.requestsWaiting', { defaultValue: 'en attente' })}
           </AppText>
-          <View style={styles.card}>
-            <PressableScale
-              style={styles.reqHead}
-              onPress={() => firstPending.client_id && router.push(`/(auth)/profile/${firstPending.client_id}`)}
-              disabled={!firstPending.client_id}
-            >
-              <UserAvatar name={firstPending.client_name ?? '?'} avatarUrl={null} size={36} />
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <AppText style={styles.reqName} numberOfLines={1}>
-                  {firstPending.client_name ?? '—'} · {firstPending.party_size} pers.
-                </AppText>
-                <AppText style={[styles.reqMeta, { color: sportCategoryColor(firstPending.sport_category, colors.textSecondary) }]} numberOfLines={1}>
-                  {firstPending.offering_title} — {dayjs(firstPending.day).format('ddd D MMM')}, {firstPending.period === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' })}
-                </AppText>
-              </View>
-            </PressableScale>
-            {firstPending.message ? <AppText style={styles.reqMsg} numberOfLines={2}>« {firstPending.message} »</AppText> : null}
-            <View style={styles.reqActs}>
-              <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed]} onPress={() => handleDecline(firstPending)}>
-                <AppText style={styles.btnGhostText}>{t('booking.decline', { defaultValue: 'Refuser' })}</AppText>
-              </Pressable>
-              <Pressable style={({ pressed }) => [styles.btnPrimary, pressed && styles.pressed]} onPress={() => handleAccept(firstPending)}>
-                <AppText style={styles.btnPrimaryText}>{t('booking.accept', { defaultValue: 'Accepter' })}</AppText>
-              </Pressable>
-            </View>
-          </View>
+          {/* Same card as the agenda: photo → profile, Écrire, « Complet » (00566). */}
+          <AgendaBookingCard
+            b={firstPending}
+            variant="request"
+            full={wouldOverflow(firstPending, agenda ?? [])}
+            onProfile={firstPending.client_id ? () => router.push(`/(auth)/profile/${firstPending.client_id}`) : undefined}
+            onWrite={firstPending.client_id ? () => void writeTo(firstPending) : undefined}
+            onDecline={() => handleDecline(firstPending)}
+            onAccept={() => handleAccept(firstPending)}
+          />
           {pendings.length > 1 && (
             <PressableScale onPress={() => router.push('/(auth)/pro/agenda')}>
               <AppText style={styles.seeAll}>
@@ -405,13 +391,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.lineStrong,
     alignItems: 'center', justifyContent: 'center',
   },
-  reqHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
-  reqName: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '700' },
-  reqMeta: { fontSize: fontSizes.sm - 1, marginTop: 1, fontWeight: '600' },
-  reqMsg: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontStyle: 'italic', marginTop: spacing.sm },
-  reqActs: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm + 2, alignItems: 'center' },
-  btnGhost: { paddingVertical: spacing.sm + 1, paddingHorizontal: spacing.md, borderRadius: radius.full },
-  btnGhostText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
   btnPrimary: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
