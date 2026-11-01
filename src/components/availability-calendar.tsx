@@ -19,9 +19,9 @@ export interface SlotState {
   accepted?: number;
   pending?: number;
   // Pro agenda only: the booked outing's sport icon (Scott 2026-11-01 — the
-  // client's initials said nothing) and « +N » when several share the slot.
+  // client's initials said nothing) and the places taken, « 5/6 ».
   sportKey?: string | null;
-  extra?: number;
+  places?: string | null;
   sportCategory?: string | null;
 }
 
@@ -131,8 +131,8 @@ export function AvailabilityCalendar({
         {st.sportKey && hasBooking && mode !== 'pick' ? (
           <>
             <SportIcon sportKey={st.sportKey} size={18} color={labelColor} />
-            {st.extra ? (
-              <AppText style={[styles.slotLabel, { color: labelColor }]} numberOfLines={1}>+{st.extra}</AppText>
+            {st.places ? (
+              <AppText style={[styles.slotLabel, { color: labelColor }]} numberOfLines={1}>{st.places}</AppText>
             ) : null}
           </>
         ) : (

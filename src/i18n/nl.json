@@ -2610,7 +2610,9 @@
     "formMissing_other": "{{count}} formulieren ontbreken",
     "paySite": "Betaling ter plaatse",
     "full": "Vol",
-    "placesTaken": "{{taken}}/{{max}} plaatsen"
+    "placesTaken": "{{taken}}/{{max}} plaatsen",
+    "clientsCount_one": "{{count}} klant",
+    "clientsCount_other": "{{count}} klanten"
   },
   "calendar": {
     "mon": "M",

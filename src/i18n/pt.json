@@ -2610,7 +2610,9 @@
     "formMissing_other": "{{count}} fichas em falta",
     "paySite": "Pagamento no local",
     "full": "Completo",
-    "placesTaken": "{{taken}}/{{max}} lugares"
+    "placesTaken": "{{taken}}/{{max}} lugares",
+    "clientsCount_one": "{{count}} cliente",
+    "clientsCount_other": "{{count}} clientes"
   },
   "calendar": {
     "mon": "S",

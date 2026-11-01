@@ -65,12 +65,23 @@ export function DateBlock({ b }: { b: AgendaItem }) {
   );
 }
 
+// Client photo — tappable to the profile when the client is in the app.
+export function ClientAvatar({ b, size, onProfile }: { b: AgendaItem; size: number; onProfile?: () => void }) {
+  const avatar = <UserAvatar name={b.client_name ?? '?'} avatarUrl={b.client_avatar_url} size={size} />;
+  return onProfile ? <Pressable onPress={onProfile} hitSlop={6} accessibilityRole="button">{avatar}</Pressable> : avatar;
+}
+
 // A booking in the requests list or the day sheet.
-//  - request: message + Écrire / Refuser / Accepter
-//  - day:     forms state + Écrire (or Appeler) / Détails
-export function AgendaBookingCard({ b, variant, onWrite, onCall, onDetails, onAccept, onDecline }: {
+//  - request: outing + client + message + Écrire / Refuser / Accepter
+//  - day:     one CLIENT of an outing (the sheet groups them under the outing,
+//             Scott 2026-11-01) + forms state + Écrire (or Appeler) / Détails
+// `full`: accepting would overflow the outing's places (00566) — Accepter
+// becomes a disabled « Complet ».
+export function AgendaBookingCard({ b, variant, full, onProfile, onWrite, onCall, onDetails, onAccept, onDecline }: {
   b: AgendaItem;
   variant: 'request' | 'day';
+  full?: boolean;
+  onProfile?: () => void;
   onWrite?: () => void;
   onCall?: () => void;
   onDetails?: () => void;
@@ -91,17 +102,23 @@ export function AgendaBookingCard({ b, variant, onWrite, onCall, onDetails, onAc
   return (
     <View style={[styles.card, pending && { borderStyle: 'dashed', borderWidth: 1.5, borderColor: c + '88' }]}>
       <View style={styles.head}>
-        <SportTile b={b} size={variant === 'request' ? 44 : 38} />
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <AppText style={styles.title} numberOfLines={2}>{b.offering_title ?? '—'}</AppText>
-          {variant === 'request' ? (
-            <AppText style={[styles.when, { color: c }]}>{bookingWhen(b.day, b.period, t)}</AppText>
-          ) : (
-            <AppText style={styles.who} numberOfLines={1}>
-              <AppText style={styles.whoName}>{b.client_name ?? '—'}</AppText> · {people} · {source}
-            </AppText>
-          )}
-        </View>
+        {variant === 'request' ? (
+          <>
+            <SportTile b={b} size={44} />
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <AppText style={styles.title} numberOfLines={2}>{b.offering_title ?? '—'}</AppText>
+              <AppText style={[styles.when, { color: c }]}>{bookingWhen(b.day, b.period, t)}</AppText>
+            </View>
+          </>
+        ) : (
+          <>
+            <ClientAvatar b={b} size={38} onProfile={onProfile} />
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <AppText style={styles.whoName} numberOfLines={1}>{b.client_name ?? '—'}</AppText>
+              <AppText style={styles.whoSoft} numberOfLines={1}>{people} · {source}</AppText>
+            </View>
+          </>
+        )}
         {pending ? (
           <View style={styles.pendingChip}>
             <AppText style={styles.pendingChipText}>{t('booking.status.pending', { defaultValue: 'En attente' })}</AppText>
@@ -111,7 +128,7 @@ export function AgendaBookingCard({ b, variant, onWrite, onCall, onDetails, onAc
 
       {variant === 'request' ? (
         <View style={styles.clientRow}>
-          <UserAvatar name={b.client_name ?? '?'} avatarUrl={null} size={26} />
+          <ClientAvatar b={b} size={26} onProfile={onProfile} />
           <AppText style={styles.whoName} numberOfLines={1}>{b.client_name ?? '—'}</AppText>
           <AppText style={styles.whoSoft}>· {people}</AppText>
         </View>
@@ -149,9 +166,15 @@ export function AgendaBookingCard({ b, variant, onWrite, onCall, onDetails, onAc
             <Pressable style={({ pressed }) => [styles.ghostBtn, pressed && styles.pressed]} onPress={onDecline} accessibilityRole="button">
               <AppText style={styles.ghostBtnText}>{t('booking.decline', { defaultValue: 'Refuser' })}</AppText>
             </Pressable>
-            <Pressable style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]} onPress={onAccept} accessibilityRole="button">
-              <AppText style={styles.primaryBtnText}>{t('booking.accept', { defaultValue: 'Accepter' })}</AppText>
-            </Pressable>
+            {full ? (
+              <View style={[styles.primaryBtn, styles.fullBtn]} accessibilityState={{ disabled: true }}>
+                <AppText style={styles.fullBtnText}>{t('booking.full', { defaultValue: 'Complet' })}</AppText>
+              </View>
+            ) : (
+              <Pressable style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]} onPress={onAccept} accessibilityRole="button">
+                <AppText style={styles.primaryBtnText}>{t('booking.accept', { defaultValue: 'Accepter' })}</AppText>
+              </Pressable>
+            )}
           </>
         ) : (
           <>
@@ -184,7 +207,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2 },
   title: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },
   when: { fontSize: fontSizes.sm - 1, fontWeight: '600', marginTop: 2 },
-  who: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, marginTop: 2 },
   whoName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   whoSoft: { color: colors.textSecondary, fontSize: fontSizes.sm - 1 },
   pendingChip: { backgroundColor: colors.warning + '22', borderRadius: radius.full, paddingHorizontal: 9, paddingVertical: 4 },
@@ -208,6 +230,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderRadius: radius.full, paddingVertical: spacing.sm + 3,
   },
   primaryBtnText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
+  fullBtn: { backgroundColor: colors.surfaceAlt },
+  fullBtnText: { color: colors.textMuted, fontSize: fontSizes.sm, fontWeight: '700' },
   tintBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     backgroundColor: colors.cta + '1F', borderRadius: radius.full, paddingVertical: spacing.sm + 2,

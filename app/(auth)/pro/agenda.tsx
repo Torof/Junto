@@ -24,7 +24,7 @@ import { PressableScale } from '@/components/pressable-scale';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { SportIcon } from '@/components/sport-icon';
-import { AgendaBookingCard, DateBlock, SportTile, bookingWhen, formsState } from '@/components/agenda-booking';
+import { AgendaBookingCard, ClientAvatar, DateBlock, SportTile, bookingWhen, formsState } from '@/components/agenda-booking';
 
 type TFn = (key: string, options?: { defaultValue?: string }) => string;
 const periodLabel = (p: BookingPeriod, t: TFn) =>
@@ -42,6 +42,19 @@ const formatEntry = (e: Record<string, unknown>): string => {
   if (custom) for (const [q, a] of Object.entries(custom)) if (a) parts.push(`${q} : ${a}`);
   return parts.join(' · ') || '—';
 };
+
+// Bookings of one half-day, outing by outing (first-seen order).
+type OutingGroup = { head: AgendaItem; items: AgendaItem[] };
+const groupBy = (items: AgendaItem[], keyOf: (it: AgendaItem) => string): OutingGroup[] => {
+  const groups = new Map<string, OutingGroup>();
+  for (const it of items) {
+    const key = keyOf(it);
+    const g = groups.get(key);
+    if (g) g.items.push(it); else groups.set(key, { head: it, items: [it] });
+  }
+  return [...groups.values()];
+};
+const groupByOffering = (items: AgendaItem[]) => groupBy(items, (it) => it.offering_id ?? it.id);
 
 export default function ProAgendaScreen() {
   const colors = useColors();
@@ -80,27 +93,45 @@ export default function ProAgendaScreen() {
   // Index (day|period) → slot state for the calendar.
   const slotIndex = useMemo(() => {
     // The half-day shows the booked outing's sport icon (a confirmed booking
-    // wins over a request) and « +N » for the others (Scott 2026-11-01).
+    // wins over a request) and the places taken, « 5/6 » (Scott 2026-11-01:
+    // see at a glance how many clients are missing).
     const map = new Map<string, {
-      available: boolean; accepted: number; pending: number;
-      sportKey: string | null; sportCategory: string | null; extra: number;
+      available: boolean; accepted: number; pending: number; taken: number; max: number | null;
+      sportKey: string | null; sportCategory: string | null; places: string | null;
     }>();
     for (const it of agenda ?? []) {
       const key = `${it.day}|${it.period}`;
-      const cur = map.get(key) ?? { available: false, accepted: 0, pending: 0, sportKey: null, sportCategory: null, extra: 0 };
+      const cur = map.get(key) ?? { available: false, accepted: 0, pending: 0, taken: 0, max: null, sportKey: null, sportCategory: null, places: null };
       if (it.kind === 'availability') cur.available = true;
       else if (it.status === 'accepted') {
-        if (cur.accepted === 0) { cur.sportKey = it.sport_key; cur.sportCategory = it.sport_category; }
+        if (cur.accepted === 0) { cur.sportKey = it.sport_key; cur.sportCategory = it.sport_category; cur.max = it.max_participants; }
         cur.accepted += 1;
+        cur.taken += it.party_size ?? 0;
       } else if (it.status === 'pending') {
-        if (cur.accepted === 0 && cur.pending === 0) { cur.sportKey = it.sport_key; cur.sportCategory = it.sport_category; }
+        if (cur.accepted === 0 && cur.pending === 0) { cur.sportKey = it.sport_key; cur.sportCategory = it.sport_category; cur.max = it.max_participants; }
         cur.pending += 1;
       }
-      cur.extra = Math.max(0, cur.accepted + cur.pending - 1);
+      cur.places = cur.max != null ? `${cur.taken}/${cur.max}` : cur.taken > 0 ? String(cur.taken) : null;
       map.set(key, cur);
     }
     return map;
   }, [agenda]);
+
+  // Same count as the DB (00566): places ACCEPTED on the half-day, all outings.
+  const takenOn = (day: string, period: BookingPeriod) => slotIndex.get(`${day}|${period}`)?.taken ?? 0;
+  const wouldOverflow = (b: AgendaItem) =>
+    b.status === 'pending' && b.max_participants != null
+    && takenOn(b.day, b.period) + (b.party_size ?? 0) > b.max_participants;
+  const placesLabel = (taken: number, max: number | null) =>
+    max != null
+      ? t('booking.placesTaken', { defaultValue: '{{taken}}/{{max}} places', taken, max })
+      : t('booking.peopleCount', { defaultValue: '{{count}} personnes', count: taken });
+  const openProfile = (b: AgendaItem) => {
+    if (!b.client_id) return;
+    setSheetDay(null);
+    setDetailId(null);
+    router.push(`/(auth)/profile/${b.client_id}`);
+  };
 
   const slotState = (day: string, period: BookingPeriod) =>
     slotIndex.get(`${day}|${period}`) ?? { available: false };
@@ -223,10 +254,15 @@ export default function ProAgendaScreen() {
 
   // ----- Demandes / à venir -----
   const pendings = (agenda ?? []).filter((a) => a.kind === 'booking' && a.status === 'pending');
-  const upcoming = (agenda ?? [])
-    .filter((a) => a.kind === 'booking' && a.status === 'accepted' && a.day >= dayjs().format('YYYY-MM-DD'))
-    .sort((a, b) => (a.day + a.period).localeCompare(b.day + b.period))
-    .slice(0, 10);
+  // « À venir » = one row per outing session (day · half-day · outing), its
+  // clients together — several clients often share one outing (Scott 2026-11-01).
+  const upcoming = useMemo(() => {
+    const today = dayjs().format('YYYY-MM-DD');
+    const accepted = (agenda ?? []).filter((a) => a.kind === 'booking' && a.status === 'accepted' && a.day >= today);
+    return groupBy(accepted, (a) => `${a.day}|${a.period}|${a.offering_id}`)
+      .sort((x, y) => (x.head.day + x.head.period).localeCompare(y.head.day + y.head.period))
+      .slice(0, 10);
+  }, [agenda]);
 
   const handleAccept = async (b: AgendaItem) => {
     try {
@@ -405,6 +441,8 @@ export default function ProAgendaScreen() {
                     key={b.id}
                     b={b}
                     variant="request"
+                    full={wouldOverflow(b)}
+                    onProfile={b.client_id ? () => openProfile(b) : undefined}
                     onWrite={b.client_id ? () => handleWrite(b) : undefined}
                     onDecline={() => handleDecline(b)}
                     onAccept={() => handleAccept(b)}
@@ -416,24 +454,35 @@ export default function ProAgendaScreen() {
             <AppText style={styles.sectionLabel}>{t('booking.upcoming', { defaultValue: 'À venir' })}</AppText>
             {upcoming.length === 0 ? (
               <AppText style={styles.empty}>{t('booking.noUpcoming', { defaultValue: 'Aucune réservation confirmée à venir.' })}</AppText>
-            ) : upcoming.map((b) => (
-              // A tap opens THIS booking's card, not the whole day (Scott 2026-11-01).
-              <Pressable key={b.id} style={({ pressed }) => [styles.bkRow, pressed && styles.pressed]} onPress={() => setDetailId(b.id)}>
-                <DateBlock b={b} />
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <AppText style={styles.bkName} numberOfLines={1}>{b.offering_title ?? '—'}</AppText>
-                  <AppText style={styles.bkWho} numberOfLines={1}>
-                    {b.client_name ?? '—'} · {t('booking.peopleCount', { defaultValue: '{{count}} personnes', count: b.party_size ?? 0 })}
-                  </AppText>
-                  <AppText style={styles.bkSub} numberOfLines={1}>
-                    {b.is_manual
-                      ? `${t('booking.bookedManual', { defaultValue: 'Manuelle' })}${b.manual_phone ? ' · ' + b.manual_phone : ''}`
-                      : t('booking.bookedInApp', { defaultValue: 'Réservée dans l’app' })}
-                  </AppText>
-                </View>
-                <ChevronRight size={18} color={colors.textMuted} strokeWidth={2.2} />
-              </Pressable>
-            ))}
+            ) : upcoming.map(({ head: b, items: g }) => {
+              const taken = g.reduce((n, x) => n + (x.party_size ?? 0), 0);
+              return (
+                // One client → that booking's card; several → the day, outing by outing.
+                <Pressable
+                  key={`${b.day}|${b.period}|${b.offering_id}`}
+                  style={({ pressed }) => [styles.bkRow, pressed && styles.pressed]}
+                  onPress={() => (g.length === 1 ? setDetailId(b.id) : setSheetDay(b.day))}
+                >
+                  <DateBlock b={b} />
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <AppText style={styles.bkName} numberOfLines={1}>{b.offering_title ?? '—'}</AppText>
+                    <AppText style={styles.bkWho} numberOfLines={1}>
+                      {g.length === 1
+                        ? `${b.client_name ?? '—'} · ${t('booking.peopleCount', { defaultValue: '{{count}} personnes', count: b.party_size ?? 0 })}`
+                        : `${placesLabel(taken, b.max_participants)} · ${t('booking.clientsCount', { defaultValue: '{{count}} clients', count: g.length })}`}
+                    </AppText>
+                    <View style={styles.bkAvatars}>
+                      {g.slice(0, 5).map((x, i) => (
+                        <View key={x.id} style={[styles.bkAvatar, i > 0 && { marginLeft: -8 }]}>
+                          <UserAvatar name={x.client_name ?? '?'} avatarUrl={x.client_avatar_url} size={22} />
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                  <ChevronRight size={18} color={colors.textMuted} strokeWidth={2.2} />
+                </Pressable>
+              );
+            })}
             <View style={{ height: spacing.lg }} />
           </>
         )}
@@ -502,16 +551,35 @@ export default function ProAgendaScreen() {
                         </PressableScale>
                       )}
                     </View>
-                    {bks.map((b) => (
-                      <AgendaBookingCard
-                        key={b.id}
-                        b={b}
-                        variant="day"
-                        onWrite={b.client_id ? () => handleWrite(b) : undefined}
-                        onCall={b.manual_phone ? () => handleCall(b) : undefined}
-                        onDetails={() => openDetail(b)}
-                      />
-                    ))}
+                    {/* Clients grouped under their outing, with its places (Scott 2026-11-01). */}
+                    {groupByOffering(bks).map(({ head, items: g }) => {
+                      const taken = g.filter((x) => x.status === 'accepted').reduce((n, x) => n + (x.party_size ?? 0), 0);
+                      const isFull = head.max_participants != null && taken >= head.max_participants;
+                      return (
+                        <View key={head.offering_id ?? head.id} style={{ gap: spacing.sm }}>
+                          <View style={styles.outHead}>
+                            <SportTile b={{ ...head, status: 'accepted' }} size={30} />
+                            <AppText style={styles.outTitle} numberOfLines={1}>{head.offering_title ?? '—'}</AppText>
+                            <View style={[styles.statePill, { backgroundColor: isFull ? colors.cta + '1F' : colors.surfaceAlt }]}>
+                              <AppText style={[styles.statePillText, { color: isFull ? colors.cta : colors.textSecondary }]}>
+                                {isFull ? t('booking.full', { defaultValue: 'Complet' }) : placesLabel(taken, head.max_participants)}
+                              </AppText>
+                            </View>
+                          </View>
+                          {g.map((b) => (
+                            <AgendaBookingCard
+                              key={b.id}
+                              b={b}
+                              variant="day"
+                              onProfile={b.client_id ? () => openProfile(b) : undefined}
+                              onWrite={b.client_id ? () => handleWrite(b) : undefined}
+                              onCall={b.manual_phone ? () => handleCall(b) : undefined}
+                              onDetails={() => openDetail(b)}
+                            />
+                          ))}
+                        </View>
+                      );
+                    })}
                   </View>
                 );
               })}
@@ -559,7 +627,7 @@ export default function ProAgendaScreen() {
                   </View>
 
                   <View style={styles.dClient}>
-                    <UserAvatar name={detail.client_name ?? '?'} avatarUrl={null} size={40} />
+                    <ClientAvatar b={detail} size={40} onProfile={detail.client_id ? () => openProfile(detail) : undefined} />
                     <View style={{ flex: 1, minWidth: 0 }}>
                       <AppText style={styles.dClientName} numberOfLines={1}>{detail.client_name ?? '—'}</AppText>
                       <AppText style={styles.dClientSub} numberOfLines={1}>
@@ -569,7 +637,7 @@ export default function ProAgendaScreen() {
                       </AppText>
                     </View>
                     {detail.client_id ? (
-                      <PressableScale hitSlop={8} onPress={() => { setDetailId(null); router.push(`/(auth)/profile/${detail.client_id}`); }}>
+                      <PressableScale hitSlop={8} onPress={() => openProfile(detail)}>
                         <AppText style={styles.dLink}>{t('booking.profileLink', { defaultValue: 'Profil ›' })}</AppText>
                       </PressableScale>
                     ) : null}
@@ -614,9 +682,15 @@ export default function ProAgendaScreen() {
                       <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed]} onPress={() => { setDetailId(null); handleDecline(detail); }}>
                         <AppText style={styles.btnGhostText}>{t('booking.decline', { defaultValue: 'Refuser' })}</AppText>
                       </Pressable>
-                      <Pressable style={({ pressed }) => [styles.btnPrimary, { flex: 1 }, pressed && styles.pressed]} onPress={() => { setDetailId(null); void handleAccept(detail); }}>
-                        <AppText style={styles.btnPrimaryText}>{t('booking.accept', { defaultValue: 'Accepter' })}</AppText>
-                      </Pressable>
+                      {wouldOverflow(detail) ? (
+                        <View style={[styles.btnPrimary, { flex: 1, backgroundColor: colors.surfaceAlt }]}>
+                          <AppText style={[styles.btnPrimaryText, { color: colors.textMuted }]}>{t('booking.full', { defaultValue: 'Complet' })}</AppText>
+                        </View>
+                      ) : (
+                        <Pressable style={({ pressed }) => [styles.btnPrimary, { flex: 1 }, pressed && styles.pressed]} onPress={() => { setDetailId(null); void handleAccept(detail); }}>
+                          <AppText style={styles.btnPrimaryText}>{t('booking.accept', { defaultValue: 'Accepter' })}</AppText>
+                        </Pressable>
+                      )}
                     </View>
                   ) : (
                     <>
@@ -801,7 +875,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   bkName: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },
   bkWho: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, marginTop: 2 },
-  bkSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
+  bkAvatars: { flexDirection: 'row', marginTop: 5 },
+  bkAvatar: { borderRadius: 13, borderWidth: 2, borderColor: colors.surface },
+  outHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  outTitle: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {

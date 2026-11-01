@@ -2269,6 +2269,8 @@
     "formsDone": "Participant forms complete",
     "full": "Full",
     "placesTaken": "{{taken}}/{{max}} places",
+    "clientsCount_one": "{{count}} client",
+    "clientsCount_other": "{{count}} clients",
     "formsSummary": "Participant forms: {{done}} of {{total}}",
     "formsTitle": "Participant forms · {{done}} of {{total}}",
     "formMissingRow": "Form missing",

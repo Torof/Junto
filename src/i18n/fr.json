@@ -2269,6 +2269,8 @@
     "formsDone": "Fiches participants complètes",
     "full": "Complet",
     "placesTaken": "{{taken}}/{{max}} places",
+    "clientsCount_one": "{{count}} client",
+    "clientsCount_other": "{{count}} clients",
     "formsSummary": "Fiches participants : {{done}} sur {{total}}",
     "formsTitle": "Fiches participants · {{done}} sur {{total}}",
     "formMissingRow": "Fiche manquante",

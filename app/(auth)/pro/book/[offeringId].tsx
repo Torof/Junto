@@ -44,8 +44,8 @@ export default function BookOfferingScreen() {
     enabled: !!offering?.pro_id,
   });
 
-  // Places restantes par créneau — INFORMATIF (la capacité ne bloque pas en
-  // DB, le pro reste juge) : « Complet » grise le créneau côté client.
+  // Places restantes par créneau : « Complet » grise le créneau côté client
+  // (et la DB refuse le dépassement depuis 00566).
   const slotInfo = useMemo(() => {
     const map = new Map<string, { taken: number; free: number | null }>();
     for (const s of slots ?? []) {

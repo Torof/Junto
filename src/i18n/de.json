@@ -2269,6 +2269,8 @@
     "formsDone": "Teilnehmerbögen vollständig",
     "full": "Ausgebucht",
     "placesTaken": "{{taken}}/{{max}} Plätze",
+    "clientsCount_one": "{{count}} Kunde",
+    "clientsCount_other": "{{count}} Kunden",
     "formsSummary": "Teilnehmerbögen: {{done}} von {{total}}",
     "formsTitle": "Teilnehmerbögen · {{done}} von {{total}}",
     "formMissingRow": "Bogen fehlt",

@@ -2269,6 +2269,8 @@
     "formsDone": "Schede partecipanti complete",
     "full": "Completo",
     "placesTaken": "{{taken}}/{{max}} posti",
+    "clientsCount_one": "{{count}} cliente",
+    "clientsCount_other": "{{count}} clienti",
     "formsSummary": "Schede partecipanti: {{done}} su {{total}}",
     "formsTitle": "Schede partecipanti · {{done}} su {{total}}",
     "formMissingRow": "Scheda mancante",

@@ -11,8 +11,8 @@ export type BookingStatus = 'pending' | 'accepted' | 'declined' | 'cancelled' | 
 export interface ProAvailabilitySlot {
   day: string; // 'YYYY-MM-DD'
   period: BookingPeriod;
-  // Places déjà ACCEPTÉES sur le créneau (toutes offres du pro) — affichage
-  // informatif ; la capacité ne bloque jamais côté DB (décision v1).
+  // Places déjà ACCEPTÉES sur le créneau (toutes offres du pro). Depuis 00566
+  // la DB refuse une demande ou une acceptation qui dépasse le max de l'offre.
   taken: number;
 }
 
@@ -34,6 +34,8 @@ export interface AgendaItem {
   sport_category: string | null;
   participant_fields: ParticipantFields | null;
   participant_info: ParticipantEntry[] | null;
+  client_avatar_url: string | null;
+  max_participants: number | null;
 }
 
 export interface MyBooking {
