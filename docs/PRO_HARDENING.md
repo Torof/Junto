@@ -110,6 +110,7 @@ Lots dans l'ordre validé : **0 sécurité base → 1 bugs client du parcours �
 - [x] « Écrire à tous » (00567) : même message à chaque client confirmé d'une sortie, chacun dans son fil privé ; 20 envois groupés / jour.
 - [x] « Annuler la sortie » (00567) : toute la session d'un coup, motif facultatif posté dans chaque fil (jamais dans le push).
 - [x] Rappels (00567, cron) : client la veille à 18 h (« pense à tes fiches » si incomplètes) ; pro à 9 h si des demandes attendent > 24 h. Désactivables dans les préférences.
+- [x] Synchro agenda (00568-00569, option A) : lien iCal privé vers Google/Apple/Outlook (régénérable, noms masquables) + import de l'adresse secrète iCal du pro toutes les 15 min → demi-journées « Occupé (ton agenda) » non réservables. Écran « Synchroniser mon agenda » depuis l'agenda. **À tester par Scott avec son vrai Google Agenda** (le test live d'import n'a pas pu tourner côté Claude).
 - [x] Pas de surbooking (mig 00566) : toutes les demandes arrivent, le pro choisit ; une acceptation qui dépasse le max est refusée (`junto.booking_full`, bouton « Complet ») ; une nouvelle demande doit tenir dans les places restantes. Résa manuelle libre mais comptée.
 
 ## Lot 3 — Côté client

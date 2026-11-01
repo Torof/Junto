@@ -572,3 +572,15 @@ Règles verrouillées :
 **Décision (Scott) — vert :** **#246342**, à mi-chemin du vert forêt #2A5C40 (nom plus uni mais sombre) et du vert matériel #1E6B45 (plus vivant mais coupait le nom en trois). Écartés en chemin : vert pomme, sapin clair #4E9A63 et les verts vifs (deux couleurs fortes qui se disputent à côté du bleu), vert nuit #1D3A2A (se lit presque noir). La répartition reste la **A** du BACKLOG : le bleu pour l'action principale de chaque écran, le + et le logo ; le vert pour le reste, dont le « and » du nom. **Bleu confirmé (Scott, même jour) : #1E7FD8.** Revue de neuf bleus actifs (planche « Les bleus ») ; finale contre le bleu franc #1B73E8, écarté parce qu'il « fait vraiment penser à Facebook ». Application (jeton `brand`, inventaire, icône, site, images Play) : toujours **en dernier**, selon le plan du BACKLOG.
 
 **Compléments (Scott, même jour, après test sur preview) :** le « + » de la carte passe du terracotta au **bleu** (« dynamique, créer une activité c'est important » — le tracé d'itinéraire garde le terracotta) ; **l'onglet actif de la barre du bas passe au bleu** : le vert est déjà partout (titres, « Tout voir », filtres, pastilles, labels, et le fond de carte), le bleu apporte le côté dynamique — « à la fois calme et dynamique ».
+
+## 2026-11-01 — Agenda pro ↔ Google / Apple / Outlook : liens iCal, pas de connexion Google
+
+**Contexte :** les pros ont déjà leur agenda (Google surtout, d'après la recherche du jour : pas de chiffre fiable sur les indépendants ; Yoplanning est l'outil dédié le plus cité en France, plutôt chez les bureaux des guides). askandgo doit être l'outil central sans obliger le pro à tout quitter.
+
+**Décision (Scott, option A) :** deux liens iCal, sans OAuth Google.
+- **Export** : flux iCal privé (jeton 256 bits régénérable, option « masquer les noms ») que le pro ajoute une fois dans son agenda. Limite assumée : Google rafraîchit les agendas abonnés à son rythme (jusqu'à ~24 h).
+- **Import** : le pro colle l'« adresse secrète iCal » de son agenda ; lue toutes les 15 min ; une demi-journée occupée (matin 8-13 h, après-midi 13-19 h, Paris) devient non réservable. Seul occupé/libre est gardé.
+
+**Écarté pour l'instant :** connexion Google officielle (OAuth, scope sensible → validation Google de plusieurs semaines, jetons à stocker). À rouvrir si de vrais pros se plaignent du délai d'export. Synchro bidirectionnelle complète : non. Ponts suivants possibles : Yoplanning, puis Bókun / Regiondo (API).
+
+Mig 00568-00569, edge `calendar-feed` + `calendar-import`.
