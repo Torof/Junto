@@ -33,6 +33,17 @@ export default function ProSpaceScreen() {
   const userId = session?.user?.id ?? null;
   const queryClient = useQueryClient();
   const { confirmDelete, deleting } = useDeleteProPage();
+  const [opening, setOpening] = useState(false);
+
+  const writeTo = async (b: AgendaItem) => {
+    if (opening) return;
+    setOpening(true);
+    try {
+      const conversationId = await bookingService.openConversation(b.id);
+      router.push(`/(auth)/conversation/${conversationId}`);
+    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+    finally { setOpening(false); }
+  };
 
   const { data: proProfile } = useQuery({
     queryKey: ['pro-profile', userId],
@@ -224,7 +235,7 @@ export default function ProSpaceScreen() {
                   <Phone size={15} color={colors.textSecondary} strokeWidth={2.2} />
                 </PressableScale>
               ) : !b.is_manual && b.client_id ? (
-                <PressableScale style={styles.roundBtn} onPress={() => router.push(`/(auth)/profile/${b.client_id}`)} accessibilityLabel={t('booking.clientProfile', { defaultValue: 'Profil client' })}>
+                <PressableScale style={styles.roundBtn} onPress={() => void writeTo(b)} accessibilityLabel={t('booking.write', { defaultValue: 'Écrire' })}>
                   <MessageCircle size={15} color={colors.textSecondary} strokeWidth={2.2} />
                 </PressableScale>
               ) : null}
