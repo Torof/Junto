@@ -10,6 +10,7 @@ import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, shadows, radius } from '@/constants/theme';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import type { BookingPeriod } from '@/services/booking-service';
+import { SportIcon } from '@/components/sport-icon';
 
 // Per-slot decoration computed by the parent. Sport category drives the fill
 // color of booked/pending half-days (maquette 2026-09-28 : « teinte = sport »).
@@ -17,8 +18,10 @@ export interface SlotState {
   available: boolean;
   accepted?: number;
   pending?: number;
-  // Initials (or +N) shown on the half-day, pro agenda only.
-  label?: string | null;
+  // Pro agenda only: the booked outing's sport icon (Scott 2026-11-01 — the
+  // client's initials said nothing) and « +N » when several share the slot.
+  sportKey?: string | null;
+  extra?: number;
   sportCategory?: string | null;
 }
 
@@ -125,10 +128,13 @@ export function AvailabilityCalendar({
         ]}
         accessibilityLabel={`${periodWord} ${day.format('D MMMM')}`}
       >
-        {st.label && mode !== 'pick' ? (
-          <AppText style={[styles.slotLabel, { color: labelColor }]} numberOfLines={1}>
-            {st.label}
-          </AppText>
+        {st.sportKey && hasBooking && mode !== 'pick' ? (
+          <>
+            <SportIcon sportKey={st.sportKey} size={18} color={labelColor} />
+            {st.extra ? (
+              <AppText style={[styles.slotLabel, { color: labelColor }]} numberOfLines={1}>+{st.extra}</AppText>
+            ) : null}
+          </>
         ) : (
           <AppText style={[styles.slotWord, { color: isSelected ? colors.onCta : st.available ? colors.textPrimary : colors.textMuted }]} numberOfLines={1}>
             {periodWord}
