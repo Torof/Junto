@@ -872,7 +872,8 @@
       "review_requires_booking": "Je kunt een review achterlaten zodra de activiteit heeft plaatsgevonden (boeking geaccepteerd, datum verstreken).",
       "booking_cooldown": "Aanvraag is net opnieuw verstuurd — probeer het over een uur nog eens.",
       "activity_ended_no_remove": "Dit activiteit is afgelopen — je kunt geen deelnemers meer verwijderen.",
-      "participant_present_no_remove": "De aanwezigheid van deze deelnemer is al gevalideerd: die kan niet meer worden gewist. Je kunt hem of haar dus niet meer van de activiteit verwijderen."
+      "participant_present_no_remove": "De aanwezigheid van deze deelnemer is al gevalideerd: die kan niet meer worden gewist. Je kunt hem of haar dus niet meer van de activiteit verwijderen.",
+      "booking_full": "Vol: niet genoeg plaatsen meer in dit tijdslot."
     },
     "createActivity": "Kan de activiteit niet aanmaken. Controleer de gegevens en probeer het opnieuw.",
     "updateActivity": "Kan de activiteit niet wijzigen. Probeer het opnieuw.",
@@ -2607,7 +2608,9 @@
     "formDone": "Groepsformulier ✓",
     "formMissing_one": "{{count}} formulier ontbreekt",
     "formMissing_other": "{{count}} formulieren ontbreken",
-    "paySite": "Betaling ter plaatse"
+    "paySite": "Betaling ter plaatse",
+    "full": "Vol",
+    "placesTaken": "{{taken}}/{{max}} plaatsen"
   },
   "calendar": {
     "mon": "M",

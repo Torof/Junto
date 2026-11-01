@@ -872,7 +872,8 @@
       "review_requires_booking": "Vais poder deixar uma avaliação depois de fazeres a atividade (reserva aceite, data passada).",
       "booking_cooldown": "Pedido reenviado há pouco — tenta outra vez daqui a uma hora.",
       "activity_ended_no_remove": "Esta atividade terminou — já não podes remover participantes.",
-      "participant_present_no_remove": "A presença deste participante já está validada: já não pode ser apagada. Por isso, já não o podes remover da atividade."
+      "participant_present_no_remove": "A presença deste participante já está validada: já não pode ser apagada. Por isso, já não o podes remover da atividade.",
+      "booking_full": "Completo: já não há lugares suficientes neste horário."
     },
     "createActivity": "Não foi possível criar a atividade. Verifica os dados e tenta outra vez.",
     "updateActivity": "Não foi possível alterar a atividade. Tenta outra vez.",
@@ -2607,7 +2608,9 @@
     "formDone": "Ficha do grupo ✓",
     "formMissing_one": "{{count}} ficha em falta",
     "formMissing_other": "{{count}} fichas em falta",
-    "paySite": "Pagamento no local"
+    "paySite": "Pagamento no local",
+    "full": "Completo",
+    "placesTaken": "{{taken}}/{{max}} lugares"
   },
   "calendar": {
     "mon": "S",

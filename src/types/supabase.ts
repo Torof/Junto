@@ -4353,6 +4353,7 @@ export type Database = {
       get_pro_agenda: {
         Args: { p_from: string; p_to: string }
         Returns: {
+          client_avatar_url: string
           client_id: string
           client_name: string
           day: string
@@ -4360,6 +4361,7 @@ export type Database = {
           is_manual: boolean
           kind: string
           manual_phone: string
+          max_participants: number
           message: string
           offering_id: string
           offering_title: string
