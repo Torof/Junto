@@ -3705,6 +3705,32 @@ export type Database = {
         Returns: string
       }
       badge_tier_for: { Args: { p_count: number }; Returns: string }
+      calendar_feed_bookings: {
+        Args: { p_token: string }
+        Returns: {
+          client_name: string
+          day: string
+          hide_names: boolean
+          id: string
+          is_manual: boolean
+          offering_title: string
+          party_size: number
+          period: string
+          status: string
+        }[]
+      }
+      calendar_feed_valid: { Args: { p_token: string }; Returns: boolean }
+      calendar_import_apply: {
+        Args: { p_error: string; p_pro: string; p_slots: Json }
+        Returns: undefined
+      }
+      calendar_import_targets: {
+        Args: never
+        Returns: {
+          import_url: string
+          pro_id: string
+        }[]
+      }
       cancel_accepted_seat: {
         Args: { p_request_id: string }
         Returns: undefined
@@ -4069,6 +4095,16 @@ export type Database = {
           pickup_from: string
           requested_pickup_at: string
           requester_id: string
+        }[]
+      }
+      get_calendar_links: {
+        Args: never
+        Returns: {
+          export_token: string
+          hide_names: boolean
+          import_connected: boolean
+          import_error: string
+          import_synced_at: string
         }[]
       }
       get_channel: {
@@ -4599,6 +4635,7 @@ export type Database = {
         Args: { p_participation_id: string }
         Returns: undefined
       }
+      regenerate_calendar_export: { Args: never; Returns: string }
       register_as_pro: {
         Args: {
           p_company_name: string
@@ -4773,6 +4810,11 @@ export type Database = {
         Args: { p_booking_id: string; p_info: Json }
         Returns: undefined
       }
+      set_calendar_export_hide_names: {
+        Args: { p_hide: boolean }
+        Returns: undefined
+      }
+      set_calendar_import_url: { Args: { p_url: string }; Returns: undefined }
       set_channel_photo: {
         Args: { p_conversation_id: string; p_photo_url: string }
         Returns: undefined
