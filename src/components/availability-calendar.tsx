@@ -22,6 +22,9 @@ export interface SlotState {
   // client's initials said nothing) and the places taken, « 5/6 ».
   sportKey?: string | null;
   places?: string | null;
+  // Pro agenda only: busy in the pro's own calendar (iCal import, 00568) —
+  // not bookable whatever the dispo says.
+  busy?: boolean;
   sportCategory?: string | null;
 }
 
@@ -37,6 +40,8 @@ interface Props {
   onDayPress?: (day: string) => void;
   selected?: { day: string; period: BookingPeriod } | null;
   selectedDay?: string | null;
+  // Legend entry for half-days busy in the pro's own calendar.
+  showBusyLegend?: boolean;
   // Month navigation is internal; parent learns the visible month to fetch data.
   onMonthChange?: (monthStartIso: string) => void;
   maxMonthsAhead?: number; // default 6 (DB bound)
@@ -45,7 +50,7 @@ interface Props {
 const PERIODS: BookingPeriod[] = ['am', 'pm'];
 
 export function AvailabilityCalendar({
-  mode, slotState, onToggle, onPick, onDayPress, selected, selectedDay, onMonthChange, maxMonthsAhead = 6,
+  mode, slotState, onToggle, onPick, onDayPress, selected, selectedDay, onMonthChange, maxMonthsAhead = 6, showBusyLegend = false,
 }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -93,6 +98,7 @@ export function AvailabilityCalendar({
     if (isSelected) bg = colors.cta;
     else if (bookedCount > 0) bg = sportColor;
     else if (pendingCount > 0) { bg = sportColor + '2E'; dashed = true; }
+    else if (st.busy) bg = colors.textMuted + '33';
     else if (st.available) bg = colors.cta + '2E';
 
     const hasBooking = bookedCount > 0 || pendingCount > 0;
@@ -136,8 +142,8 @@ export function AvailabilityCalendar({
             ) : null}
           </>
         ) : (
-          <AppText style={[styles.slotWord, { color: isSelected ? colors.onCta : st.available ? colors.textPrimary : colors.textMuted }]} numberOfLines={1}>
-            {periodWord}
+          <AppText style={[styles.slotWord, { color: isSelected ? colors.onCta : st.available && !st.busy ? colors.textPrimary : colors.textMuted }]} numberOfLines={1}>
+            {st.busy && mode !== 'pick' ? t('booking.slotBusy', { defaultValue: 'occupé' }) : periodWord}
           </AppText>
         )}
       </Pressable>
@@ -194,6 +200,9 @@ export function AvailabilityCalendar({
             <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.cta }]} /><AppText style={styles.legendText}>{t('booking.legendBooked', { defaultValue: 'Réservé' })}</AppText></View>
             <View style={styles.legendItem}><View style={[styles.legendDot, styles.legendDashed, { backgroundColor: colors.cta + '2E', borderColor: colors.cta }]} /><AppText style={styles.legendText}>{t('booking.legendPending', { defaultValue: 'Demande' })}</AppText></View>
           </>
+        )}
+        {showBusyLegend && (
+          <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.textMuted + '33' }]} /><AppText style={styles.legendText}>{t('booking.legendBusy', { defaultValue: 'Occupé (ton agenda)' })}</AppText></View>
         )}
         <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.surfaceAlt }]} /><AppText style={styles.legendText}>{t('booking.legendOff', { defaultValue: 'Fermé' })}</AppText></View>
       </View>

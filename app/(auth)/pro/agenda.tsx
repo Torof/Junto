@@ -10,7 +10,7 @@ import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Plus, Phone, MessageCircle, CalendarDays, ChevronRight, MessagesSquare, CalendarX2 } from 'lucide-react-native';
+import { Plus, Phone, MessageCircle, CalendarDays, ChevronRight, MessagesSquare, CalendarX2, RefreshCw } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
@@ -96,13 +96,14 @@ export default function ProAgendaScreen() {
     // wins over a request) and the places taken, « 5/6 » (Scott 2026-11-01:
     // see at a glance how many clients are missing).
     const map = new Map<string, {
-      available: boolean; accepted: number; pending: number; taken: number; max: number | null;
+      available: boolean; busy: boolean; accepted: number; pending: number; taken: number; max: number | null;
       sportKey: string | null; sportCategory: string | null; places: string | null;
     }>();
     for (const it of agenda ?? []) {
       const key = `${it.day}|${it.period}`;
-      const cur = map.get(key) ?? { available: false, accepted: 0, pending: 0, taken: 0, max: null, sportKey: null, sportCategory: null, places: null };
+      const cur = map.get(key) ?? { available: false, busy: false, accepted: 0, pending: 0, taken: 0, max: null, sportKey: null, sportCategory: null, places: null };
       if (it.kind === 'availability') cur.available = true;
+      else if (it.kind === 'busy') cur.busy = true;
       else if (it.status === 'accepted') {
         if (cur.accepted === 0) { cur.sportKey = it.sport_key; cur.sportCategory = it.sport_category; cur.max = it.max_participants; }
         cur.accepted += 1;
@@ -470,11 +471,22 @@ export default function ProAgendaScreen() {
           onDayPress={(day) => setSheetDay(day)}
           onMonthChange={setMonthStart}
           selectedDay={sheetDay}
+          showBusyLegend={(agenda ?? []).some((a) => a.kind === 'busy')}
         />
 
         {!editMode && (
           <AppText style={styles.hint}>{t('booking.viewHint', { defaultValue: 'Tape un jour pour voir qui vient et gérer ses créneaux.' })}</AppText>
         )}
+
+        {/* Calendar links (00568): export to Google/Apple/Outlook, import busy times. */}
+        <Pressable style={({ pressed }) => [styles.syncRow, pressed && styles.pressed]} onPress={() => router.push('/(auth)/pro/calendar-sync')} accessibilityRole="button">
+          <View style={styles.syncIcon}><RefreshCw size={16} color={colors.cta} strokeWidth={2.4} /></View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <AppText style={styles.syncTitle}>{t('calendarSync.entryTitle', { defaultValue: 'Synchroniser avec mon agenda' })}</AppText>
+            <AppText style={styles.syncSub} numberOfLines={1}>{t('calendarSync.entrySub', { defaultValue: 'Google Agenda, Apple, Outlook' })}</AppText>
+          </View>
+          <ChevronRight size={18} color={colors.textMuted} strokeWidth={2.2} />
+        </Pressable>
 
         {isLoading ? <View style={styles.center}><LogoSpinner size={32} /></View> : (
           <>
@@ -578,12 +590,20 @@ export default function ProAgendaScreen() {
               {(['am', 'pm'] as BookingPeriod[]).map((period) => {
                 const bks = dayBookings(period);
                 const open = dayOpen(period);
+                const busy = dayItems.some((a) => a.kind === 'busy' && a.period === period);
                 return (
                   <View key={period} style={styles.slotBlock}>
                     <View style={styles.slotHead}>
                       <AppText style={styles.slotLabel}>{periodLabel(period, t).toUpperCase()}</AppText>
                       <View style={styles.slotRule} />
-                      {bks.length === 0 && (
+                      {busy && (
+                        <View style={[styles.statePill, { backgroundColor: colors.textMuted + '22' }]}>
+                          <AppText style={[styles.statePillText, { color: colors.textSecondary }]}>
+                            {t('booking.legendBusy', { defaultValue: 'Occupé (ton agenda)' })}
+                          </AppText>
+                        </View>
+                      )}
+                      {bks.length === 0 && !busy && (
                         <View style={[styles.statePill, { backgroundColor: open ? colors.cta + '1A' : colors.textMuted + '22' }]}>
                           <AppText style={[styles.statePillText, { color: open ? colors.cta : colors.textMuted }]}>
                             {open ? t('booking.slotOpen', { defaultValue: 'Ouvert' }) : t('booking.slotClosed', { defaultValue: 'Fermé' })}
@@ -998,6 +1018,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   bkAvatars: { flexDirection: 'row', marginTop: 5 },
   bkAvatar: { borderRadius: 13, borderWidth: 2, borderColor: colors.surface },
   outHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  syncRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, marginTop: spacing.md,
+    backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.sm + 4,
+    borderWidth: 1, borderColor: colors.lineStrong, ...shadows.card,
+  },
+  syncIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: colors.cta + '1F', alignItems: 'center', justifyContent: 'center' },
+  syncTitle: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '700' },
+  syncSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
   outActs: { flexDirection: 'row', gap: spacing.sm },
   outActBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,

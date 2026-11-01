@@ -891,7 +891,8 @@
       "activity_ended_no_remove": "Esta atividade terminou — já não podes remover participantes.",
       "participant_present_no_remove": "A presença deste participante já está validada: já não pode ser apagada. Por isso, já não o podes remover da atividade.",
       "booking_full": "Completo: já não há lugares suficientes neste horário.",
-      "outing_reason": "Motivo demasiado longo (máx. 300 caracteres)."
+      "outing_reason": "Motivo demasiado longo (máx. 300 caracteres).",
+      "calendar_url": "Endereço não reconhecido: cola o « endereço secreto no formato iCal » do Google, iCloud ou Outlook."
     },
     "createActivity": "Não foi possível criar a atividade. Verifica os dados e tenta outra vez.",
     "updateActivity": "Não foi possível alterar a atividade. Tenta outra vez.",
@@ -2648,7 +2649,9 @@
     "cancelReasonHint": "Enviado a cada cliente na sua conversa.",
     "cancelReasonPlaceholder": "Ex. Previsão de trovoadas, proponho-vos outra data.",
     "cancelOutingConfirm": "Cancelar a atividade",
-    "outingCancelled": "Atividade cancelada, clientes avisados"
+    "outingCancelled": "Atividade cancelada, clientes avisados",
+    "slotBusy": "ocupado",
+    "legendBusy": "Ocupado (tua agenda)"
   },
   "calendar": {
     "mon": "S",
@@ -2682,6 +2685,44 @@
     "camera": {
       "title": "Ler um código QR",
       "scan": "A askandgo usa a câmara apenas para ler o código QR. Nenhuma foto é tirada nem enviada."
+    }
+  },
+  "calendarSync": {
+    "title": "Sincronizar a minha agenda",
+    "entryTitle": "Sincronizar com a minha agenda",
+    "entrySub": "Google Calendar, Apple, Outlook",
+    "intro": "O askandgo continua a ser a tua agenda de reservas e continuas a usar a tua agenda habitual: as duas comunicam.",
+    "exportTitle": "As minhas reservas na minha agenda",
+    "exportSub": "Google Calendar, Calendário Apple, Outlook",
+    "exportStep1": "1. Envia a ti próprio este link privado (ou copia-o).",
+    "shareLink": "Copiar / enviar o link",
+    "exportStep2": "2. Google Calendar no computador › « Outros calendários » › + › « A partir do URL » › cola o link. No iPhone: Definições › Calendário › Contas › Adicionar calendário subscrito.",
+    "exportDelay": "O Google atualiza os calendários subscritos ao seu ritmo: uma nova reserva pode demorar até 24 h a aparecer. O askandgo está sempre atualizado.",
+    "hideNames": "Ocultar os nomes dos clientes",
+    "hideNamesHint": "Mostra « Reserva · 3 pess. » se a tua agenda for partilhada.",
+    "regen": "Link partilhado por engano? Criar um novo link",
+    "regenTitle": "Criar um novo link?",
+    "regenBody": "O link antigo deixará de funcionar: terás de adicionar o novo à tua agenda.",
+    "regenConfirm": "Novo link",
+    "regenDone": "Novo link criado",
+    "importTitle": "As minhas indisponibilidades no askandgo",
+    "importSub": "Um compromisso na tua agenda bloqueia o meio-dia.",
+    "importStep1": "1. Google Calendar no computador › Definições › o teu calendário › « Endereço secreto no formato iCal » › copia-o.",
+    "importStep2": "2. Cola-o aqui:",
+    "connect": "Ligar a minha agenda",
+    "importPrivacy": "O endereço fica nos nossos servidores; só guardamos « ocupado / livre » por meio-dia.",
+    "importConnected": "Agenda ligada — primeira leitura em 15 min no máximo",
+    "importPending": "Ligada — primeira leitura em 15 min no máximo.",
+    "importSynced": "Ligada · lida {{ago}}",
+    "importRule": "Manhã = 8–13 h, tarde = 13–19 h. Os eventos « disponível » não bloqueiam nada. Só se guarda « ocupado / livre », nunca o conteúdo dos teus compromissos.",
+    "disconnect": "Desligar",
+    "disconnectTitle": "Desligar a tua agenda?",
+    "disconnectBody": "Os meios-dias marcados como ocupados pela tua agenda voltam a poder ser reservados.",
+    "error": {
+      "link_invalid": "Este link já não funciona (eliminado ou reposto na tua agenda). Desliga e cola o novo endereço.",
+      "unreachable": "Não foi possível ler a tua agenda. Tentamos de novo a cada 15 min.",
+      "too_large": "A tua agenda é demasiado grande para ser lida (mais de 2 MB).",
+      "internal": "Erro do nosso lado, tentamos de novo a cada 15 min."
     }
   }
 }

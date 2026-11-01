@@ -712,6 +712,7 @@
       "booking_slot_unavailable": "Questo slot non è più disponibile — scegline un altro.",
       "booking_party_size": "Numero di persone non valido per questa offerta.",
       "booking_full": "Completo: non ci sono più abbastanza posti in questa fascia.",
+      "calendar_url": "Indirizzo non riconosciuto: incolla l’« indirizzo segreto in formato iCal » di Google, iCloud o Outlook.",
       "outing_reason": "Motivo troppo lungo (max 300 caratteri).",
       "booking_message": "Messaggio troppo lungo (max 500 caratteri).",
       "booking_already": "Hai già una richiesta per questo slot.",
@@ -2277,6 +2278,8 @@
     "placesTaken": "{{taken}}/{{max}} posti",
     "clientsCount_one": "{{count}} cliente",
     "clientsCount_other": "{{count}} clienti",
+    "slotBusy": "occupato",
+    "legendBusy": "Occupato (tuo calendario)",
     "writeAll": "Scrivi a tutti",
     "writeAllTitle": "Messaggio a tutti i clienti",
     "writeAllHint": "Ogni cliente confermato lo riceve nella sua conversazione privata. Non si vedono tra loro.",
@@ -2516,6 +2519,44 @@
     "camera": {
       "title": "Scansiona un codice QR",
       "scan": "askandgo usa la fotocamera solo per leggere il codice QR. Nessuna foto viene scattata né inviata."
+    }
+  },
+  "calendarSync": {
+    "title": "Sincronizza il mio calendario",
+    "entryTitle": "Sincronizza con il mio calendario",
+    "entrySub": "Google Calendar, Apple, Outlook",
+    "intro": "askandgo resta il tuo calendario delle prenotazioni e continui a usare il tuo calendario abituale: i due si parlano.",
+    "exportTitle": "Le mie prenotazioni nel mio calendario",
+    "exportSub": "Google Calendar, Calendario Apple, Outlook",
+    "exportStep1": "1. Inviati questo link privato (o copialo).",
+    "shareLink": "Copia / invia il link",
+    "exportStep2": "2. Google Calendar da computer › « Altri calendari » › + › « Da URL » › incolla il link. Su iPhone: Impostazioni › Calendario › Account › Aggiungi calendario sottoscritto.",
+    "exportDelay": "Google aggiorna i calendari sottoscritti con i suoi tempi: una nuova prenotazione può impiegare fino a 24 h ad apparire. askandgo invece è sempre aggiornato.",
+    "hideNames": "Nascondi i nomi dei clienti",
+    "hideNamesHint": "Mostra « Prenotazione · 3 pers. » se il tuo calendario è condiviso.",
+    "regen": "Link condiviso per errore? Crea un nuovo link",
+    "regenTitle": "Creare un nuovo link?",
+    "regenBody": "Il vecchio link smetterà di funzionare: dovrai aggiungere il nuovo al tuo calendario.",
+    "regenConfirm": "Nuovo link",
+    "regenDone": "Nuovo link creato",
+    "importTitle": "Le mie indisponibilità in askandgo",
+    "importSub": "Un impegno nel tuo calendario blocca la mezza giornata.",
+    "importStep1": "1. Google Calendar da computer › Impostazioni › il tuo calendario › « Indirizzo segreto in formato iCal » › copialo.",
+    "importStep2": "2. Incollalo qui:",
+    "connect": "Collega il mio calendario",
+    "importPrivacy": "L’indirizzo resta sui nostri server, teniamo solo « occupato / libero » per mezza giornata.",
+    "importConnected": "Calendario collegato — prima lettura entro 15 min",
+    "importPending": "Collegato — prima lettura entro 15 min.",
+    "importSynced": "Collegato · letto {{ago}}",
+    "importRule": "Mattina = 8–13, pomeriggio = 13–19. Gli eventi « disponibile » non bloccano nulla. Teniamo solo « occupato / libero », mai il contenuto dei tuoi impegni.",
+    "disconnect": "Scollega",
+    "disconnectTitle": "Scollegare il tuo calendario?",
+    "disconnectBody": "Le mezze giornate segnate occupate dal tuo calendario tornano prenotabili.",
+    "error": {
+      "link_invalid": "Questo link non funziona più (eliminato o rigenerato nel tuo calendario). Scollega e incolla il nuovo indirizzo.",
+      "unreachable": "Non è stato possibile leggere il tuo calendario. Riproviamo ogni 15 min.",
+      "too_large": "Il tuo calendario è troppo grande da leggere (oltre 2 MB).",
+      "internal": "Errore da parte nostra, riproviamo ogni 15 min."
     }
   }
 }

@@ -17,7 +17,8 @@ export interface ProAvailabilitySlot {
 }
 
 export interface AgendaItem {
-  kind: 'availability' | 'booking';
+  // 'busy' = half-day busy in the pro's own calendar (iCal import, 00568).
+  kind: 'availability' | 'booking' | 'busy';
   id: string;
   day: string;
   period: BookingPeriod;

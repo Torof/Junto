@@ -708,6 +708,7 @@
       "booking_slot_unavailable": "This slot is no longer available — pick another one.",
       "booking_party_size": "Invalid party size for this offering.",
       "booking_full": "Full: not enough places left on this slot.",
+      "calendar_url": "Address not recognised: paste the “secret address in iCal format” from Google, iCloud or Outlook.",
       "outing_reason": "Reason too long (300 characters max).",
       "booking_message": "Message too long (500 characters max).",
       "booking_already": "You already have a request on this slot.",
@@ -2277,6 +2278,8 @@
     "placesTaken": "{{taken}}/{{max}} places",
     "clientsCount_one": "{{count}} client",
     "clientsCount_other": "{{count}} clients",
+    "slotBusy": "busy",
+    "legendBusy": "Busy (your calendar)",
     "writeAll": "Message everyone",
     "writeAllTitle": "Message to all clients",
     "writeAllHint": "Each confirmed client gets it in their private conversation. They don’t see each other.",
@@ -2516,6 +2519,44 @@
     "camera": {
       "title": "Scan a QR code",
       "scan": "askandgo only uses the camera to read the QR code. No photo is taken or sent."
+    }
+  },
+  "calendarSync": {
+    "title": "Sync my calendar",
+    "entryTitle": "Sync with my calendar",
+    "entrySub": "Google Calendar, Apple, Outlook",
+    "intro": "askandgo stays your booking calendar, and you keep using your usual calendar: the two talk to each other.",
+    "exportTitle": "My bookings in my calendar",
+    "exportSub": "Google Calendar, Apple Calendar, Outlook",
+    "exportStep1": "1. Send yourself this private link (or copy it).",
+    "shareLink": "Copy / send the link",
+    "exportStep2": "2. Google Calendar on a computer › “Other calendars” › + › “From URL” › paste the link. On iPhone: Settings › Calendar › Accounts › Add Subscribed Calendar.",
+    "exportDelay": "Google refreshes subscribed calendars on its own schedule: a new booking can take up to 24 h to show. askandgo itself is always up to date.",
+    "hideNames": "Hide client names",
+    "hideNamesHint": "Shows “Booking · 3 people” if your calendar is shared.",
+    "regen": "Link shared by mistake? Create a new link",
+    "regenTitle": "Create a new link?",
+    "regenBody": "The old link will stop working: you’ll need to add the new one to your calendar.",
+    "regenConfirm": "New link",
+    "regenDone": "New link created",
+    "importTitle": "My busy times in askandgo",
+    "importSub": "An event in your calendar blocks the half-day.",
+    "importStep1": "1. Google Calendar on a computer › Settings › your calendar › “Secret address in iCal format” › copy it.",
+    "importStep2": "2. Paste it here:",
+    "connect": "Connect my calendar",
+    "importPrivacy": "The address stays on our servers; we only keep “busy / free” per half-day.",
+    "importConnected": "Calendar connected — first read within 15 min",
+    "importPending": "Connected — first read within 15 min.",
+    "importSynced": "Connected · read {{ago}}",
+    "importRule": "Morning = 8 am – 1 pm, afternoon = 1 pm – 7 pm. “Free” events block nothing. Only “busy / free” is kept, never what your events say.",
+    "disconnect": "Disconnect",
+    "disconnectTitle": "Disconnect your calendar?",
+    "disconnectBody": "Half-days marked busy by your calendar become bookable again.",
+    "error": {
+      "link_invalid": "This link no longer works (deleted or reset in your calendar). Disconnect, then paste the new address.",
+      "unreachable": "Your calendar couldn’t be read. We retry every 15 min.",
+      "too_large": "Your calendar is too large to read (over 2 MB).",
+      "internal": "Error on our side, we retry every 15 min."
     }
   }
 }

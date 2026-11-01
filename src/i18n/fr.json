@@ -712,6 +712,7 @@
       "booking_slot_unavailable": "Ce créneau n'est plus disponible — choisis-en un autre.",
       "booking_party_size": "Nombre de personnes invalide pour cette offre.",
       "booking_full": "Complet : plus assez de places sur ce créneau.",
+      "calendar_url": "Adresse non reconnue : colle l’« adresse secrète au format iCal » de Google, iCloud ou Outlook.",
       "outing_reason": "Motif trop long (300 caractères max).",
       "booking_message": "Message trop long (500 caractères max).",
       "booking_already": "Tu as déjà une demande sur ce créneau.",
@@ -2277,6 +2278,8 @@
     "placesTaken": "{{taken}}/{{max}} places",
     "clientsCount_one": "{{count}} client",
     "clientsCount_other": "{{count}} clients",
+    "slotBusy": "occupé",
+    "legendBusy": "Occupé (ton agenda)",
     "writeAll": "Écrire à tous",
     "writeAllTitle": "Message à tous les clients",
     "writeAllHint": "Chaque client confirmé le reçoit dans sa conversation privée. Ils ne se voient pas entre eux.",
@@ -2516,6 +2519,44 @@
     "camera": {
       "title": "Scanner un QR code",
       "scan": "askandgo utilise la caméra seulement pour lire le QR code. Aucune photo n'est prise ni envoyée."
+    }
+  },
+  "calendarSync": {
+    "title": "Synchroniser mon agenda",
+    "entryTitle": "Synchroniser avec mon agenda",
+    "entrySub": "Google Agenda, Apple, Outlook",
+    "intro": "askandgo reste ton agenda de réservation, et tu continues d’utiliser ton agenda habituel : les deux se parlent.",
+    "exportTitle": "Mes réservations dans mon agenda",
+    "exportSub": "Google Agenda, Apple Calendrier, Outlook",
+    "exportStep1": "1. Envoie-toi ce lien privé (ou copie-le).",
+    "shareLink": "Copier / envoyer le lien",
+    "exportStep2": "2. Google Agenda sur ordinateur › « Autres agendas » › + › « À partir de l’URL » › colle le lien. Sur iPhone : Réglages › Calendrier › Comptes › Ajouter un calendrier avec abonnement.",
+    "exportDelay": "Google met à jour les agendas abonnés à son rythme : une nouvelle réservation peut mettre jusqu’à 24 h à apparaître. askandgo, lui, est toujours à jour.",
+    "hideNames": "Masquer les noms des clients",
+    "hideNamesHint": "Affiche « Réservation · 3 pers. » si ton agenda est partagé.",
+    "regen": "Lien partagé par erreur ? Créer un nouveau lien",
+    "regenTitle": "Créer un nouveau lien ?",
+    "regenBody": "L’ancien lien cessera de fonctionner : il faudra ajouter le nouveau dans ton agenda.",
+    "regenConfirm": "Nouveau lien",
+    "regenDone": "Nouveau lien créé",
+    "importTitle": "Mes indisponibilités dans askandgo",
+    "importSub": "Un rendez-vous dans ton agenda bloque la demi-journée.",
+    "importStep1": "1. Google Agenda sur ordinateur › Paramètres › ton agenda › « Adresse secrète au format iCal » › copie-la.",
+    "importStep2": "2. Colle-la ici :",
+    "connect": "Brancher mon agenda",
+    "importPrivacy": "L’adresse reste sur nos serveurs, on ne garde que « occupé / libre » par demi-journée.",
+    "importConnected": "Agenda branché — première lecture dans 15 min au plus",
+    "importPending": "Branché — première lecture dans 15 min au plus.",
+    "importSynced": "Branché · lu {{ago}}",
+    "importRule": "Matin = 8 h – 13 h, après-midi = 13 h – 19 h. Les événements « disponible » ne bloquent rien. Seul « occupé / libre » est gardé, jamais le contenu de tes rendez-vous.",
+    "disconnect": "Débrancher",
+    "disconnectTitle": "Débrancher ton agenda ?",
+    "disconnectBody": "Les créneaux marqués occupés par ton agenda redeviennent réservables.",
+    "error": {
+      "link_invalid": "Ce lien ne fonctionne plus (supprimé ou régénéré dans ton agenda). Débranche puis colle la nouvelle adresse.",
+      "unreachable": "Ton agenda n’a pas pu être lu. On réessaie toutes les 15 min.",
+      "too_large": "Ton agenda est trop volumineux pour être lu (plus de 2 Mo).",
+      "internal": "Erreur de notre côté, on réessaie toutes les 15 min."
     }
   }
 }

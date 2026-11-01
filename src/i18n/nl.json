@@ -891,7 +891,8 @@
       "activity_ended_no_remove": "Dit activiteit is afgelopen — je kunt geen deelnemers meer verwijderen.",
       "participant_present_no_remove": "De aanwezigheid van deze deelnemer is al gevalideerd: die kan niet meer worden gewist. Je kunt hem of haar dus niet meer van de activiteit verwijderen.",
       "booking_full": "Vol: niet genoeg plaatsen meer in dit tijdslot.",
-      "outing_reason": "Reden te lang (max. 300 tekens)."
+      "outing_reason": "Reden te lang (max. 300 tekens).",
+      "calendar_url": "Adres niet herkend: plak het „geheime adres in iCal-indeling” van Google, iCloud of Outlook."
     },
     "createActivity": "Kan de activiteit niet aanmaken. Controleer de gegevens en probeer het opnieuw.",
     "updateActivity": "Kan de activiteit niet wijzigen. Probeer het opnieuw.",
@@ -2648,7 +2649,9 @@
     "cancelReasonHint": "Wordt naar elke klant in zijn gesprek gestuurd.",
     "cancelReasonPlaceholder": "Bijv. Onweer voorspeld, ik stel jullie een andere datum voor.",
     "cancelOutingConfirm": "Activiteit annuleren",
-    "outingCancelled": "Activiteit geannuleerd, klanten gewaarschuwd"
+    "outingCancelled": "Activiteit geannuleerd, klanten gewaarschuwd",
+    "slotBusy": "bezet",
+    "legendBusy": "Bezet (je agenda)"
   },
   "calendar": {
     "mon": "M",
@@ -2682,6 +2685,44 @@
     "camera": {
       "title": "QR-code scannen",
       "scan": "askandgo gebruikt de camera alleen om de QR-code te lezen. Er wordt geen foto gemaakt of verstuurd."
+    }
+  },
+  "calendarSync": {
+    "title": "Mijn agenda synchroniseren",
+    "entryTitle": "Synchroniseren met mijn agenda",
+    "entrySub": "Google Agenda, Apple, Outlook",
+    "intro": "askandgo blijft je boekingsagenda en je blijft je gewone agenda gebruiken: de twee praten met elkaar.",
+    "exportTitle": "Mijn boekingen in mijn agenda",
+    "exportSub": "Google Agenda, Apple Agenda, Outlook",
+    "exportStep1": "1. Stuur jezelf deze privélink (of kopieer hem).",
+    "shareLink": "Link kopiëren / versturen",
+    "exportStep2": "2. Google Agenda op de computer › „Andere agenda's” › + › „Via URL” › plak de link. Op iPhone: Instellingen › Agenda › Accounts › Voeg agenda-abonnement toe.",
+    "exportDelay": "Google ververst geabonneerde agenda's in zijn eigen tempo: een nieuwe boeking kan tot 24 uur nodig hebben om te verschijnen. askandgo zelf is altijd actueel.",
+    "hideNames": "Namen van klanten verbergen",
+    "hideNamesHint": "Toont „Boeking · 3 pers.” als je agenda gedeeld is.",
+    "regen": "Link per ongeluk gedeeld? Maak een nieuwe link",
+    "regenTitle": "Een nieuwe link maken?",
+    "regenBody": "De oude link werkt dan niet meer: je moet de nieuwe aan je agenda toevoegen.",
+    "regenConfirm": "Nieuwe link",
+    "regenDone": "Nieuwe link gemaakt",
+    "importTitle": "Mijn bezette tijden in askandgo",
+    "importSub": "Een afspraak in je agenda blokkeert het dagdeel.",
+    "importStep1": "1. Google Agenda op de computer › Instellingen › je agenda › „Geheim adres in iCal-indeling” › kopieer het.",
+    "importStep2": "2. Plak het hier:",
+    "connect": "Mijn agenda koppelen",
+    "importPrivacy": "Het adres blijft op onze servers; we bewaren alleen „bezet / vrij” per dagdeel.",
+    "importConnected": "Agenda gekoppeld — eerste uitlezing binnen 15 min",
+    "importPending": "Gekoppeld — eerste uitlezing binnen 15 min.",
+    "importSynced": "Gekoppeld · gelezen {{ago}}",
+    "importRule": "Ochtend = 8–13 uur, middag = 13–19 uur. Afspraken als „beschikbaar” blokkeren niets. Alleen „bezet / vrij” wordt bewaard, nooit de inhoud van je afspraken.",
+    "disconnect": "Ontkoppelen",
+    "disconnectTitle": "Je agenda ontkoppelen?",
+    "disconnectBody": "Dagdelen die je agenda als bezet markeerde, zijn weer boekbaar.",
+    "error": {
+      "link_invalid": "Deze link werkt niet meer (verwijderd of opnieuw ingesteld in je agenda). Ontkoppel en plak het nieuwe adres.",
+      "unreachable": "Je agenda kon niet worden gelezen. We proberen het elke 15 min opnieuw.",
+      "too_large": "Je agenda is te groot om te lezen (meer dan 2 MB).",
+      "internal": "Fout aan onze kant, we proberen het elke 15 min opnieuw."
     }
   }
 }

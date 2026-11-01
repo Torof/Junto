@@ -712,6 +712,7 @@
       "booking_slot_unavailable": "Esta franja ya no está disponible — elige otra.",
       "booking_party_size": "Número de personas no válido para esta oferta.",
       "booking_full": "Completo: no quedan suficientes plazas en esta franja.",
+      "calendar_url": "Dirección no reconocida: pega la « dirección secreta en formato iCal » de Google, iCloud u Outlook.",
       "outing_reason": "Motivo demasiado largo (máx. 300 caracteres).",
       "booking_message": "Mensaje demasiado largo (500 caracteres máx.).",
       "booking_already": "Ya tienes una solicitud en esta franja.",
@@ -2277,6 +2278,8 @@
     "placesTaken": "{{taken}}/{{max}} plazas",
     "clientsCount_one": "{{count}} cliente",
     "clientsCount_other": "{{count}} clientes",
+    "slotBusy": "ocupado",
+    "legendBusy": "Ocupado (tu calendario)",
     "writeAll": "Escribir a todos",
     "writeAllTitle": "Mensaje a todos los clientes",
     "writeAllHint": "Cada cliente confirmado lo recibe en su conversación privada. No se ven entre ellos.",
@@ -2516,6 +2519,44 @@
     "camera": {
       "title": "Escanear un código QR",
       "scan": "askandgo solo usa la cámara para leer el código QR. No se toma ni se envía ninguna foto."
+    }
+  },
+  "calendarSync": {
+    "title": "Sincronizar mi calendario",
+    "entryTitle": "Sincronizar con mi calendario",
+    "entrySub": "Google Calendar, Apple, Outlook",
+    "intro": "askandgo sigue siendo tu agenda de reservas y sigues usando tu calendario habitual: los dos se comunican.",
+    "exportTitle": "Mis reservas en mi calendario",
+    "exportSub": "Google Calendar, Calendario de Apple, Outlook",
+    "exportStep1": "1. Envíate este enlace privado (o cópialo).",
+    "shareLink": "Copiar / enviar el enlace",
+    "exportStep2": "2. Google Calendar en ordenador › « Otros calendarios » › + › « Desde URL » › pega el enlace. En iPhone: Ajustes › Calendario › Cuentas › Añadir calendario suscrito.",
+    "exportDelay": "Google actualiza los calendarios suscritos a su ritmo: una nueva reserva puede tardar hasta 24 h en aparecer. askandgo siempre está al día.",
+    "hideNames": "Ocultar los nombres de los clientes",
+    "hideNamesHint": "Muestra « Reserva · 3 pers. » si tu calendario es compartido.",
+    "regen": "¿Enlace compartido por error? Crear un nuevo enlace",
+    "regenTitle": "¿Crear un nuevo enlace?",
+    "regenBody": "El enlace antiguo dejará de funcionar: tendrás que añadir el nuevo a tu calendario.",
+    "regenConfirm": "Nuevo enlace",
+    "regenDone": "Nuevo enlace creado",
+    "importTitle": "Mis indisponibilidades en askandgo",
+    "importSub": "Una cita en tu calendario bloquea la media jornada.",
+    "importStep1": "1. Google Calendar en ordenador › Configuración › tu calendario › « Dirección secreta en formato iCal » › cópiala.",
+    "importStep2": "2. Pégala aquí:",
+    "connect": "Conectar mi calendario",
+    "importPrivacy": "La dirección se queda en nuestros servidores; solo guardamos « ocupado / libre » por media jornada.",
+    "importConnected": "Calendario conectado — primera lectura en 15 min como máximo",
+    "importPending": "Conectado — primera lectura en 15 min como máximo.",
+    "importSynced": "Conectado · leído {{ago}}",
+    "importRule": "Mañana = 8–13 h, tarde = 13–19 h. Los eventos « disponible » no bloquean nada. Solo se guarda « ocupado / libre », nunca el contenido de tus citas.",
+    "disconnect": "Desconectar",
+    "disconnectTitle": "¿Desconectar tu calendario?",
+    "disconnectBody": "Las medias jornadas marcadas como ocupadas por tu calendario vuelven a ser reservables.",
+    "error": {
+      "link_invalid": "Este enlace ya no funciona (eliminado o regenerado en tu calendario). Desconecta y pega la nueva dirección.",
+      "unreachable": "No se ha podido leer tu calendario. Lo reintentamos cada 15 min.",
+      "too_large": "Tu calendario es demasiado grande para leerlo (más de 2 MB).",
+      "internal": "Error por nuestra parte, lo reintentamos cada 15 min."
     }
   }
 }

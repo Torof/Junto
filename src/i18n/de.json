@@ -712,6 +712,7 @@
       "booking_slot_unavailable": "Dieser Termin ist nicht mehr verfügbar — wähle einen anderen.",
       "booking_party_size": "Ungültige Personenzahl für dieses Angebot.",
       "booking_full": "Ausgebucht: nicht mehr genug Plätze in diesem Zeitfenster.",
+      "calendar_url": "Adresse nicht erkannt: Füge die „Privatadresse im iCal-Format“ von Google, iCloud oder Outlook ein.",
       "outing_reason": "Grund zu lang (max. 300 Zeichen).",
       "booking_message": "Nachricht zu lang (max. 500 Zeichen).",
       "booking_already": "Du hast für diesen Termin schon eine Anfrage.",
@@ -2277,6 +2278,8 @@
     "placesTaken": "{{taken}}/{{max}} Plätze",
     "clientsCount_one": "{{count}} Kunde",
     "clientsCount_other": "{{count}} Kunden",
+    "slotBusy": "belegt",
+    "legendBusy": "Belegt (dein Kalender)",
     "writeAll": "Allen schreiben",
     "writeAllTitle": "Nachricht an alle Kunden",
     "writeAllHint": "Jeder bestätigte Kunde erhält sie in seiner privaten Unterhaltung. Sie sehen sich nicht gegenseitig.",
@@ -2516,6 +2519,44 @@
     "camera": {
       "title": "QR-Code scannen",
       "scan": "askandgo nutzt die Kamera nur, um den QR-Code zu lesen. Es wird kein Foto aufgenommen oder gesendet."
+    }
+  },
+  "calendarSync": {
+    "title": "Meinen Kalender synchronisieren",
+    "entryTitle": "Mit meinem Kalender synchronisieren",
+    "entrySub": "Google Kalender, Apple, Outlook",
+    "intro": "askandgo bleibt dein Buchungskalender, und du nutzt weiter deinen gewohnten Kalender: Beide sprechen miteinander.",
+    "exportTitle": "Meine Buchungen in meinem Kalender",
+    "exportSub": "Google Kalender, Apple Kalender, Outlook",
+    "exportStep1": "1. Schick dir diesen privaten Link (oder kopiere ihn).",
+    "shareLink": "Link kopieren / senden",
+    "exportStep2": "2. Google Kalender am Computer › „Weitere Kalender“ › + › „Per URL“ › Link einfügen. Auf dem iPhone: Einstellungen › Kalender › Accounts › Kalenderabo hinzufügen.",
+    "exportDelay": "Google aktualisiert abonnierte Kalender in eigenem Rhythmus: Eine neue Buchung kann bis zu 24 Std. brauchen, bis sie erscheint. askandgo selbst ist immer aktuell.",
+    "hideNames": "Kundennamen ausblenden",
+    "hideNamesHint": "Zeigt „Buchung · 3 Pers.“, wenn dein Kalender geteilt ist.",
+    "regen": "Link versehentlich geteilt? Neuen Link erstellen",
+    "regenTitle": "Neuen Link erstellen?",
+    "regenBody": "Der alte Link funktioniert dann nicht mehr: Du musst den neuen in deinem Kalender hinzufügen.",
+    "regenConfirm": "Neuer Link",
+    "regenDone": "Neuer Link erstellt",
+    "importTitle": "Meine belegten Zeiten in askandgo",
+    "importSub": "Ein Termin in deinem Kalender blockiert den halben Tag.",
+    "importStep1": "1. Google Kalender am Computer › Einstellungen › dein Kalender › „Privatadresse im iCal-Format“ › kopieren.",
+    "importStep2": "2. Hier einfügen:",
+    "connect": "Meinen Kalender verbinden",
+    "importPrivacy": "Die Adresse bleibt auf unseren Servern; wir speichern nur „belegt / frei“ pro halbem Tag.",
+    "importConnected": "Kalender verbunden — erste Abfrage innerhalb von 15 Min.",
+    "importPending": "Verbunden — erste Abfrage innerhalb von 15 Min.",
+    "importSynced": "Verbunden · gelesen {{ago}}",
+    "importRule": "Vormittag = 8–13 Uhr, Nachmittag = 13–19 Uhr. „Verfügbar“-Termine blockieren nichts. Nur „belegt / frei“ wird gespeichert, nie der Inhalt deiner Termine.",
+    "disconnect": "Trennen",
+    "disconnectTitle": "Deinen Kalender trennen?",
+    "disconnectBody": "Von deinem Kalender als belegt markierte halbe Tage sind wieder buchbar.",
+    "error": {
+      "link_invalid": "Dieser Link funktioniert nicht mehr (in deinem Kalender gelöscht oder zurückgesetzt). Trennen und die neue Adresse einfügen.",
+      "unreachable": "Dein Kalender konnte nicht gelesen werden. Wir versuchen es alle 15 Min. erneut.",
+      "too_large": "Dein Kalender ist zu groß zum Lesen (über 2 MB).",
+      "internal": "Fehler auf unserer Seite, wir versuchen es alle 15 Min. erneut."
     }
   }
 }
