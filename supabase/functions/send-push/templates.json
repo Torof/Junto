@@ -139,6 +139,10 @@
       "title": "Sortie annulée",
       "body": "{{name}} a annulé « {{title}} » du {{date}}. Contacte-le pour reprogrammer."
      },
+     "by_pro_message": {
+      "title": "Sortie annulée",
+      "body": "{{name}} a annulé « {{title}} » du {{date}} et t’a laissé un message."
+     },
      "pro_gone": {
       "title": "Sortie annulée",
       "body": "« {{title}} » du {{date}} est annulée — le professionnel n’est plus sur askandgo."
@@ -151,6 +155,19 @@
     "booking_expired": {
      "title": "Demande expirée",
      "body": "Ta demande pour « {{title}} » du {{date}}, {{period}} a expiré sans réponse. Tu peux demander un autre créneau."
+    },
+    "booking_reminder": {
+     "title": "C’est demain !",
+     "body": "« {{title}} » avec {{name}}, demain {{period}}.",
+     "forms": {
+      "title": "C’est demain !",
+      "body": "« {{title}} » demain {{period}} — pense à remplir tes fiches participants."
+     }
+    },
+    "booking_requests_waiting": {
+     "title": "Demandes en attente",
+     "body_one": "1 demande attend ta réponse depuis plus de 24 h.",
+     "body_other": "{{count}} demandes attendent ta réponse depuis plus de 24 h."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -372,6 +389,10 @@
       "title": "Outing cancelled",
       "body": "{{name}} cancelled “{{title}}” on {{date}}. Get in touch to reschedule."
      },
+     "by_pro_message": {
+      "title": "Outing cancelled",
+      "body": "{{name}} cancelled “{{title}}” on {{date}} and left you a message."
+     },
      "pro_gone": {
       "title": "Outing cancelled",
       "body": "“{{title}}” on {{date}} is cancelled — the professional is no longer on askandgo."
@@ -384,6 +405,19 @@
     "booking_expired": {
      "title": "Request expired",
      "body": "Your request for “{{title}}” on {{date}}, {{period}} expired without an answer. You can ask for another slot."
+    },
+    "booking_reminder": {
+     "title": "It’s tomorrow!",
+     "body": "“{{title}}” with {{name}}, tomorrow {{period}}.",
+     "forms": {
+      "title": "It’s tomorrow!",
+      "body": "“{{title}}” tomorrow {{period}} — remember to fill in your participant forms."
+     }
+    },
+    "booking_requests_waiting": {
+     "title": "Requests waiting",
+     "body_one": "1 request has been waiting for your answer for over 24 h.",
+     "body_other": "{{count}} requests have been waiting for your answer for over 24 h."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -605,6 +639,10 @@
       "title": "Uscita annullata",
       "body": "{{name}} ha annullato « {{title}} » del {{date}}. Contattalo per riprogrammare."
      },
+     "by_pro_message": {
+      "title": "Uscita annullata",
+      "body": "{{name}} ha annullato « {{title}} » del {{date}} e ti ha lasciato un messaggio."
+     },
      "pro_gone": {
       "title": "Uscita annullata",
       "body": "« {{title}} » del {{date}} è annullata — il professionista non è più su askandgo."
@@ -617,6 +655,19 @@
     "booking_expired": {
      "title": "Richiesta scaduta",
      "body": "La tua richiesta per « {{title}} » del {{date}}, {{period}} è scaduta senza risposta. Puoi chiedere un altro slot."
+    },
+    "booking_reminder": {
+     "title": "È domani!",
+     "body": "« {{title}} » con {{name}}, domani {{period}}.",
+     "forms": {
+      "title": "È domani!",
+      "body": "« {{title}} » domani {{period}} — ricordati di compilare le schede partecipanti."
+     }
+    },
+    "booking_requests_waiting": {
+     "title": "Richieste in attesa",
+     "body_one": "1 richiesta aspetta la tua risposta da più di 24 h.",
+     "body_other": "{{count}} richieste aspettano la tua risposta da più di 24 h."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -838,6 +889,10 @@
       "title": "Salida cancelada",
       "body": "{{name}} ha cancelado «{{title}}» del {{date}}. Contacta para reprogramar."
      },
+     "by_pro_message": {
+      "title": "Salida cancelada",
+      "body": "{{name}} ha cancelado «{{title}}» del {{date}} y te ha dejado un mensaje."
+     },
      "pro_gone": {
       "title": "Salida cancelada",
       "body": "«{{title}}» del {{date}} queda cancelada: el profesional ya no está en askandgo."
@@ -850,6 +905,19 @@
     "booking_expired": {
      "title": "Solicitud caducada",
      "body": "Tu solicitud para «{{title}}» del {{date}}, {{period}} ha caducado sin respuesta. Puedes pedir otra franja."
+    },
+    "booking_reminder": {
+     "title": "¡Es mañana!",
+     "body": "«{{title}}» con {{name}}, mañana por la {{period}}.",
+     "forms": {
+      "title": "¡Es mañana!",
+      "body": "«{{title}}» mañana por la {{period}}: recuerda rellenar tus fichas de participantes."
+     }
+    },
+    "booking_requests_waiting": {
+     "title": "Solicitudes pendientes",
+     "body_one": "1 solicitud espera tu respuesta desde hace más de 24 h.",
+     "body_other": "{{count}} solicitudes esperan tu respuesta desde hace más de 24 h."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -1071,6 +1139,10 @@
       "title": "Tour abgesagt",
       "body": "{{name}} hat „{{title}}“ am {{date}} abgesagt. Melde dich für einen neuen Termin."
      },
+     "by_pro_message": {
+      "title": "Tour abgesagt",
+      "body": "{{name}} hat „{{title}}“ am {{date}} abgesagt und dir eine Nachricht hinterlassen."
+     },
      "pro_gone": {
       "title": "Tour abgesagt",
       "body": "„{{title}}“ am {{date}} ist abgesagt — der Anbieter ist nicht mehr auf askandgo."
@@ -1083,6 +1155,19 @@
     "booking_expired": {
      "title": "Anfrage abgelaufen",
      "body": "Deine Anfrage für „{{title}}“ am {{date}}, {{period}} ist ohne Antwort abgelaufen. Du kannst einen anderen Termin anfragen."
+    },
+    "booking_reminder": {
+     "title": "Morgen ist es so weit!",
+     "body": "„{{title}}“ mit {{name}}, morgen {{period}}.",
+     "forms": {
+      "title": "Morgen ist es so weit!",
+      "body": "„{{title}}“ morgen {{period}} – denk daran, deine Teilnehmerbögen auszufüllen."
+     }
+    },
+    "booking_requests_waiting": {
+     "title": "Offene Anfragen",
+     "body_one": "1 Anfrage wartet seit über 24 Std. auf deine Antwort.",
+     "body_other": "{{count}} Anfragen warten seit über 24 Std. auf deine Antwort."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -1311,6 +1396,10 @@
      "client_gone": {
       "title": "Boeking geannuleerd",
       "body": "De boeking van “{{title}}” van {{date}} is geannuleerd."
+     },
+     "by_pro_message": {
+      "title": "Activiteit geannuleerd",
+      "body": "{{name}} heeft „{{title}}” van {{date}} geannuleerd en je een bericht gestuurd."
      }
     },
     "booking_expired": {
@@ -1392,6 +1481,19 @@
       "title": "{{name}}",
       "body": "{{preview}}"
      }
+    },
+    "booking_reminder": {
+     "title": "Het is morgen!",
+     "body": "„{{title}}” met {{name}}, morgen{{period}}.",
+     "forms": {
+      "title": "Het is morgen!",
+      "body": "„{{title}}” morgen{{period}} — vergeet je deelnemersformulieren niet in te vullen."
+     }
+    },
+    "booking_requests_waiting": {
+     "title": "Openstaande aanvragen",
+     "body_one": "1 aanvraag wacht al meer dan 24 uur op je antwoord.",
+     "body_other": "{{count}} aanvragen wachten al meer dan 24 uur op je antwoord."
     }
    },
    "period": {
@@ -1544,6 +1646,10 @@
      "client_gone": {
       "title": "Reserva cancelada",
       "body": "A reserva de « {{title}} » de {{date}} foi cancelada."
+     },
+     "by_pro_message": {
+      "title": "Atividade cancelada",
+      "body": "{{name}} cancelou «{{title}}» de {{date}} e deixou-te uma mensagem."
      }
     },
     "booking_expired": {
@@ -1625,6 +1731,19 @@
       "title": "{{name}}",
       "body": "{{preview}}"
      }
+    },
+    "booking_reminder": {
+     "title": "É amanhã!",
+     "body": "«{{title}}» com {{name}}, amanhã de {{period}}.",
+     "forms": {
+      "title": "É amanhã!",
+      "body": "«{{title}}» amanhã de {{period}} — lembra-te de preencher as fichas dos participantes."
+     }
+    },
+    "booking_requests_waiting": {
+     "title": "Pedidos pendentes",
+     "body_one": "1 pedido aguarda a tua resposta há mais de 24 h.",
+     "body_other": "{{count}} pedidos aguardam a tua resposta há mais de 24 h."
     }
    },
    "period": {

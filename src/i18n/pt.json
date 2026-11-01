@@ -143,6 +143,10 @@
       "client_gone": {
         "title": "Reserva cancelada",
         "body": "A reserva de « {{title}} » de {{date}} foi cancelada."
+      },
+      "by_pro_message": {
+        "title": "Atividade cancelada",
+        "body": "{{name}} cancelou «{{title}}» de {{date}} e deixou-te uma mensagem."
       }
     },
     "booking_expired": {
@@ -224,6 +228,19 @@
         "title": "{{name}}",
         "body": "{{preview}}"
       }
+    },
+    "booking_reminder": {
+      "title": "É amanhã!",
+      "body": "«{{title}}» com {{name}}, amanhã de {{period}}.",
+      "forms": {
+        "title": "É amanhã!",
+        "body": "«{{title}}» amanhã de {{period}} — lembra-te de preencher as fichas dos participantes."
+      }
+    },
+    "booking_requests_waiting": {
+      "title": "Pedidos pendentes",
+      "body_one": "1 pedido aguarda a tua resposta há mais de 24 h.",
+      "body_other": "{{count}} pedidos aguardam a tua resposta há mais de 24 h."
     }
   },
   "format": {
@@ -873,7 +890,8 @@
       "booking_cooldown": "Pedido reenviado há pouco — tenta outra vez daqui a uma hora.",
       "activity_ended_no_remove": "Esta atividade terminou — já não podes remover participantes.",
       "participant_present_no_remove": "A presença deste participante já está validada: já não pode ser apagada. Por isso, já não o podes remover da atividade.",
-      "booking_full": "Completo: já não há lugares suficientes neste horário."
+      "booking_full": "Completo: já não há lugares suficientes neste horário.",
+      "outing_reason": "Motivo demasiado longo (máx. 300 caracteres)."
     },
     "createActivity": "Não foi possível criar a atividade. Verifica os dados e tenta outra vez.",
     "updateActivity": "Não foi possível alterar a atividade. Tenta outra vez.",
@@ -1306,7 +1324,9 @@
       "booking_request": "Pedido de reserva",
       "booking_accepted": "Reserva confirmada",
       "booking_declined": "Reserva recusada",
-      "booking_cancelled": "Reserva cancelada"
+      "booking_cancelled": "Reserva cancelada",
+      "booking_reminder": "Lembrete na véspera de uma atividade reservada",
+      "booking_requests_waiting": "Pedidos de reserva pendentes (pro)"
     },
     "editPhoto": "Alterar a foto",
     "sportsSeeAll": "Ver tudo ({{count}})",
@@ -2612,7 +2632,23 @@
     "full": "Completo",
     "placesTaken": "{{taken}}/{{max}} lugares",
     "clientsCount_one": "{{count}} cliente",
-    "clientsCount_other": "{{count}} clientes"
+    "clientsCount_other": "{{count}} clientes",
+    "writeAll": "Escrever a todos",
+    "writeAllTitle": "Mensagem a todos os clientes",
+    "writeAllHint": "Cada cliente confirmado recebe-a na sua conversa privada. Não se veem uns aos outros.",
+    "writeAllPlaceholder": "Ex. Encontro às 8 h no parque do colo, tragam água.",
+    "send": "Enviar",
+    "writeAllSent_one": "Mensagem enviada a 1 cliente",
+    "writeAllSent_other": "Mensagem enviada a {{count}} clientes",
+    "writeAllNone": "Nenhum cliente confirmado na app para esta atividade",
+    "cancelOuting": "Cancelar a atividade",
+    "cancelOutingTitle": "Cancelar toda a atividade?",
+    "cancelOutingBody": "Todas as reservas e pedidos deste horário serão cancelados e os clientes avisados.",
+    "cancelReasonLabel": "Motivo (opcional)",
+    "cancelReasonHint": "Enviado a cada cliente na sua conversa.",
+    "cancelReasonPlaceholder": "Ex. Previsão de trovoadas, proponho-vos outra data.",
+    "cancelOutingConfirm": "Cancelar a atividade",
+    "outingCancelled": "Atividade cancelada, clientes avisados"
   },
   "calendar": {
     "mon": "S",

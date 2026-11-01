@@ -64,6 +64,8 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   booking_declined: { icon: CalendarX2, color: colors.error },
   booking_cancelled: { icon: CalendarX2, color: colors.warning },
   booking_expired: { icon: CalendarClock, color: colors.textSecondary },
+  booking_reminder: { icon: CalendarCheck, color: colors.cta },
+  booking_requests_waiting: { icon: CalendarClock, color: colors.warning },
 });
 
 const getDefaultIcon = (colors: AppColors): IconMeta => ({ icon: Bell, color: colors.textSecondary });
@@ -121,8 +123,13 @@ export function NotificationsView() {
       router.push('/(auth)/(tabs)/messagerie');
     } else if (notification.type === 'seat_request_accepted' && notification.data?.conversation_id) {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
-    } else if (notification.type === 'booking_request') {
+    } else if (notification.type === 'booking_request' || notification.type === 'booking_requests_waiting') {
       router.push('/(auth)/pro/agenda');
+    } else if (notification.type === 'booking_reminder') {
+      router.push('/(auth)/my-bookings');
+    } else if (notification.type === 'booking_cancelled' && notification.data?.by === 'pro' && notification.data?.conversation_id) {
+      // 00567: the pro left a reason in the thread.
+      router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
     } else if (notification.type === 'booking_accepted' && notification.data?.conversation_id) {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
     } else if (notification.type === 'booking_declined' || notification.type === 'booking_accepted' || notification.type === 'booking_expired') {

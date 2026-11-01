@@ -56,6 +56,8 @@ const NOTIFICATION_TYPES = [
   'alert_match',
   'review_received',
   'review_reply',
+  'booking_reminder',
+  'booking_requests_waiting',
 ] as const;
 
 // These two reminders are not just reminders: the T-10min data push is what
