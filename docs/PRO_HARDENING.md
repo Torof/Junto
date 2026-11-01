@@ -96,6 +96,17 @@ Lots dans l'ordre validé : **0 sécurité base → 1 bugs client du parcours �
 
 ---
 
+## Lot 4 — Agenda lisible ✅ livré 2026-11-01 (maquette validée, mig 00565, OTA preview)
+
+- [x] Calendrier : icône du sport de la sortie réservée (pleine = confirmée, teintée en pointillé = demande, « +N ») au lieu des initiales client.
+- [x] Dates « Jeu. 5 nov. · Après-midi » / bloc date « DIM. 8 matin » — plus de « 8/11 AM ».
+- [x] Demandes : cartes (sortie, date, client, message) + Écrire / Refuser / Accepter.
+- [x] Fiche du jour : cartes par demi-journée (fiches participants, Écrire ou Appeler, Détails) ; l'annulation passe dans la fiche réservation.
+- [x] « À venir » ouvre la fiche de LA réservation (client, message, fiches participant par personne, Écrire à…, Annuler).
+- [x] Écrire = conversation, plus le profil : `open_booking_conversation` (00565) ouvre le fil dès la demande (option B validée).
+- [x] Résa manuelle : tuiles sortie avec icône, bouton date, Matin / Après-midi, champs libellés.
+- [ ] À voir : l'Espace pro (« Aujourd'hui ») ouvre encore le profil du client sur l'icône message.
+
 ## Lot 3 — Côté client
 
 - [ ] **Fiche offre** : prix affiché deux fois (header + barre sticky) ; « Contacter » ouvre la page du pro → « Voir sa page » ou un vrai contact ; créneaux vides en sheet ; « dès N pers. » non répercuté.
