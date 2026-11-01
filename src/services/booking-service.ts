@@ -137,6 +137,14 @@ export const bookingService = {
     if (error) throw error;
   },
 
+  // Pro → client thread from a pending or confirmed booking (00565): opens or
+  // reuses the DM and returns its id.
+  openConversation: async (bookingId: string): Promise<string> => {
+    const { data, error } = await supabase.rpc('open_booking_conversation', { p_booking_id: bookingId });
+    if (error) throw error;
+    return data as string;
+  },
+
   cancelAsPro: async (bookingId: string): Promise<void> => {
     const { error } = await supabase.rpc('cancel_booking_pro', { p_booking_id: bookingId });
     if (error) throw error;

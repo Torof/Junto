@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Pressable, ScrollView, StyleSheet, Modal, Platform, Alert, RefreshControl } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Modal, Platform, Alert, RefreshControl, Linking } from 'react-native';
 import { AppText, AppTextInput } from '@/components/app-text';
 import Animated from 'react-native-reanimated';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
@@ -10,7 +10,7 @@ import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Plus, Phone, Send, X, MessageCircle } from 'lucide-react-native';
+import { Plus, Phone, MessageCircle, CalendarDays, ChevronRight } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
@@ -23,12 +23,13 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { PressableScale } from '@/components/pressable-scale';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { sportCategoryColor } from '@/utils/sport-category-color';
+import { SportIcon } from '@/components/sport-icon';
+import { AgendaBookingCard, DateBlock, SportTile, bookingWhen, formsState } from '@/components/agenda-booking';
 
 type TFn = (key: string, options?: { defaultValue?: string }) => string;
 const periodLabel = (p: BookingPeriod, t: TFn) =>
   p === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' });
 
-// Initials for the calendar half-day label ("Famille Perrin" → "FP").
 // Fiche participant (00422) : "P. 43 · 178 cm · 72 kg" par entrée.
 const formatEntry = (e: Record<string, unknown>): string => {
   const parts: string[] = [];
@@ -40,12 +41,6 @@ const formatEntry = (e: Record<string, unknown>): string => {
   const custom = e.custom as Record<string, string> | undefined;
   if (custom) for (const [q, a] of Object.entries(custom)) if (a) parts.push(`${q} : ${a}`);
   return parts.join(' · ') || '—';
-};
-
-const initials = (name: string | null): string => {
-  if (!name) return '?';
-  const parts = name.trim().split(/\s+/).slice(0, 2);
-  return parts.map((p) => (p[0] ?? '').toUpperCase()).join('');
 };
 
 export default function ProAgendaScreen() {
@@ -84,25 +79,24 @@ export default function ProAgendaScreen() {
 
   // Index (day|period) → slot state for the calendar.
   const slotIndex = useMemo(() => {
+    // The half-day shows the booked outing's sport icon (a confirmed booking
+    // wins over a request) and « +N » for the others (Scott 2026-11-01).
     const map = new Map<string, {
       available: boolean; accepted: number; pending: number;
-      label: string | null; sportCategory: string | null;
+      sportKey: string | null; sportCategory: string | null; extra: number;
     }>();
     for (const it of agenda ?? []) {
       const key = `${it.day}|${it.period}`;
-      const cur = map.get(key) ?? { available: false, accepted: 0, pending: 0, label: null, sportCategory: null };
+      const cur = map.get(key) ?? { available: false, accepted: 0, pending: 0, sportKey: null, sportCategory: null, extra: 0 };
       if (it.kind === 'availability') cur.available = true;
       else if (it.status === 'accepted') {
+        if (cur.accepted === 0) { cur.sportKey = it.sport_key; cur.sportCategory = it.sport_category; }
         cur.accepted += 1;
-        cur.label = cur.accepted > 1 ? `+${cur.accepted}` : initials(it.client_name);
-        cur.sportCategory = it.sport_category;
       } else if (it.status === 'pending') {
+        if (cur.accepted === 0 && cur.pending === 0) { cur.sportKey = it.sport_key; cur.sportCategory = it.sport_category; }
         cur.pending += 1;
-        if (cur.accepted === 0) {
-          cur.label = `${initials(it.client_name)}?`;
-          cur.sportCategory = it.sport_category;
-        }
       }
+      cur.extra = Math.max(0, cur.accepted + cur.pending - 1);
       map.set(key, cur);
     }
     return map;
@@ -281,6 +275,25 @@ export default function ProAgendaScreen() {
     );
   };
 
+  // ----- Écrire / appeler / fiche réservation -----
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const detail = (agenda ?? []).find((a) => a.kind === 'booking' && a.id === detailId) ?? null;
+  const [opening, setOpening] = useState(false);
+  // 00565: the pro writes from a request too — the thread opens on demand.
+  const handleWrite = async (b: AgendaItem) => {
+    if (opening) return;
+    setOpening(true);
+    try {
+      const conversationId = await bookingService.openConversation(b.id);
+      setSheetDay(null);
+      setDetailId(null);
+      router.push(`/(auth)/conversation/${conversationId}`);
+    } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+    finally { setOpening(false); }
+  };
+  const handleCall = (b: AgendaItem) => { if (b.manual_phone) void Linking.openURL(`tel:${b.manual_phone}`); };
+  const openDetail = (b: AgendaItem) => { setSheetDay(null); setDetailId(b.id); };
+
   // ----- Manual booking sheet -----
   const [manualOpen, setManualOpen] = useState(false);
   const [mOffering, setMOffering] = useState<string | null>(null);
@@ -321,6 +334,9 @@ export default function ProAgendaScreen() {
   const dayOpen = (period: BookingPeriod) =>
     dayItems.some((a) => a.kind === 'availability' && a.period === period);
   const sheetIsPast = !!sheetDay && sheetDay < dayjs().format('YYYY-MM-DD');
+  const dayCount = dayItems
+    .filter((a) => a.kind === 'booking' && (a.status === 'accepted' || a.status === 'pending'))
+    .reduce((acc, a) => ({ bookings: acc.bookings + 1, people: acc.people + (a.party_size ?? 0) }), { bookings: 0, people: 0 });
 
   return (
     <View style={styles.container}>
@@ -385,33 +401,14 @@ export default function ProAgendaScreen() {
                   {t('booking.requests', { defaultValue: 'Demandes' })} · {pendings.length}
                 </AppText>
                 {pendings.map((b) => (
-                  <View key={b.id} style={styles.reqCard}>
-                    <PressableScale
-                      style={styles.rowTop}
-                      onPress={() => b.client_id && router.push(`/(auth)/profile/${b.client_id}`)}
-                      disabled={!b.client_id}
-                    >
-                      <UserAvatar name={b.client_name ?? '?'} avatarUrl={null} size={38} />
-                      <View style={{ flex: 1, minWidth: 0 }}>
-                        <AppText style={styles.reqName}>
-                          {b.client_name ?? '—'}
-                          <AppText style={styles.reqSize}>  · {b.party_size} pers.</AppText>
-                        </AppText>
-                        <AppText style={[styles.reqMeta, { color: sportCategoryColor(b.sport_category, colors.textPrimary) }]} numberOfLines={1}>
-                          {b.offering_title} — {dayjs(b.day).format('ddd D MMM')}, {periodLabel(b.period, t)}
-                        </AppText>
-                        {b.message ? <AppText style={styles.reqMsg} numberOfLines={2}>« {b.message} »</AppText> : null}
-                      </View>
-                    </PressableScale>
-                    <View style={styles.reqActs}>
-                      <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed]} onPress={() => handleDecline(b)}>
-                        <AppText style={styles.btnGhostText}>{t('booking.decline', { defaultValue: 'Refuser' })}</AppText>
-                      </Pressable>
-                      <Pressable style={({ pressed }) => [styles.btnPrimary, { flex: 1 }, pressed && styles.pressed]} onPress={() => handleAccept(b)}>
-                        <AppText style={styles.btnPrimaryText}>{t('booking.accept', { defaultValue: 'Accepter' })}</AppText>
-                      </Pressable>
-                    </View>
-                  </View>
+                  <AgendaBookingCard
+                    key={b.id}
+                    b={b}
+                    variant="request"
+                    onWrite={b.client_id ? () => handleWrite(b) : undefined}
+                    onDecline={() => handleDecline(b)}
+                    onAccept={() => handleAccept(b)}
+                  />
                 ))}
               </>
             )}
@@ -420,23 +417,21 @@ export default function ProAgendaScreen() {
             {upcoming.length === 0 ? (
               <AppText style={styles.empty}>{t('booking.noUpcoming', { defaultValue: 'Aucune réservation confirmée à venir.' })}</AppText>
             ) : upcoming.map((b) => (
-              <Pressable key={b.id} style={({ pressed }) => [styles.bkRow, pressed && styles.pressed]} onPress={() => setSheetDay(b.day)}>
-                <View style={[styles.bkPeriod, { backgroundColor: sportCategoryColor(b.sport_category, colors.cta) + '22' }]}>
-                  <AppText style={[styles.bkPeriodText, { color: sportCategoryColor(b.sport_category, colors.cta) }]}>
-                    {dayjs(b.day).format('D/M')} {b.period === 'am' ? 'AM' : 'PM'}
-                  </AppText>
-                </View>
+              // A tap opens THIS booking's card, not the whole day (Scott 2026-11-01).
+              <Pressable key={b.id} style={({ pressed }) => [styles.bkRow, pressed && styles.pressed]} onPress={() => setDetailId(b.id)}>
+                <DateBlock b={b} />
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <AppText style={styles.bkName} numberOfLines={1}>
-                    {b.client_name ?? '—'} ({b.party_size}) · {b.offering_title}
+                  <AppText style={styles.bkName} numberOfLines={1}>{b.offering_title ?? '—'}</AppText>
+                  <AppText style={styles.bkWho} numberOfLines={1}>
+                    {b.client_name ?? '—'} · {t('booking.peopleCount', { defaultValue: '{{count}} personnes', count: b.party_size ?? 0 })}
                   </AppText>
                   <AppText style={styles.bkSub} numberOfLines={1}>
                     {b.is_manual
-                      ? `${t('booking.manualTag', { defaultValue: 'manuel' })}${b.manual_phone ? ' · ' + b.manual_phone : ''}`
-                      : t('booking.viaJunto', { defaultValue: 'via l’app' })}
+                      ? `${t('booking.bookedManual', { defaultValue: 'Manuelle' })}${b.manual_phone ? ' · ' + b.manual_phone : ''}`
+                      : t('booking.bookedInApp', { defaultValue: 'Réservée dans l’app' })}
                   </AppText>
                 </View>
-                {b.is_manual && b.manual_phone ? <Phone size={15} color={colors.textMuted} strokeWidth={2.2} /> : null}
+                <ChevronRight size={18} color={colors.textMuted} strokeWidth={2.2} />
               </Pressable>
             ))}
             <View style={{ height: spacing.lg }} />
@@ -466,95 +461,188 @@ export default function ProAgendaScreen() {
         </Pressable>
       </Modal>
 
-      {/* Fiche jour — qui vient, état des créneaux, actions contextuelles */}
+      {/* Fiche jour — les résas par demi-journée, chacune avec ses boutons
+          (maquette validée 2026-11-01). Annuler vit dans la fiche réservation. */}
       <Modal visible={!!sheetDay} transparent animationType="slide" onRequestClose={() => setSheetDay(null)}>
         <Pressable style={styles.backdrop} onPress={() => setSheetDay(null)}>
-          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+          <Pressable style={[styles.sheet, styles.sheetTall]} onPress={(e) => e.stopPropagation()}>
             <View style={styles.grab} />
-            <AppText style={styles.sheetTitle}>
-              {sheetDay ? dayjs(sheetDay).format('dddd D MMMM') : ''}
-            </AppText>
+            <View style={styles.sheetHead}>
+              <AppText style={[styles.sheetTitle, { flex: 1, marginBottom: 0 }]}>
+                {sheetDay ? dayjs(sheetDay).format('dddd D MMMM') : ''}
+              </AppText>
+              {dayCount.bookings > 0 ? (
+                <AppText style={styles.sheetCount}>
+                  {t('booking.dayCount', { defaultValue: '{{count}} résas · {{people}} pers.', count: dayCount.bookings, people: dayCount.people })}
+                </AppText>
+              ) : null}
+            </View>
 
-            {(['am', 'pm'] as BookingPeriod[]).map((period) => {
-              const bks = dayBookings(period);
-              const open = dayOpen(period);
-              return (
-                <View key={period} style={styles.slotBlock}>
-                  <View style={styles.slotHead}>
-                    <AppText style={styles.slotLabel}>{periodLabel(period, t).toUpperCase()}</AppText>
-                    {bks.length === 0 && (
-                      <View style={[styles.statePill, { backgroundColor: open ? colors.cta + '1A' : colors.textMuted + '22' }]}>
-                        <AppText style={[styles.statePillText, { color: open ? colors.cta : colors.textMuted }]}>
-                          {open ? t('booking.slotOpen', { defaultValue: 'Ouvert' }) : t('booking.slotClosed', { defaultValue: 'Fermé' })}
-                        </AppText>
-                      </View>
-                    )}
-                    {!sheetIsPast && bks.length === 0 && (
-                      <PressableScale hitSlop={6} onPress={() => sheetDay && handleToggle(sheetDay, period, !open)}>
-                        <AppText style={styles.slotToggle}>
-                          {open ? t('booking.closeSlot', { defaultValue: 'Fermer' }) : t('booking.openSlot', { defaultValue: 'Ouvrir' })}
-                        </AppText>
-                      </PressableScale>
-                    )}
-                  </View>
-                  {bks.map((b) => (
-                    <View key={b.id} style={styles.sheetBk}>
-                      <View style={[styles.sportDot, { backgroundColor: sportCategoryColor(b.sport_category, colors.cta) }]} />
-                      <View style={{ flex: 1, minWidth: 0 }}>
-                        <AppText style={styles.sheetBkName} numberOfLines={1}>
-                          {b.client_name ?? '—'} · {b.party_size} pers.
-                          {b.status === 'pending' ? `  (${t('booking.status.pending', { defaultValue: 'En attente' }).toLowerCase()})` : ''}
-                        </AppText>
-                        <AppText style={styles.sheetBkSub} numberOfLines={1}>
-                          {b.offering_title}
-                          {b.is_manual
-                            ? ` · ${t('booking.manualTag', { defaultValue: 'manuel' })}${b.manual_phone ? ' · ' + b.manual_phone : ''}`
-                            : ` · ${t('booking.viaJunto', { defaultValue: 'via l’app' })}`}
-                        </AppText>
-                        {b.status === 'accepted'
-                          && ((b.participant_fields?.std?.length ?? 0) + (b.participant_fields?.custom?.length ?? 0)) > 0 ? (
-                          <View style={styles.pInfoBlock}>
-                            {(b.participant_info ?? []).map((e, i) => (
-                              <AppText key={i} style={styles.pInfoLine} numberOfLines={2}>
-                                <AppText style={styles.pInfoNum}>{i + 1}  </AppText>{formatEntry(e)}
-                              </AppText>
-                            ))}
-                            {(b.participant_info?.length ?? 0) < (b.party_size ?? 0) ? (
-                              <AppText style={[styles.pInfoLine, { color: colors.warning }]}>
-                                {t('booking.formMissing', {
-                                  defaultValue: '{{count}} fiche(s) manquante(s)',
-                                  count: (b.party_size ?? 0) - (b.participant_info?.length ?? 0),
-                                })}
-                              </AppText>
-                            ) : null}
-                          </View>
-                        ) : null}
-                      </View>
-                      {!b.is_manual && b.client_id ? (
-                        <PressableScale hitSlop={8} onPress={() => { setSheetDay(null); router.push(`/(auth)/profile/${b.client_id}`); }}>
-                          <MessageCircle size={17} color={colors.textSecondary} strokeWidth={2.2} />
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: spacing.sm }}>
+              {(['am', 'pm'] as BookingPeriod[]).map((period) => {
+                const bks = dayBookings(period);
+                const open = dayOpen(period);
+                return (
+                  <View key={period} style={styles.slotBlock}>
+                    <View style={styles.slotHead}>
+                      <AppText style={styles.slotLabel}>{periodLabel(period, t).toUpperCase()}</AppText>
+                      <View style={styles.slotRule} />
+                      {bks.length === 0 && (
+                        <View style={[styles.statePill, { backgroundColor: open ? colors.cta + '1A' : colors.textMuted + '22' }]}>
+                          <AppText style={[styles.statePillText, { color: open ? colors.cta : colors.textMuted }]}>
+                            {open ? t('booking.slotOpen', { defaultValue: 'Ouvert' }) : t('booking.slotClosed', { defaultValue: 'Fermé' })}
+                          </AppText>
+                        </View>
+                      )}
+                      {!sheetIsPast && bks.length === 0 && (
+                        <PressableScale hitSlop={6} onPress={() => sheetDay && handleToggle(sheetDay, period, !open)}>
+                          <AppText style={styles.slotToggle}>
+                            {open ? t('booking.closeSlot', { defaultValue: 'Fermer' }) : t('booking.openSlot', { defaultValue: 'Ouvrir' })}
+                          </AppText>
                         </PressableScale>
-                      ) : null}
-                      {b.status === 'accepted' && !sheetIsPast ? (
-                        <PressableScale hitSlop={8} onPress={() => handleCancelPro(b)}>
-                          <X size={17} color={colors.textMuted} strokeWidth={2.4} />
-                        </PressableScale>
-                      ) : null}
+                      )}
                     </View>
-                  ))}
-                </View>
-              );
-            })}
+                    {bks.map((b) => (
+                      <AgendaBookingCard
+                        key={b.id}
+                        b={b}
+                        variant="day"
+                        onWrite={b.client_id ? () => handleWrite(b) : undefined}
+                        onCall={b.manual_phone ? () => handleCall(b) : undefined}
+                        onDetails={() => openDetail(b)}
+                      />
+                    ))}
+                  </View>
+                );
+              })}
 
-            {!sheetIsPast && (
-              <Pressable
-                style={({ pressed }) => [styles.btnPrimary, styles.btnBig, styles.btnBrand, pressed && styles.pressed]}
-                onPress={() => sheetDay && openManualSheet(sheetDay, dayOpen('am') || dayBookings('am').length === 0 ? 'am' : 'pm')}
-              >
-                <Plus size={15} color={colors.onCta} strokeWidth={2.4} />
-                <AppText style={styles.btnPrimaryText}>{t('booking.addManualHere', { defaultValue: 'Ajouter une résa ce jour' })}</AppText>
-              </Pressable>
-            )}
+              {!sheetIsPast && (
+                <Pressable
+                  style={({ pressed }) => [styles.btnPrimary, styles.btnBig, styles.btnBrand, pressed && styles.pressed]}
+                  onPress={() => sheetDay && openManualSheet(sheetDay, dayOpen('am') || dayBookings('am').length === 0 ? 'am' : 'pm')}
+                >
+                  <Plus size={15} color={colors.onCta} strokeWidth={2.4} />
+                  <AppText style={styles.btnPrimaryText}>{t('booking.addManualHere', { defaultValue: 'Ajouter une résa ce jour' })}</AppText>
+                </Pressable>
+              )}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Fiche réservation — depuis « À venir » ou « Détails » */}
+      <Modal visible={!!detail} transparent animationType="slide" onRequestClose={() => setDetailId(null)}>
+        <Pressable style={styles.backdrop} onPress={() => setDetailId(null)}>
+          <Pressable style={[styles.sheet, styles.sheetTall]} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.grab} />
+            {detail ? (() => {
+              const c = sportCategoryColor(detail.sport_category, colors.cta);
+              const forms = formsState(detail);
+              const pending = detail.status === 'pending';
+              const past = detail.day < dayjs().format('YYYY-MM-DD');
+              const people = t('booking.peopleCount', { defaultValue: '{{count}} personnes', count: detail.party_size ?? 0 });
+              return (
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: spacing.md }}>
+                  <View style={styles.dHead}>
+                    <SportTile b={detail} size={48} />
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <AppText style={styles.dTitle}>{detail.offering_title ?? '—'}</AppText>
+                      <AppText style={[styles.dWhen, { color: c }]}>{bookingWhen(detail.day, detail.period, t)}</AppText>
+                    </View>
+                    <View style={[styles.statePill, { backgroundColor: pending ? colors.warning + '22' : colors.cta + '1F' }]}>
+                      <AppText style={[styles.statePillText, { color: pending ? colors.warning : colors.cta }]}>
+                        {pending
+                          ? t('booking.status.pending', { defaultValue: 'En attente' })
+                          : t('booking.status.accepted', { defaultValue: 'Confirmée' })}
+                      </AppText>
+                    </View>
+                  </View>
+
+                  <View style={styles.dClient}>
+                    <UserAvatar name={detail.client_name ?? '?'} avatarUrl={null} size={40} />
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <AppText style={styles.dClientName} numberOfLines={1}>{detail.client_name ?? '—'}</AppText>
+                      <AppText style={styles.dClientSub} numberOfLines={1}>
+                        {detail.is_manual
+                          ? `${t('booking.bookedManual', { defaultValue: 'Manuelle' })}${detail.manual_phone ? ' · ' + detail.manual_phone : ''}`
+                          : t('booking.bookedInApp', { defaultValue: 'Réservée dans l’app' })} · {people}
+                      </AppText>
+                    </View>
+                    {detail.client_id ? (
+                      <PressableScale hitSlop={8} onPress={() => { setDetailId(null); router.push(`/(auth)/profile/${detail.client_id}`); }}>
+                        <AppText style={styles.dLink}>{t('booking.profileLink', { defaultValue: 'Profil ›' })}</AppText>
+                      </PressableScale>
+                    ) : null}
+                  </View>
+
+                  {detail.message ? (
+                    <View style={{ gap: 6 }}>
+                      <AppText style={styles.dLabel}>{t('booking.clientMessage', { defaultValue: 'Message du client' })}</AppText>
+                      <AppText style={styles.dMsg}>« {detail.message} »</AppText>
+                    </View>
+                  ) : null}
+
+                  {forms ? (
+                    <View style={{ gap: 6 }}>
+                      <AppText style={styles.dLabel}>
+                        {t('booking.formsTitle', { defaultValue: 'Fiches participants · {{done}} sur {{total}}', done: forms.done, total: forms.total })}
+                      </AppText>
+                      <View style={styles.dForms}>
+                        {Array.from({ length: forms.total }, (_, i) => {
+                          const e = detail.participant_info?.[i];
+                          return (
+                            <View key={i} style={[styles.dFormRow, i > 0 && styles.dFormSep, !e && { backgroundColor: colors.warning + '12' }]}>
+                              <AppText style={[styles.dFormNum, !e && { color: colors.warning }]}>{i + 1}</AppText>
+                              <AppText style={[styles.dFormText, !e && { color: colors.warning }]} numberOfLines={2}>
+                                {e ? formatEntry(e) : t('booking.formMissingRow', { defaultValue: 'Fiche manquante' })}
+                              </AppText>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  ) : null}
+
+                  {pending ? (
+                    <View style={styles.reqActs}>
+                      {detail.client_id ? (
+                        <Pressable style={({ pressed }) => [styles.btnOutline, pressed && styles.pressed]} onPress={() => handleWrite(detail)}>
+                          <MessageCircle size={16} color={colors.textPrimary} strokeWidth={2.2} />
+                          <AppText style={styles.btnOutlineText}>{t('booking.write', { defaultValue: 'Écrire' })}</AppText>
+                        </Pressable>
+                      ) : null}
+                      <Pressable style={({ pressed }) => [styles.btnGhost, pressed && styles.pressed]} onPress={() => { setDetailId(null); handleDecline(detail); }}>
+                        <AppText style={styles.btnGhostText}>{t('booking.decline', { defaultValue: 'Refuser' })}</AppText>
+                      </Pressable>
+                      <Pressable style={({ pressed }) => [styles.btnPrimary, { flex: 1 }, pressed && styles.pressed]} onPress={() => { setDetailId(null); void handleAccept(detail); }}>
+                        <AppText style={styles.btnPrimaryText}>{t('booking.accept', { defaultValue: 'Accepter' })}</AppText>
+                      </Pressable>
+                    </View>
+                  ) : (
+                    <>
+                      {detail.client_id ? (
+                        <Pressable style={({ pressed }) => [styles.btnPrimary, styles.btnTall, pressed && styles.pressed]} onPress={() => handleWrite(detail)}>
+                          <MessageCircle size={16} color={colors.onCta} strokeWidth={2.2} />
+                          <AppText style={styles.btnPrimaryText} numberOfLines={1}>
+                            {t('booking.writeTo', { defaultValue: 'Écrire à {{name}}', name: detail.client_name ?? '' })}
+                          </AppText>
+                        </Pressable>
+                      ) : detail.manual_phone ? (
+                        <Pressable style={({ pressed }) => [styles.btnPrimary, styles.btnTall, pressed && styles.pressed]} onPress={() => handleCall(detail)}>
+                          <Phone size={16} color={colors.onCta} strokeWidth={2.2} />
+                          <AppText style={styles.btnPrimaryText}>{t('booking.call', { defaultValue: 'Appeler' })}</AppText>
+                        </Pressable>
+                      ) : null}
+                      {!past ? (
+                        <PressableScale style={styles.dCancel} onPress={() => { setDetailId(null); handleCancelPro(detail); }}>
+                          <AppText style={styles.dCancelText}>{t('booking.cancelBooking', { defaultValue: 'Annuler la réservation' })}</AppText>
+                        </PressableScale>
+                      ) : null}
+                    </>
+                  )}
+                </ScrollView>
+              );
+            })() : null}
           </Pressable>
         </Pressable>
       </Modal>
@@ -566,25 +654,43 @@ export default function ProAgendaScreen() {
               the keyboard used to cover Nom / Téléphone / Ajouter. */}
           <Animated.View style={imePadding}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-            <AppText style={styles.sheetTitle}>{t('booking.manualTitle', { defaultValue: 'Ajouter une réservation' })}</AppText>
+            <View style={styles.grab} />
+            <AppText style={[styles.sheetTitle, { textTransform: 'none' }]}>{t('booking.manualTitle', { defaultValue: 'Ajouter une réservation' })}</AppText>
+            <AppText style={styles.mIntro}>{t('booking.manualIntro', { defaultValue: 'Pour un client qui a réservé par téléphone ou sur place.' })}</AppText>
 
-            <AppText style={styles.fieldLabel}>{t('booking.manualOffering', { defaultValue: 'Offre' })}</AppText>
-            <View style={styles.chipsWrap}>
-              {(offerings ?? []).map((o) => (
-                <Pressable key={o.id} style={[styles.chip, mOffering === o.id && styles.chipOn]} onPress={() => setMOffering(o.id)}>
-                  <AppText style={[styles.chipText, mOffering === o.id && styles.chipTextOn]} numberOfLines={1}>{o.title}</AppText>
-                </Pressable>
-              ))}
+            <AppText style={styles.fieldLabel}>{t('booking.manualOutingLabel', { defaultValue: 'Sortie' })}</AppText>
+            <View style={styles.offerGrid}>
+              {(offerings ?? []).map((o) => {
+                const on = mOffering === o.id;
+                const c = sportCategoryColor(o.sport_category, colors.cta);
+                return (
+                  <Pressable
+                    key={o.id}
+                    style={({ pressed }) => [styles.offerTile, on && { borderColor: c, borderWidth: 2 }, pressed && styles.pressed]}
+                    onPress={() => setMOffering(o.id)}
+                    accessibilityState={{ selected: on }}
+                  >
+                    <View style={[styles.offerIcon, { backgroundColor: on ? c : c + '1F' }]}>
+                      <SportIcon sportKey={o.sport_key} size={16} color={on ? colors.onCta : c} />
+                    </View>
+                    <AppText style={styles.offerTitle} numberOfLines={2}>{o.title}</AppText>
+                  </Pressable>
+                );
+              })}
             </View>
 
-            <AppText style={styles.fieldLabel}>{t('booking.manualWhen', { defaultValue: 'Date & créneau' })}</AppText>
-            <View style={styles.rowWrap}>
-              <Pressable style={styles.chip} onPress={() => setMShowPicker(true)}>
-                <AppText style={styles.chipText}>{dayjs(mDay).format('ddd D MMM')}</AppText>
-              </Pressable>
+            <AppText style={styles.fieldLabel}>{t('booking.manualWhenLabel', { defaultValue: 'Quand' })}</AppText>
+            <Pressable style={({ pressed }) => [styles.dateBtn, pressed && styles.pressed]} onPress={() => setMShowPicker(true)} accessibilityRole="button">
+              <CalendarDays size={18} color={colors.cta} strokeWidth={2.2} />
+              <AppText style={styles.dateBtnText}>{dayjs(mDay).format('dddd D MMMM')}</AppText>
+              <AppText style={styles.dateBtnChange}>{t('booking.change', { defaultValue: 'Changer' })}</AppText>
+            </Pressable>
+            <View style={[styles.segmented, { marginTop: spacing.sm, marginBottom: 0 }]}>
               {(['am', 'pm'] as BookingPeriod[]).map((p) => (
-                <Pressable key={p} style={[styles.chip, mPeriod === p && styles.chipOn]} onPress={() => setMPeriod(p)}>
-                  <AppText style={[styles.chipText, mPeriod === p && styles.chipTextOn]}>{periodLabel(p, t)}</AppText>
+                <Pressable key={p} style={[styles.segment, mPeriod === p && styles.segmentOn]} onPress={() => setMPeriod(p)}>
+                  <AppText style={[styles.segmentText, mPeriod === p && styles.segmentTextOn]}>
+                    {p === 'am' ? t('booking.periodAm', { defaultValue: 'Matin' }) : t('booking.periodPm', { defaultValue: 'Après-midi' })}
+                  </AppText>
                 </Pressable>
               ))}
             </View>
@@ -600,6 +706,7 @@ export default function ProAgendaScreen() {
             )}
 
             <AppText style={styles.fieldLabel}>{t('booking.manualWho', { defaultValue: 'Client' })}</AppText>
+            <AppText style={styles.inputLabel}>{t('booking.manualNameLabel', { defaultValue: 'Nom' })}</AppText>
             <AppTextInput
               style={styles.input}
               placeholder={t('booking.manualName', { defaultValue: 'Nom (ex. Famille Perrin)' })}
@@ -608,26 +715,31 @@ export default function ProAgendaScreen() {
               onChangeText={setMName}
               maxLength={80}
             />
-            <AppTextInput
-              style={styles.input}
-              placeholder={t('booking.manualPhone', { defaultValue: 'Téléphone (optionnel)' })}
-              placeholderTextColor={colors.textMuted}
-              value={mPhone}
-              onChangeText={setMPhone}
-              keyboardType="phone-pad"
-              maxLength={30}
-            />
-
-            <View style={styles.rowWrap}>
-              <AppText style={styles.fieldLabel}>{t('booking.partySize', { defaultValue: 'Personnes' })}</AppText>
-              <Pressable style={styles.stepBtn} onPress={() => setMSize((s) => Math.max(1, s - 1))}><AppText style={styles.stepBtnText}>−</AppText></Pressable>
-              <AppText style={styles.stepVal}>{mSize}</AppText>
-              <Pressable style={styles.stepBtn} onPress={() => setMSize((s) => Math.min(50, s + 1))}><AppText style={styles.stepBtnText}>+</AppText></Pressable>
+            <View style={styles.mRow}>
+              <View style={{ flex: 1 }}>
+                <AppText style={styles.inputLabel}>{t('booking.manualPhoneLabel', { defaultValue: 'Téléphone (optionnel)' })}</AppText>
+                <AppTextInput
+                  style={[styles.input, { marginBottom: 0 }]}
+                  placeholder="06 12 34 56 78"
+                  placeholderTextColor={colors.textMuted}
+                  value={mPhone}
+                  onChangeText={setMPhone}
+                  keyboardType="phone-pad"
+                  maxLength={30}
+                />
+              </View>
+              <View>
+                <AppText style={styles.inputLabel}>{t('booking.partySize', { defaultValue: 'Personnes' })}</AppText>
+                <View style={styles.stepper}>
+                  <Pressable style={styles.stepBtn} onPress={() => setMSize((s) => Math.max(1, s - 1))} accessibilityLabel="−"><AppText style={styles.stepBtnText}>−</AppText></Pressable>
+                  <AppText style={styles.stepVal}>{mSize}</AppText>
+                  <Pressable style={styles.stepBtn} onPress={() => setMSize((s) => Math.min(50, s + 1))} accessibilityLabel="+"><AppText style={styles.stepBtnText}>+</AppText></Pressable>
+                </View>
+              </View>
             </View>
 
             <Pressable style={({ pressed }) => [styles.btnPrimary, styles.btnBig, styles.btnBrand, pressed && styles.pressed]} onPress={submitManual}>
-              <Send size={15} color={colors.onCta} strokeWidth={2.4} />
-              <AppText style={styles.btnPrimaryText}>{t('booking.manualSubmit', { defaultValue: 'Ajouter' })}</AppText>
+              <AppText style={styles.btnPrimaryText}>{t('booking.manualSubmitFull', { defaultValue: 'Ajouter la réservation' })}</AppText>
             </Pressable>
           </Pressable>
           </Animated.View>
@@ -671,12 +783,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.8, marginTop: spacing.lg, marginBottom: spacing.sm,
   },
-  reqCard: { borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.md, marginBottom: spacing.sm + 2, ...shadows.card },
-  rowTop: { flexDirection: 'row', gap: spacing.sm + 2, alignItems: 'center' },
-  reqName: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '700' },
-  reqSize: { color: colors.textSecondary, fontWeight: '500', fontSize: fontSizes.sm },
-  reqMeta: { fontSize: fontSizes.sm - 1, marginTop: 2, fontWeight: '600' },
-  reqMsg: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontStyle: 'italic', marginTop: 3 },
   reqActs: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm + 2, alignItems: 'center' },
   btnGhost: { paddingVertical: spacing.sm + 1, paddingHorizontal: spacing.md, borderRadius: radius.full },
   btnGhostText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
@@ -693,9 +799,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.sm + 4, marginBottom: spacing.xs + 2,
     ...shadows.card,
   },
-  bkPeriod: { borderRadius: 7, paddingHorizontal: 7, paddingVertical: 4 },
-  bkPeriodText: { fontSize: fontSizes.xs - 1, fontWeight: '700' },
-  bkName: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  bkName: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },
+  bkWho: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, marginTop: 2 },
   bkSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
@@ -711,32 +816,66 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800',
     marginBottom: spacing.sm, textTransform: 'capitalize',
   },
-  slotBlock: { paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.textMuted + '22' },
-  slotHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  slotLabel: { color: colors.textPrimary, fontSize: fontSizes.xs, fontWeight: '800', letterSpacing: 0.6, width: 74 },
+  slotBlock: { paddingVertical: spacing.sm, gap: spacing.sm },
+  slotHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: 2 },
+  slotLabel: { color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800', letterSpacing: 0.8 },
+  slotRule: { flex: 1, height: 1, backgroundColor: colors.line },
   statePill: { borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 4 },
   statePillText: { fontSize: fontSizes.xs, fontWeight: '800' },
-  slotToggle: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '700', marginLeft: 'auto' },
-  sheetBk: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2, paddingVertical: spacing.sm },
-  sportDot: { width: 10, height: 10, borderRadius: 5 },
-  sheetBkName: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '700' },
-  sheetBkSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
-  pInfoBlock: { marginTop: 4, gap: 2 },
-  pInfoLine: { color: colors.textSecondary, fontSize: fontSizes.xs + 1 },
-  pInfoNum: { color: colors.textMuted, fontWeight: '800' },
+  slotToggle: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
+  sheetTall: { maxHeight: '88%' },
+  sheetHead: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
+  sheetCount: { color: colors.textSecondary, fontSize: fontSizes.sm - 1 },
+  dHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4 },
+  dTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800' },
+  dWhen: { fontSize: fontSizes.sm, fontWeight: '600', marginTop: 2 },
+  dClient: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 4,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.card - 2, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm + 2,
+  },
+  dClientName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
+  dClientSub: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, marginTop: 1 },
+  dLink: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
+  dLabel: {
+    color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8,
+  },
+  dMsg: { color: colors.textPrimary, fontSize: fontSizes.sm, lineHeight: 20 },
+  dForms: { borderWidth: 1, borderColor: colors.lineStrong, borderRadius: radius.card - 2, overflow: 'hidden' },
+  dFormRow: { flexDirection: 'row', gap: spacing.sm + 2, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm + 1 },
+  dFormSep: { borderTopWidth: 1, borderTopColor: colors.line },
+  dFormNum: { color: colors.textMuted, fontSize: fontSizes.sm - 1, fontWeight: '800', width: 14 },
+  dFormText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm - 1 },
+  btnOutline: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.surface,
+    borderRadius: radius.full, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md - 2,
+  },
+  btnOutlineText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  btnTall: { paddingVertical: spacing.sm + 5 },
+  dCancel: { alignSelf: 'center', paddingVertical: spacing.xs + 2 },
+  dCancelText: { color: colors.error, fontSize: fontSizes.sm, fontWeight: '700' },
+  mIntro: { color: colors.textSecondary, fontSize: fontSizes.sm - 1, marginTop: -spacing.xs },
+  offerGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  offerTile: {
+    width: '48%', flexGrow: 1, minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    padding: spacing.sm + 2, borderRadius: radius.card - 2, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.surface,
+  },
+  offerIcon: { width: 30, height: 30, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  offerTitle: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '700', lineHeight: 16 },
+  dateBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 2,
+    borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.surface,
+    borderRadius: radius.card - 2, paddingHorizontal: spacing.md - 2, paddingVertical: spacing.sm + 4,
+  },
+  dateBtnText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md - 1, fontWeight: '700', textTransform: 'capitalize' },
+  dateBtnChange: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '600' },
+  inputLabel: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '600', marginBottom: 4 },
+  mRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm + 2 },
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, height: 46 },
   fieldLabel: {
     color: colors.textMuted, fontSize: fontSizes.xs, fontWeight: '800',
     textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.md, marginBottom: spacing.xs + 2,
   },
-  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2 },
-  rowWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
-  chip: { borderWidth: 1, borderColor: colors.lineStrong,
-    backgroundColor: colors.surfaceAlt, borderRadius: radius.full,
-    paddingHorizontal: spacing.sm + 4, paddingVertical: 8, maxWidth: 220,
-  },
-  chipOn: { backgroundColor: colors.cta },
-  chipText: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '600' },
-  chipTextOn: { color: colors.onCta, fontWeight: '700' },
   input: { borderWidth: 1, borderColor: colors.lineStrong,
     backgroundColor: colors.surfaceAlt, borderRadius: radius.card - 4, paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 3,
     color: colors.textPrimary, fontSize: fontSizes.sm + 1, marginBottom: spacing.sm,

@@ -4563,6 +4563,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      open_booking_conversation: {
+        Args: { p_booking_id: string }
+        Returns: string
+      }
       purge_booking_participant_info: { Args: never; Returns: undefined }
       purge_contact_removal_archive: { Args: never; Returns: undefined }
       purge_old_notifications: { Args: never; Returns: undefined }
