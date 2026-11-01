@@ -10,7 +10,7 @@ import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Plus, Phone, MessageCircle, CalendarDays, ChevronRight } from 'lucide-react-native';
+import { Plus, Phone, MessageCircle, CalendarDays, ChevronRight, MessagesSquare, CalendarX2 } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
@@ -330,6 +330,53 @@ export default function ProAgendaScreen() {
   const handleCall = (b: AgendaItem) => { if (b.manual_phone) void Linking.openURL(`tel:${b.manual_phone}`); };
   const openDetail = (b: AgendaItem) => { setSheetDay(null); setDetailId(b.id); };
 
+  // ----- Une sortie entière : écrire à tous / annuler (00567) -----
+  const [outing, setOuting] = useState<{ kind: 'write' | 'cancel'; head: AgendaItem } | null>(null);
+  const [outingText, setOutingText] = useState('');
+  const [outingBusy, setOutingBusy] = useState(false);
+  const openOuting = (kind: 'write' | 'cancel', head: AgendaItem) => {
+    setOutingText('');
+    setSheetDay(null);
+    setOuting({ kind, head });
+  };
+  const submitOuting = async () => {
+    if (!outing || !outing.head.offering_id || outingBusy) return;
+    const { kind, head } = outing;
+    const offeringId = head.offering_id;
+    if (!offeringId) return;
+    const text = outingText.trim();
+    if (kind === 'write' && !text) return;
+    const run = async () => {
+      setOutingBusy(true);
+      try {
+        if (kind === 'write') {
+          const n = await bookingService.messageOutingClients(offeringId, head.day, head.period, text);
+          Burnt.toast({
+            title: n > 0
+              ? t('booking.writeAllSent', { defaultValue: 'Message envoyé à {{count}} clients', count: n })
+              : t('booking.writeAllNone', { defaultValue: 'Aucun client confirmé dans l’app sur cette sortie' }),
+            preset: n > 0 ? 'done' : 'none',
+          });
+        } else {
+          await bookingService.cancelOuting(offeringId, head.day, head.period, text || undefined);
+          Burnt.toast({ title: t('booking.outingCancelled', { defaultValue: 'Sortie annulée, clients prévenus' }), preset: 'done' });
+          await invalidate();
+        }
+        setOuting(null);
+      } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+      finally { setOutingBusy(false); }
+    };
+    if (kind === 'write') { void run(); return; }
+    Alert.alert(
+      t('booking.cancelOutingTitle', { defaultValue: 'Annuler toute la sortie ?' }),
+      t('booking.cancelOutingBody', { defaultValue: 'Toutes les réservations et demandes de ce créneau seront annulées, et les clients prévenus.' }),
+      [
+        { text: t('activity.no', { defaultValue: 'Non' }), style: 'cancel' },
+        { text: t('booking.cancelOutingConfirm', { defaultValue: 'Annuler la sortie' }), style: 'destructive', onPress: () => void run() },
+      ],
+    );
+  };
+
   // ----- Manual booking sheet -----
   const [manualOpen, setManualOpen] = useState(false);
   const [mOffering, setMOffering] = useState<string | null>(null);
@@ -566,6 +613,20 @@ export default function ProAgendaScreen() {
                               </AppText>
                             </View>
                           </View>
+                          {!sheetIsPast && (
+                            <View style={styles.outActs}>
+                              {g.some((x) => x.status === 'accepted' && x.client_id) && (
+                                <Pressable style={({ pressed }) => [styles.outActBtn, pressed && styles.pressed]} onPress={() => openOuting('write', head)} accessibilityRole="button">
+                                  <MessagesSquare size={15} color={colors.cta} strokeWidth={2.2} />
+                                  <AppText style={styles.outActText}>{t('booking.writeAll', { defaultValue: 'Écrire à tous' })}</AppText>
+                                </Pressable>
+                              )}
+                              <Pressable style={({ pressed }) => [styles.outActBtn, styles.outActDanger, pressed && styles.pressed]} onPress={() => openOuting('cancel', head)} accessibilityRole="button">
+                                <CalendarX2 size={15} color={colors.error} strokeWidth={2.2} />
+                                <AppText style={[styles.outActText, { color: colors.error }]}>{t('booking.cancelOuting', { defaultValue: 'Annuler la sortie' })}</AppText>
+                              </Pressable>
+                            </View>
+                          )}
                           {g.map((b) => (
                             <AgendaBookingCard
                               key={b.id}
@@ -718,6 +779,65 @@ export default function ProAgendaScreen() {
               );
             })() : null}
           </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Une sortie entière : message à tous / annulation avec motif (00567). */}
+      <Modal visible={!!outing} transparent animationType="slide" onRequestClose={() => setOuting(null)}>
+        <Pressable style={styles.backdrop} onPress={() => setOuting(null)}>
+          <Animated.View style={imePadding}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.grab} />
+            {outing ? (
+              <>
+                <AppText style={[styles.sheetTitle, { textTransform: 'none', marginBottom: 2 }]}>
+                  {outing.kind === 'write'
+                    ? t('booking.writeAllTitle', { defaultValue: 'Message à tous les clients' })
+                    : t('booking.cancelOuting', { defaultValue: 'Annuler la sortie' })}
+                </AppText>
+                <AppText style={styles.outSub} numberOfLines={1}>
+                  {outing.head.offering_title ?? '—'} · {bookingWhen(outing.head.day, outing.head.period, t)}
+                </AppText>
+                {outing.kind === 'cancel' && (
+                  <AppText style={[styles.inputLabel, { marginTop: spacing.md }]}>{t('booking.cancelReasonLabel', { defaultValue: 'Motif (facultatif)' })}</AppText>
+                )}
+                <AppTextInput
+                  style={[styles.input, styles.outInput, outing.kind === 'write' && { marginTop: spacing.md }]}
+                  placeholder={outing.kind === 'write'
+                    ? t('booking.writeAllPlaceholder', { defaultValue: 'Ex. RDV 8 h au parking du col, prévoyez de l’eau.' })
+                    : t('booking.cancelReasonPlaceholder', { defaultValue: 'Ex. Orages annoncés, je vous propose une autre date.' })}
+                  placeholderTextColor={colors.textMuted}
+                  value={outingText}
+                  onChangeText={setOutingText}
+                  multiline
+                  maxLength={outing.kind === 'write' ? 2000 : 300}
+                  autoFocus={outing.kind === 'write'}
+                />
+                <AppText style={styles.mIntro}>
+                  {outing.kind === 'write'
+                    ? t('booking.writeAllHint', { defaultValue: 'Chaque client confirmé le reçoit dans sa conversation privée. Ils ne se voient pas entre eux.' })
+                    : t('booking.cancelReasonHint', { defaultValue: 'Envoyé à chaque client dans sa conversation.' })}
+                </AppText>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.btnPrimary, styles.btnBig,
+                    outing.kind === 'cancel' && { backgroundColor: colors.error },
+                    (outingBusy || (outing.kind === 'write' && !outingText.trim())) && { opacity: 0.5 },
+                    pressed && styles.pressed,
+                  ]}
+                  disabled={outingBusy || (outing.kind === 'write' && !outingText.trim())}
+                  onPress={() => void submitOuting()}
+                >
+                  <AppText style={styles.btnPrimaryText}>
+                    {outing.kind === 'write'
+                      ? t('booking.send', { defaultValue: 'Envoyer' })
+                      : t('booking.cancelOutingConfirm', { defaultValue: 'Annuler la sortie' })}
+                  </AppText>
+                </Pressable>
+              </>
+            ) : null}
+          </Pressable>
+          </Animated.View>
         </Pressable>
       </Modal>
 
@@ -878,6 +998,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   bkAvatars: { flexDirection: 'row', marginTop: 5 },
   bkAvatar: { borderRadius: 13, borderWidth: 2, borderColor: colors.surface },
   outHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  outActs: { flexDirection: 'row', gap: spacing.sm },
+  outActBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: colors.cta + '1F', borderRadius: radius.full, paddingVertical: spacing.sm,
+  },
+  outActDanger: { backgroundColor: colors.error + '14' },
+  outActText: { color: colors.cta, fontSize: fontSizes.sm - 1, fontWeight: '700' },
+  outSub: { color: colors.textSecondary, fontSize: fontSizes.sm - 1 },
+  outInput: { minHeight: 96, textAlignVertical: 'top' },
   outTitle: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },

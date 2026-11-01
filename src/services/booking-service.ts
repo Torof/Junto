@@ -147,6 +147,26 @@ export const bookingService = {
     return data as string;
   },
 
+  // Same message to every confirmed in-app client of one outing session, each
+  // in their private thread (00567). Returns how many clients got it.
+  messageOutingClients: async (offeringId: string, day: string, period: BookingPeriod, content: string): Promise<number> => {
+    const { data, error } = await supabase.rpc('message_outing_clients', {
+      p_offering_id: offeringId, p_day: day, p_period: period, p_content: content,
+    });
+    if (error) throw error;
+    return data ?? 0;
+  },
+
+  // Cancels a whole session (00567); the optional reason lands in each
+  // client's thread. Returns how many bookings were closed.
+  cancelOuting: async (offeringId: string, day: string, period: BookingPeriod, reason?: string): Promise<number> => {
+    const { data, error } = await supabase.rpc('cancel_outing', {
+      p_offering_id: offeringId, p_day: day, p_period: period, p_reason: reason,
+    });
+    if (error) throw error;
+    return data ?? 0;
+  },
+
   cancelAsPro: async (bookingId: string): Promise<void> => {
     const { error } = await supabase.rpc('cancel_booking_pro', { p_booking_id: bookingId });
     if (error) throw error;
