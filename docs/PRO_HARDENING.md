@@ -107,6 +107,9 @@ Lots dans l'ordre validé : **0 sécurité base → 1 bugs client du parcours �
 - [x] Résa manuelle : tuiles sortie avec icône, bouton date, Matin / Après-midi, champs libellés.
 - [x] Espace pro « Aujourd'hui » : l'icône message ouvre la conversation (plus le profil).
 - [x] Plusieurs clients sur une sortie (Scott 2026-11-01) : vignette « 5/6 » (places confirmées / max) au lieu de « +N » ; fiche du jour et « À venir » regroupés par sortie (« X/6 places », photos des clients) ; vraie photo client partout, tap = profil.
+- [x] « Écrire à tous » (00567) : même message à chaque client confirmé d'une sortie, chacun dans son fil privé ; 20 envois groupés / jour.
+- [x] « Annuler la sortie » (00567) : toute la session d'un coup, motif facultatif posté dans chaque fil (jamais dans le push).
+- [x] Rappels (00567, cron) : client la veille à 18 h (« pense à tes fiches » si incomplètes) ; pro à 9 h si des demandes attendent > 24 h. Désactivables dans les préférences.
 - [x] Pas de surbooking (mig 00566) : toutes les demandes arrivent, le pro choisit ; une acceptation qui dépasse le max est refusée (`junto.booking_full`, bouton « Complet ») ; une nouvelle demande doit tenir dans les places restantes. Résa manuelle libre mais comptée.
 
 ## Lot 3 — Côté client
