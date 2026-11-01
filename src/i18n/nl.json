@@ -2440,7 +2440,7 @@
     "manualPhoneLabel": "Telefoon (optioneel)",
     "manualSubmitFull": "Boeking toevoegen",
     "clientMessagesTitle": "Klantberichten",
-    "clientMessagesEmpty": "Nog geen klantgesprekken. Ze openen zodra je een boeking bevestigt.",
+    "clientMessagesEmpty": "Nog geen gesprekken met klanten. Schrijf een klant vanuit een aanvraag of een boeking in de agenda.",
     "hubMessagesUnread_one": "{{count}} ongelezen",
     "hubMessagesUnread_other": "{{count}} ongelezen",
     "previewAccepted": "Boeking bevestigd",

@@ -2440,7 +2440,7 @@
     "manualPhoneLabel": "Telefone (opcional)",
     "manualSubmitFull": "Adicionar a reserva",
     "clientMessagesTitle": "Mensagens de clientes",
-    "clientMessagesEmpty": "Ainda não há conversas com clientes. Abrem-se quando confirmas uma reserva.",
+    "clientMessagesEmpty": "Ainda não há conversas com clientes. Escreve a um cliente a partir de um pedido ou de uma reserva na agenda.",
     "hubMessagesUnread_one": "{{count}} não lida",
     "hubMessagesUnread_other": "{{count}} não lidas",
     "previewAccepted": "Reserva confirmada",

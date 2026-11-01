@@ -2292,7 +2292,7 @@
     "manualPhoneLabel": "Phone (optional)",
     "manualSubmitFull": "Add the booking",
     "clientMessagesTitle": "Client messages",
-    "clientMessagesEmpty": "No client conversation yet. They open when you confirm a booking.",
+    "clientMessagesEmpty": "No client conversations yet. Write to a client from a request or a booking in the agenda.",
     "hubMessagesUnread_one": "{{count}} unread",
     "hubMessagesUnread_other": "{{count}} unread",
     "previewAccepted": "Booking confirmed",

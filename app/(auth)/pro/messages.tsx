@@ -45,7 +45,7 @@ export default function ProMessagesScreen() {
         <View style={styles.center}>
           <MessagesSquare size={28} color={colors.textMuted} strokeWidth={2} />
           <AppText style={styles.emptyText}>
-            {t('booking.clientMessagesEmpty', { defaultValue: 'Aucune conversation client pour l’instant. Elles s’ouvrent quand tu confirmes une réservation.' })}
+            {t('booking.clientMessagesEmpty', { defaultValue: 'Aucune conversation client pour l’instant. Écris à un client depuis une demande ou une réservation dans l’agenda.' })}
           </AppText>
         </View>
       ) : (

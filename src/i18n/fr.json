@@ -2292,7 +2292,7 @@
     "manualPhoneLabel": "Téléphone (optionnel)",
     "manualSubmitFull": "Ajouter la réservation",
     "clientMessagesTitle": "Messages clients",
-    "clientMessagesEmpty": "Aucune conversation client pour l’instant. Elles s’ouvrent quand tu confirmes une réservation.",
+    "clientMessagesEmpty": "Aucune conversation client pour l’instant. Écris à un client depuis une demande ou une réservation dans l’agenda.",
     "hubMessagesUnread_one": "{{count}} non lu",
     "hubMessagesUnread_other": "{{count}} non lus",
     "previewAccepted": "Réservation confirmée",

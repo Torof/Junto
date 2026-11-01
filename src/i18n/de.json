@@ -2292,7 +2292,7 @@
     "manualPhoneLabel": "Telefon (optional)",
     "manualSubmitFull": "Buchung hinzufügen",
     "clientMessagesTitle": "Kundennachrichten",
-    "clientMessagesEmpty": "Noch keine Unterhaltung mit Kundinnen oder Kunden. Sie öffnet sich, sobald du eine Buchung bestätigst.",
+    "clientMessagesEmpty": "Noch keine Kundengespräche. Schreib einem Kunden über eine Anfrage oder eine Buchung im Kalender.",
     "hubMessagesUnread_one": "{{count}} ungelesen",
     "hubMessagesUnread_other": "{{count}} ungelesen",
     "previewAccepted": "Buchung bestätigt",
