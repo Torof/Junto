@@ -3715,6 +3715,15 @@ export type Database = {
       }
       cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
       cancel_booking_pro: { Args: { p_booking_id: string }; Returns: undefined }
+      cancel_outing: {
+        Args: {
+          p_day: string
+          p_offering_id: string
+          p_period: string
+          p_reason?: string
+        }
+        Returns: number
+      }
       cancel_pending_seat_request: {
         Args: { p_request_id: string }
         Returns: undefined
@@ -4496,6 +4505,15 @@ export type Database = {
         Returns: undefined
       }
       mark_tutorial_seen: { Args: never; Returns: undefined }
+      message_outing_clients: {
+        Args: {
+          p_content: string
+          p_day: string
+          p_offering_id: string
+          p_period: string
+        }
+        Returns: number
+      }
       moderate_report: {
         Args: {
           p_action: string
