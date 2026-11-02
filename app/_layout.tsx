@@ -9,7 +9,7 @@ import '@/lib/notification-bg-task';
 import { useEffect, useState, useRef } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { AppState, View } from 'react-native';
+import { AppState } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -21,11 +21,10 @@ import { useMessageStore } from '@/store/message-store';
 import { useMapStyleStore } from '@/store/map-style-store';
 import { useClusterStyleStore } from '@/store/cluster-style-store';
 import { useFontStore } from '@/store/font-store';
-import { LogoSpinner } from '@/components/logo-spinner';
+import { OpeningScreen } from '@/components/opening-screen';
 import { ThemeProvider, useResolvedTheme } from '@/components/theme-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { PermissionPrompt } from '@/components/permission-prompt';
-import { useColors } from '@/hooks/use-theme';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -125,25 +124,15 @@ function AuthGate() {
   // loading screen on top until we're sure we're on the correct route.
   // This avoids the flash of default visitor content on cold start.
   const resolvedTheme = useResolvedTheme();
-  const themeColors = useColors();
+  const starting = isLoading || !isReady || !fontReady;
 
   return (
     <>
-      <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={starting || resolvedTheme === 'dark' ? 'light' : 'dark'} />
       <Slot />
       <PermissionPrompt />
       {/* The font gate keeps the first screen from flashing in the system font. */}
-      {(isLoading || !isReady || !fontReady) && (
-        <View style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: themeColors.background,
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 10,
-        }} pointerEvents="auto">
-          <LogoSpinner size={64} />
-        </View>
-      )}
+      {starting && <OpeningScreen />}
     </>
   );
 }
