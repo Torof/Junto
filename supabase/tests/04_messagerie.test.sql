@@ -431,8 +431,16 @@ PERFORM pg_temp.denied('une trace partagée de plusieurs Mo est refusée',
       'properties', jsonb_build_object('pad', repeat('x', 2000000))), 'grosse')::text$$, pg_temp.id('dm_bob_carol')),
   'junto\.trace_too_large');
 PERFORM pg_temp.as_('db');
-PERFORM pg_temp.put('b2_heavy', (SELECT jsonb_build_object('type', 'LineString', 'coordinates', '[[6.6,44.9],[6.61,44.91]]'::jsonb,
-  'properties', jsonb_build_object('pad', (SELECT string_agg(md5(g::text), '') FROM generate_series(1, 28000) g)))::text));
+-- Trace lourde mais VALIDE : depuis 00570, trace_geojson_ok refuse tout membre inconnu (l'ancien
+-- remplissage par 'properties' est refusé, à raison). Le poids vient donc des coordonnées elles-mêmes :
+-- 9 500 points à 22 décimales ≈ 0,89 Mo — sous le plafond d'1 Mo par trace, mais 6 × > 5 Mo / 24 h.
+PERFORM pg_temp.put('b2_heavy', (SELECT jsonb_build_object('type', 'LineString', 'coordinates',
+  (SELECT jsonb_agg(jsonb_build_array(('6.' || lpad(g::text, 5, '0') || repeat('7', 22))::numeric,
+                                      ('44.' || lpad(g::text, 5, '0') || repeat('3', 22))::numeric,
+                                      ('1200.' || repeat('5', 22))::numeric))
+   FROM generate_series(1, 9500) g))::text));
+PERFORM pg_temp.eq('B2 : la trace lourde du test pèse entre 5/6 Mo et 1 Mo (fixture)',
+  $$SELECT (octet_length(pg_temp.get('b2_heavy')::jsonb::text) BETWEEN 833334 AND 999999)::text$$, 'true');
 FOR i IN 1..5 LOOP
   PERFORM pg_temp.as_('carol');
   PERFORM pg_temp.ok('B2 : carol partage une trace lourde (< 1 Mo) n° ' || i,

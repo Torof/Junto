@@ -35,17 +35,35 @@ PERFORM pg_temp.eq('M2 notifications en REPLICA IDENTITY FULL (filtres des abonn
   $$SELECT relreplident::text FROM pg_class WHERE oid = 'public.notifications'::regclass$$, 'f');
 
 -- ═════ M3 — Tâches planifiées ═════
-PERFORM pg_temp.eq('M3 exactement les 6 tâches planifiées, actives, au bon rythme, en postgres',
+-- 00526 : les 6 tâches de base. 00567 : rappels de réservation (veille 16-17 h UTC = 18 h Paris) et
+-- demandes en attente (7-8 h UTC = 9 h Paris). 00568 : lecture des agendas importés toutes les 15 min.
+-- 00574 : formulaires participants (rappel la veille, manquants le matin). 00577 : annulation
+-- automatique des sorties sous le minimum (J-1 9 h Paris). Deux heures UTC = une seule exécution
+-- utile selon l'heure d'été (la fonction filtre l'heure de Paris).
+PERFORM pg_temp.eq('M3 exactement les 12 tâches planifiées, actives, au bon rythme, en postgres',
   $$SELECT string_agg(jobname || '|' || schedule || '|' || active || '|' || username || '|' || command, ' ¦ ' ORDER BY jobname) FROM cron.job$$,
-  'junto-booking-participant-purge|15 4 * * *|true|postgres|SELECT public.purge_booking_participant_info(); ¦ '
+  'junto-booking-forms-missing|0 7,8 * * *|true|postgres|SELECT private.notify_booking_forms_missing(); ¦ '
+  || 'junto-booking-forms-reminders|0 16,17 * * *|true|postgres|SELECT private.notify_booking_forms_reminders(); ¦ '
+  || 'junto-booking-participant-purge|15 4 * * *|true|postgres|SELECT public.purge_booking_participant_info(); ¦ '
+  || 'junto-booking-reminders|0 16,17 * * *|true|postgres|SELECT private.notify_booking_reminders(); ¦ '
+  || 'junto-booking-requests-waiting|0 7,8 * * *|true|postgres|SELECT private.notify_pending_booking_requests(); ¦ '
+  || 'junto-calendar-import|*/15 * * * *|true|postgres|SELECT private.trigger_calendar_import(); ¦ '
   || 'junto-contact-archive-purge|30 4 * * *|true|postgres|SELECT public.purge_contact_removal_archive(); ¦ '
   || 'junto-cron-log-purge|50 4 * * *|true|postgres|DELETE FROM cron.job_run_details WHERE end_time < now() - interval ''7 days'' ¦ '
   || 'junto-notif-purge|0 4 * * *|true|postgres|SELECT public.purge_old_notifications(); ¦ '
+  || 'junto-outing-auto-cancel|0 7,8 * * *|true|postgres|SELECT private.auto_cancel_short_outings(); ¦ '
   || 'junto-presence-sweep|* * * * *|true|postgres|SELECT public.check_activity_transitions(); ¦ '
   || 'junto-throttle-purge|45 4 * * *|true|postgres|SELECT public.purge_throttle_tables();');
-PERFORM pg_temp.eq('M3 chaque fonction appelée par une tâche existe (sans argument)',
-  $$SELECT coalesce(string_agg(m[1], ', '), '') FROM cron.job j CROSS JOIN LATERAL regexp_matches(j.command, '(public\.[a-z0-9_]+)\(\)', 'g') m
+PERFORM pg_temp.eq('M3 chaque fonction appelée par une tâche existe (sans argument, public ou private)',
+  $$SELECT coalesce(string_agg(m[1], ', '), '') FROM cron.job j CROSS JOIN LATERAL regexp_matches(j.command, '((?:public|private)\.[a-z0-9_]+)\(\)', 'g') m
     WHERE to_regprocedure(m[1] || '()') IS NULL$$, '');
+PERFORM pg_temp.eq('M3 chaque commande planifiée appelle une fonction connue (pas de commande non reconnue)',
+  $$SELECT count(*)::text FROM cron.job WHERE command !~ '^SELECT (public|private)\.[a-z0-9_]+\(\);$' AND jobname <> 'junto-cron-log-purge'$$, '0');
+PERFORM pg_temp.eq('M3 aucune fonction appelée par une tâche n''est exécutable par un client',
+  $$SELECT coalesce(string_agg(m[1], ', '), '') FROM cron.job j CROSS JOIN LATERAL regexp_matches(j.command, '((?:public|private)\.[a-z0-9_]+)\(\)', 'g') m
+    WHERE to_regprocedure(m[1] || '()') IS NOT NULL
+      AND (has_function_privilege('anon', to_regprocedure(m[1] || '()'), 'EXECUTE')
+        OR has_function_privilege('authenticated', to_regprocedure(m[1] || '()'), 'EXECUTE'))$$, '');
 
 -- ═════ M4 — app_config (recréée à la main, hors export) ═════
 PERFORM pg_temp.eq('M4 app_config contient les 4 clés requises',
@@ -64,6 +82,8 @@ PERFORM pg_temp.eq('M4 secret push non vide (≥ 32), poivre = 64 hexadécimaux,
 -- Global : fonctions sans PUBLIC. public : tables en lecture pour les clients, tout pour
 -- service_role ; fonctions pour service_role seulement ; séquences. (storage : plateforme.)
 -- Renvoie les écarts : « + » en trop, « - » manquant.
+-- NB : l'état figé ici inclut les droits par défaut d'anon (tables, séquences) que GRANTS-3 (00_socle)
+-- veut retirer ; le jour du correctif, enlever anon de « want » ci-dessous.
 PERFORM pg_temp.eq('M5 droits par défaut de postgres (global + public) exactement ceux voulus',
   $$WITH got AS (
       SELECT coalesce(nullif(d.defaclnamespace, 0::oid)::regnamespace::text, '*') AS ns, d.defaclobjtype::text AS t,
@@ -93,7 +113,9 @@ PERFORM pg_temp.eq('M6 exactement ces colonnes restent illisibles pour un compte
     FROM pg_attribute a JOIN pg_class c ON c.oid = a.attrelid
     WHERE c.relnamespace = 'public'::regnamespace AND c.relname IN ('activities', 'bookings', 'pro_profiles')
       AND a.attnum > 0 AND NOT a.attisdropped AND NOT has_column_privilege('authenticated', c.oid, a.attnum, 'SELECT')$$,
-  'activities.invite_token,bookings.participant_info,bookings.price_eur,bookings.price_unit,pro_profiles.company_name,'
+  -- 00575 bookings.session_id, 00577 bookings.end_day : figées au trigger, lues par RPC seulement
+  -- (SECURITY.md « Dates fixes » / « Plusieurs jours sur demande » : pas de grant SELECT client).
+  'activities.invite_token,bookings.end_day,bookings.participant_info,bookings.price_eur,bookings.price_unit,bookings.session_id,pro_profiles.company_name,'
   || 'pro_profiles.primary_location,pro_profiles.real_name,pro_profiles.rejection_reason,pro_profiles.reviewed_at,pro_profiles.reviewed_by');
 
 -- ═════ M7 — Historique des migrations (nouveau projet seulement) ═════

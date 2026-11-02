@@ -236,7 +236,36 @@ PERFORM pg_temp.put('sw_auth', $ref$ARRAY[
   'public.get_user_sport_levels(p_user_id uuid)',
   'public.get_activity_peer_review_state(p_activity_id uuid)',
   'public.decline_activity_invitation(p_activity_id uuid)',
-  'public.set_conversation_hidden(p_conversation_id uuid, p_hidden boolean)']$ref$);
+  'public.set_conversation_hidden(p_conversation_id uuid, p_hidden boolean)',
+  -- Ajouts 2026-11-02 (00562-00577) : chacun est une RPC client documentée dans SECURITY.md
+  -- (vitrine pro, réservations pro, dates fixes, liens d'agenda, plusieurs jours / minimum) et
+  -- commence par auth.uid() + suspension (directement ou via private.assert_approved_pro).
+  'public.set_pro_cover(p_url text)',
+  'public.set_offering_cover(p_offering_id uuid, p_url text)',
+  'public.set_pro_professions(p_professions text[])',
+  'public.open_booking_conversation(p_booking_id uuid)',
+  'public.message_outing_clients(p_offering_id uuid, p_day date, p_period text, p_content text)',
+  'public.cancel_outing(p_offering_id uuid, p_day date, p_period text, p_reason text)',
+  'public.get_calendar_links()',
+  'public.regenerate_calendar_export()',
+  'public.set_calendar_export_hide_names(p_hide boolean)',
+  'public.set_calendar_import_url(p_url text)',
+  'public.create_pro_session(p_offering_id uuid, p_start_day date, p_start_period text, p_end_day date, p_end_period text, p_max_participants integer, p_min_participants integer, p_meeting_point text)',
+  'public.update_pro_session(p_session_id uuid, p_start_day date, p_start_period text, p_end_day date, p_end_period text, p_max_participants integer, p_min_participants integer, p_meeting_point text)',
+  'public.cancel_pro_session(p_session_id uuid, p_reason text)',
+  'public.join_pro_session(p_session_id uuid, p_party_size integer, p_message text)',
+  'public.get_offering_sessions(p_offering_id uuid)',
+  'public.get_my_sessions(p_from date, p_to date)',
+  'public.get_session_conflicts(p_start_day date, p_start_period text, p_end_day date, p_end_period text)',
+  'public.set_offering_request_length(p_offering_id uuid, p_days integer)',
+  'public.confirm_outing(p_offering_id uuid, p_day date, p_period text)']$ref$);
+-- Appelables par un compte mais PAS encore documentées comme RPC client dans SECURITY.md
+-- (« Chaîne d'autorisation » + table de classification) : tenues hors de la liste ci-dessus,
+-- signalées en xfail jusqu'à ce que la doc existe — alors les déplacer dans sw_auth.
+-- set_gpx_trace_waypoints (00571) : chaîne testée dans 21_divers_recents (auth, suspension,
+-- propriétaire, validation) ; seule la documentation manque.
+PERFORM pg_temp.put('sw_auth_undoc', $ref$ARRAY[
+  'public.set_gpx_trace_waypoints(p_id uuid, p_waypoints jsonb)']$ref$);
 PERFORM pg_temp.put('sw_anon', $ref$ARRAY[
   'private.message_author_visible(p_conversation_id uuid, p_sender_id uuid, p_viewer_id uuid)',
   'public.demo_content_visible()',
@@ -244,7 +273,10 @@ PERFORM pg_temp.put('sw_anon', $ref$ARRAY[
   'private.is_conversation_member(p_conversation_id uuid, p_user_id uuid)']$ref$);
 PERFORM pg_temp.eq('S2 aucune fonction appelable par un compte en dehors de la liste',
   format($q$SELECT coalesce(string_agg(s, ', '), '') FROM (SELECT n.nspname || '.' || p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' AS s FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname IN ('public', 'private') AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = p.oid AND d.deptype = 'e')
-    AND has_function_privilege('authenticated', p.oid, 'EXECUTE') EXCEPT SELECT unnest(%s)) x$q$, pg_temp.get('sw_auth')), '');
+    AND has_function_privilege('authenticated', p.oid, 'EXECUTE') EXCEPT SELECT unnest(%s) EXCEPT SELECT unnest(%s)) x$q$, pg_temp.get('sw_auth'), pg_temp.get('sw_auth_undoc')), '');
+PERFORM pg_temp.eq('S2 aucune fonction appelable par un compte sans chaîne documentée dans SECURITY.md',
+  format($q$SELECT coalesce(string_agg(s, ', '), '') FROM (SELECT n.nspname || '.' || p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' AS s FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname IN ('public', 'private')
+    AND has_function_privilege('authenticated', p.oid, 'EXECUTE') INTERSECT SELECT unnest(%s)) x$q$, pg_temp.get('sw_auth_undoc')), '', 'DOC-WAYPOINTS');
 PERFORM pg_temp.eq('S2 toutes les fonctions de la liste restent appelables par un compte',
   format($q$SELECT coalesce(string_agg(s, ', '), '') FROM (SELECT unnest(%s) AS s EXCEPT SELECT n.nspname || '.' || p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname IN ('public', 'private') AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = p.oid AND d.deptype = 'e')
     AND has_function_privilege('authenticated', p.oid, 'EXECUTE')) x$q$, pg_temp.get('sw_auth')), '');
@@ -386,7 +418,7 @@ PERFORM pg_temp.eq('S10 activities_with_coords (lisible sans compte) : colonnes 
   'created_at,creator_avatar,creator_id,creator_name,deleted_at,description,distance_km,duration,elevation_gain_m,end_lat,end_lng,id,lat,level,level_max,lng,max_participants,meeting_lat,meeting_lng,meeting_locality,meeting_name,objective_lat,objective_lng,objective_name,participant_count,requires_presence,sport_category,sport_icon,sport_id,sport_key,starts_at,status,title,trace_geojson,updated_at,visibility');
 PERFORM pg_temp.eq('S10 pro_offerings_with_coords : colonnes exactes',
   $q$SELECT string_agg(column_name, ',' ORDER BY column_name) FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'pro_offerings_with_coords'$q$,
-  'created_at,description,distance_km,duration,elevation_gain_m,equipment_provided,equipment_required,id,image_url,lat,level,lng,location_name,max_participants,min_participants,participant_fields,price_eur,price_unit,pro_id,pro_name,schedule_text,sport_category,sport_icon,sport_id,sport_key,title,updated_at');
+  'created_at,description,distance_km,duration,elevation_gain_m,equipment_provided,equipment_required,id,image_url,lat,level,lng,location_name,max_participants,min_participants,participant_fields,price_eur,price_unit,pro_id,pro_name,request_days,schedule_text,sport_category,sport_icon,sport_id,sport_key,title,updated_at');
 
 -- ═════ S11 — Stockage : on ne renomme pas le fichier d'un autre ═════
 PERFORM pg_temp.as_('db');
