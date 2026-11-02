@@ -4823,6 +4823,10 @@ export type Database = {
         Args: { p_conversation_id: string; p_hidden: boolean }
         Returns: undefined
       }
+      set_gpx_trace_waypoints: {
+        Args: { p_id: string; p_waypoints: Json }
+        Returns: undefined
+      }
       set_message_reaction: {
         Args: { p_emoji: string; p_message_id: string }
         Returns: undefined
