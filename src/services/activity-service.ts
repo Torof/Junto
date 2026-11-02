@@ -3,9 +3,21 @@ import type { Json } from '@/types/supabase';
 import { MAP_FETCH_CAP } from '@/constants/map-query';
 import { type ActivityFormData } from '@/types/activity-form';
 
+// A named stop on a trace (00570): kept inside the trace GeoJSON as the
+// foreign member `waypoints`, so it follows the trace everywhere.
+export type TraceWaypointKind =
+  'refuge' | 'camp' | 'water' | 'viewpoint' | 'food' | 'parking' | 'summit' | 'danger' | 'other';
+export interface TraceWaypoint {
+  lng: number;
+  lat: number;
+  kind: TraceWaypointKind;
+  name?: string;
+}
+
 export interface GeoJsonLineString {
   type: 'LineString';
   coordinates: number[][];
+  waypoints?: TraceWaypoint[];
 }
 
 export interface NearbyActivity {

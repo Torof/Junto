@@ -44,6 +44,7 @@ export async function enrichTraceElevation(geo: GeoJsonLineString): Promise<GeoJ
   const z = await fetchTraceElevations(geo.coordinates);
   if (!z) return geo;
   return {
+    ...geo, // keeps the waypoints
     type: 'LineString',
     coordinates: geo.coordinates.map((c, i) => {
       const alt = z[i];

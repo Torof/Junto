@@ -1,4 +1,5 @@
-import type { GeoJsonLineString } from '@/services/activity-service';
+import type { GeoJsonLineString, TraceWaypoint } from '@/services/activity-service';
+import { MAX_WAYPOINTS, cleanWaypointName, kindFromGpx } from '@/utils/trace-waypoints';
 
 export class GpxParseError extends Error {}
 
@@ -8,8 +9,9 @@ const MAX_POINTS = 10000;
  * Minimal GPX → GeoJSON LineString parser.
  *
  * Extracts track points (`<trkpt>`) by default; falls back to route points
- * (`<rtept>`) if no track is found. Waypoints (`<wpt>`) are intentionally
- * ignored — they describe pins, not a continuous path.
+ * (`<rtept>`) if no track is found. Waypoints (`<wpt>`) become the trace's
+ * named stops (refuge, water…, 00570) — up to 30, kind guessed from their
+ * type / symbol / name.
  *
  * Regex-based on purpose: React Native has no built-in XML parser and
  * pulling a full DOM implementation is overkill. Well-formed GPX from
@@ -63,5 +65,35 @@ export function parseGpxToGeoJson(xml: string): GeoJsonLineString {
     throw new GpxParseError(`Too many points (${coords.length} > ${MAX_POINTS})`);
   }
 
-  return { type: 'LineString', coordinates: coords };
+  const waypoints = parseWaypoints(xml);
+  return waypoints.length > 0
+    ? { type: 'LineString', coordinates: coords, waypoints }
+    : { type: 'LineString', coordinates: coords };
+}
+
+const decodeXml = (s: string) =>
+  s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+   .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+   .replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+
+function parseWaypoints(xml: string): TraceWaypoint[] {
+  const wptRegex = /<wpt\b([^>]*?)(?:\/>|>([\s\S]*?)<\/wpt>)/gi;
+  const tag = (body: string, name: string) => {
+    const m = body.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`, 'i'));
+    return m ? decodeXml(m[1]!).trim() : undefined;
+  };
+  const out: TraceWaypoint[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = wptRegex.exec(xml)) !== null && out.length < MAX_WAYPOINTS) {
+    const attrs = match[1] ?? '';
+    const body = match[2] ?? '';
+    const lat = parseFloat(attrs.match(/\blat\s*=\s*['"]([-\d.]+)['"]/i)?.[1] ?? '');
+    const lng = parseFloat(attrs.match(/\blon\s*=\s*['"]([-\d.]+)['"]/i)?.[1] ?? '');
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) continue;
+    const name = tag(body, 'name');
+    const kind = kindFromGpx(tag(body, 'type'), tag(body, 'sym'), name);
+    const clean = name ? cleanWaypointName(name) : undefined;
+    out.push(clean ? { lng, lat, kind, name: clean } : { lng, lat, kind });
+  }
+  return out;
 }

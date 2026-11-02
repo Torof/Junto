@@ -20,9 +20,13 @@ export function geoJsonLineStringToGpx(geo: GeoJsonLineString, name: string): st
     })
     .filter(Boolean)
     .join('\n');
+  // Waypoints (00570) go out as <wpt>, kind in <type> so a re-import keeps it.
+  const wpts = (geo.waypoints ?? [])
+    .map((w) => `  <wpt lat="${w.lat}" lon="${w.lng}">${w.name ? `<name>${escapeXml(w.name)}</name>` : ''}<type>${w.kind}</type></wpt>`)
+    .join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="askandgo" xmlns="http://www.topografix.com/GPX/1/1">
-  <trk>
+${wpts ? wpts + '\n' : ''}  <trk>
     <name>${safeName}</name>
     <trkseg>
 ${points}
