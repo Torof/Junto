@@ -482,6 +482,7 @@ export type Database = {
           price_eur: number | null
           price_unit: string | null
           pro_id: string
+          session_id: string | null
           status: string
           submitted_count: number
           updated_at: string
@@ -502,6 +503,7 @@ export type Database = {
           price_eur?: number | null
           price_unit?: string | null
           pro_id: string
+          session_id?: string | null
           status?: string
           submitted_count?: number
           updated_at?: string
@@ -522,6 +524,7 @@ export type Database = {
           price_eur?: number | null
           price_unit?: string | null
           pro_id?: string
+          session_id?: string | null
           status?: string
           submitted_count?: number
           updated_at?: string
@@ -567,6 +570,13 @@ export type Database = {
             columns: ["pro_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "pro_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -2536,6 +2546,83 @@ export type Database = {
           },
         ]
       }
+      pro_sessions: {
+        Row: {
+          created_at: string
+          end_day: string
+          end_period: string
+          id: string
+          max_participants: number
+          meeting_point: string | null
+          min_participants: number | null
+          offering_id: string
+          pro_id: string
+          start_day: string
+          start_period: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_day: string
+          end_period: string
+          id?: string
+          max_participants: number
+          meeting_point?: string | null
+          min_participants?: number | null
+          offering_id: string
+          pro_id: string
+          start_day: string
+          start_period: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_day?: string
+          end_period?: string
+          id?: string
+          max_participants?: number
+          meeting_point?: string | null
+          min_participants?: number | null
+          offering_id?: string
+          pro_id?: string
+          start_day?: string
+          start_period?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_sessions_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_sessions_offering_id_fkey"
+            columns: ["offering_id"]
+            isOneToOne: false
+            referencedRelation: "pro_offerings_with_coords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_sessions_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_sessions_pro_id_fkey"
+            columns: ["pro_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_tokens: {
         Row: {
           created_at: string
@@ -3710,9 +3797,13 @@ export type Database = {
         Returns: {
           client_name: string
           day: string
+          end_day: string
+          end_period: string
           hide_names: boolean
           id: string
           is_manual: boolean
+          kind: string
+          max_participants: number
           offering_title: string
           party_size: number
           period: string
@@ -3753,6 +3844,10 @@ export type Database = {
       cancel_pending_seat_request: {
         Args: { p_request_id: string }
         Returns: undefined
+      }
+      cancel_pro_session: {
+        Args: { p_reason?: string; p_session_id: string }
+        Returns: number
       }
       check_activity_transitions: { Args: never; Returns: undefined }
       check_alerts_for_activity: {
@@ -3938,6 +4033,19 @@ export type Database = {
       }
       create_pro_review: {
         Args: { p_body?: string; p_pro_id: string; p_rating: number }
+        Returns: string
+      }
+      create_pro_session: {
+        Args: {
+          p_end_day: string
+          p_end_period: string
+          p_max_participants: number
+          p_meeting_point?: string
+          p_min_participants?: number
+          p_offering_id: string
+          p_start_day: string
+          p_start_period: string
+        }
         Returns: string
       }
       create_report: {
@@ -4274,9 +4382,12 @@ export type Database = {
           conversation_id: string
           created_at: string
           day: string
+          end_day: string
+          end_period: string
           equipment_required: Json
           id: string
           location_name: string
+          meeting_point: string
           offering_id: string
           offering_title: string
           participant_fields: Json
@@ -4287,6 +4398,7 @@ export type Database = {
           price_unit: string
           pro_id: string
           pro_name: string
+          session_id: string
           sport_category: string
           sport_key: string
           status: string
@@ -4380,6 +4492,39 @@ export type Database = {
           website: string
         }[]
       }
+      get_my_sessions: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          end_day: string
+          end_period: string
+          id: string
+          max_participants: number
+          meeting_point: string
+          min_participants: number
+          offering_id: string
+          offering_title: string
+          sport_category: string
+          sport_key: string
+          start_day: string
+          start_period: string
+          taken: number
+        }[]
+      }
+      get_offering_sessions: {
+        Args: { p_offering_id: string }
+        Returns: {
+          end_day: string
+          end_period: string
+          id: string
+          max_participants: number
+          meeting_point: string
+          min_participants: number
+          my_booking_id: string
+          start_day: string
+          start_period: string
+          taken: number
+        }[]
+      }
       get_own_invite_token: { Args: { p_activity_id: string }; Returns: string }
       get_pending_contact_requests: {
         Args: never
@@ -4414,6 +4559,7 @@ export type Database = {
           participant_info: Json
           party_size: number
           period: string
+          session_id: string
           sport_category: string
           sport_key: string
           status: string
@@ -4433,6 +4579,22 @@ export type Database = {
           avatar_url: string
           display_name: string
           id: string
+        }[]
+      }
+      get_session_conflicts: {
+        Args: {
+          p_end_day: string
+          p_end_period: string
+          p_start_day: string
+          p_start_period: string
+        }
+        Returns: {
+          booking_id: string
+          client_name: string
+          day: string
+          offering_title: string
+          party_size: number
+          period: string
         }[]
       }
       get_transport_summary: {
@@ -4518,6 +4680,10 @@ export type Database = {
       }
       join_activity: { Args: { p_activity_id: string }; Returns: string }
       join_channel: { Args: { p_conversation_id: string }; Returns: undefined }
+      join_pro_session: {
+        Args: { p_message?: string; p_party_size: number; p_session_id: string }
+        Returns: string
+      }
       leave_activity: {
         Args: { p_activity_id: string; p_reason?: string }
         Returns: undefined
@@ -4578,6 +4744,10 @@ export type Database = {
           p_skip_push?: boolean
           p_user_id: string
         }
+        Returns: undefined
+      }
+      notify_presence_end_reminder: {
+        Args: { p_activity_id: string }
         Returns: undefined
       }
       notify_presence_pre_warning: {
@@ -4970,6 +5140,19 @@ export type Database = {
       }
       update_pro_review: {
         Args: { p_body?: string; p_rating: number; p_review_id: string }
+        Returns: undefined
+      }
+      update_pro_session: {
+        Args: {
+          p_end_day: string
+          p_end_period: string
+          p_max_participants: number
+          p_meeting_point?: string
+          p_min_participants?: number
+          p_session_id: string
+          p_start_day: string
+          p_start_period: string
+        }
         Returns: undefined
       }
       upsert_dispo: {
