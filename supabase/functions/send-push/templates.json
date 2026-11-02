@@ -118,17 +118,39 @@
     "booking_request": {
      "title": "Nouvelle demande de réservation",
      "body_one": "{{name}} · « {{title}} » · {{date}}, {{period}} · 1 pers.",
-     "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pers."
+     "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pers.",
+     "day": {
+      "title": "Nouvelle demande de réservation",
+      "body_one": "{{name}} · « {{title}} » · {{date}}, journée · 1 pers.",
+      "body_other": "{{name}} · « {{title}} » · {{date}}, journée · {{count}} pers."
+     },
+     "multi": {
+      "title": "Nouvelle demande de réservation",
+      "body_one": "{{name}} · « {{title}} » · {{days}} jours dès le {{date}} · 1 pers.",
+      "body_other": "{{name}} · « {{title}} » · {{days}} jours dès le {{date}} · {{count}} pers."
+     }
     },
     "booking_accepted": {
      "title": "Réservation confirmée !",
-     "body": "{{name}} a confirmé « {{title}} » le {{date}}, {{period}}. Paiement sur place."
+     "body": "{{name}} a confirmé « {{title}} » le {{date}}, {{period}}. Paiement sur place.",
+     "day": {
+      "title": "Réservation confirmée !",
+      "body": "{{name}} a confirmé « {{title}} » le {{date}}, journée. Paiement sur place."
+     },
+     "multi": {
+      "title": "Réservation confirmée !",
+      "body": "{{name}} a confirmé « {{title}} » : {{days}} jours dès le {{date}}. Paiement sur place."
+     }
     },
     "booking_declined": {
      "title": "Créneau indisponible",
      "body": "{{name}} n’est pas disponible pour « {{title}} » le {{date}}. Essaie un autre créneau."
     },
     "booking_cancelled": {
+     "auto_minimum": {
+      "title": "Sortie annulée",
+      "body": "« {{title}} » du {{date}} est annulée : pas assez de participants."
+     },
      "title": "Sortie annulée",
      "body": "« {{title}} » du {{date}} a été annulée.",
      "by_client": {
@@ -179,17 +201,25 @@
      "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes sur {{total}}.",
      "minimum": {
       "title": "Minimum pas atteint",
-      "body": "« {{title}} » ({{date}}) : {{total}} pers. inscrites, minimum {{min}} pour partir."
+      "body": "« {{title}} » ({{date}}) : {{total}}/{{min}} inscrits. Maintiens-la, sinon elle sera annulée demain à 9 h."
      },
      "both": {
       "title": "Il manque des infos",
-      "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante, et {{total}} pers. inscrites sur {{min}} minimum.",
-      "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes, et {{total}} pers. inscrites sur {{min}} minimum."
+      "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante, et {{total}}/{{min}} inscrits. Maintiens-la, sinon elle sera annulée demain à 9 h.",
+      "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes, et {{total}}/{{min}} inscrits. Maintiens-la, sinon elle sera annulée demain à 9 h."
      }
     },
     "session_joined": {
      "title": "Nouvelle inscription",
      "body": "{{name}} · « {{title}} » · {{date}} · {{count}} pers."
+    },
+    "booking_confirmed": {
+     "title": "Départ confirmé",
+     "body": "Le départ de « {{title}} » du {{date}} est confirmé."
+    },
+    "outing_auto_cancelled": {
+     "title": "Sortie annulée automatiquement",
+     "body": "« {{title}} » du {{date}} : minimum non atteint ({{total}}/{{min}}), la sortie est annulée."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -399,17 +429,39 @@
     "booking_request": {
      "title": "New booking request",
      "body_one": "{{name}} · “{{title}}” · {{date}}, {{period}} · 1 person",
-     "body_other": "{{name}} · “{{title}}” · {{date}}, {{period}} · {{count}} people"
+     "body_other": "{{name}} · “{{title}}” · {{date}}, {{period}} · {{count}} people",
+     "day": {
+      "title": "New booking request",
+      "body_one": "{{name}} · “{{title}}” · {{date}}, whole day · 1 person",
+      "body_other": "{{name}} · “{{title}}” · {{date}}, whole day · {{count}} people"
+     },
+     "multi": {
+      "title": "New booking request",
+      "body_one": "{{name}} · “{{title}}” · {{days}} days from {{date}} · 1 person",
+      "body_other": "{{name}} · “{{title}}” · {{days}} days from {{date}} · {{count}} people"
+     }
     },
     "booking_accepted": {
      "title": "Booking confirmed!",
-     "body": "{{name}} confirmed “{{title}}” on {{date}}, {{period}}. Pay on site."
+     "body": "{{name}} confirmed “{{title}}” on {{date}}, {{period}}. Pay on site.",
+     "day": {
+      "title": "Booking confirmed!",
+      "body": "{{name}} confirmed “{{title}}” on {{date}}, whole day. Pay on site."
+     },
+     "multi": {
+      "title": "Booking confirmed!",
+      "body": "{{name}} confirmed “{{title}}”: {{days}} days from {{date}}. Pay on site."
+     }
     },
     "booking_declined": {
      "title": "Slot unavailable",
      "body": "{{name}} is not available for “{{title}}” on {{date}}. Try another slot."
     },
     "booking_cancelled": {
+     "auto_minimum": {
+      "title": "Outing cancelled",
+      "body": "“{{title}}” on {{date}} is cancelled: not enough participants."
+     },
      "title": "Outing cancelled",
      "body": "“{{title}}” on {{date}} was cancelled.",
      "by_client": {
@@ -460,17 +512,25 @@
      "body_other": "“{{title}}” ({{date}}): {{count}} participant forms missing out of {{total}}.",
      "minimum": {
       "title": "Minimum not reached",
-      "body": "“{{title}}” ({{date}}): {{total}} signed up, {{min}} needed to go."
+      "body": "“{{title}}” ({{date}}): {{total}}/{{min}} signed up. Keep it, or it will be cancelled tomorrow at 9:00."
      },
      "both": {
       "title": "Details missing",
-      "body_one": "“{{title}}” ({{date}}): 1 participant form missing, and {{total}} signed up of {{min}} minimum.",
-      "body_other": "“{{title}}” ({{date}}): {{count}} participant forms missing, and {{total}} signed up of {{min}} minimum."
+      "body_one": "“{{title}}” ({{date}}): 1 participant form missing, and {{total}}/{{min}} signed up. Keep it, or it will be cancelled tomorrow at 9:00.",
+      "body_other": "“{{title}}” ({{date}}): {{count}} participant forms missing, and {{total}}/{{min}} signed up. Keep it, or it will be cancelled tomorrow at 9:00."
      }
     },
     "session_joined": {
      "title": "New sign-up",
      "body": "{{name}} · “{{title}}” · {{date}} · {{count}} people"
+    },
+    "booking_confirmed": {
+     "title": "Departure confirmed",
+     "body": "“{{title}}” on {{date}} is confirmed to go ahead."
+    },
+    "outing_auto_cancelled": {
+     "title": "Outing cancelled automatically",
+     "body": "“{{title}}” on {{date}}: minimum not reached ({{total}}/{{min}}), the outing is cancelled."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -680,17 +740,39 @@
     "booking_request": {
      "title": "Nuova richiesta di prenotazione",
      "body_one": "{{name}} · « {{title}} » · {{date}}, {{period}} · 1 pers.",
-     "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pers."
+     "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pers.",
+     "day": {
+      "title": "Nuova richiesta di prenotazione",
+      "body_one": "{{name}} · « {{title}} » · {{date}}, giornata · 1 pers.",
+      "body_other": "{{name}} · « {{title}} » · {{date}}, giornata · {{count}} pers."
+     },
+     "multi": {
+      "title": "Nuova richiesta di prenotazione",
+      "body_one": "{{name}} · « {{title}} » · {{days}} giorni dal {{date}} · 1 pers.",
+      "body_other": "{{name}} · « {{title}} » · {{days}} giorni dal {{date}} · {{count}} pers."
+     }
     },
     "booking_accepted": {
      "title": "Prenotazione confermata!",
-     "body": "{{name}} ha confermato « {{title}} » il {{date}}, {{period}}. Pagamento sul posto."
+     "body": "{{name}} ha confermato « {{title}} » il {{date}}, {{period}}. Pagamento sul posto.",
+     "day": {
+      "title": "Prenotazione confermata!",
+      "body": "{{name}} ha confermato « {{title}} » il {{date}}, giornata. Pagamento sul posto."
+     },
+     "multi": {
+      "title": "Prenotazione confermata!",
+      "body": "{{name}} ha confermato « {{title}} »: {{days}} giorni dal {{date}}. Pagamento sul posto."
+     }
     },
     "booking_declined": {
      "title": "Slot non disponibile",
      "body": "{{name}} non è disponibile per « {{title}} » il {{date}}. Prova un altro slot."
     },
     "booking_cancelled": {
+     "auto_minimum": {
+      "title": "Uscita annullata",
+      "body": "« {{title}} » del {{date}} è annullata: partecipanti insufficienti."
+     },
      "title": "Uscita annullata",
      "body": "« {{title}} » del {{date}} è stata annullata.",
      "by_client": {
@@ -741,17 +823,25 @@
      "body_other": "« {{title}} » ({{date}}): mancano {{count}} schede partecipanti su {{total}}.",
      "minimum": {
       "title": "Minimo non raggiunto",
-      "body": "« {{title}} » ({{date}}): {{total}} iscritti, minimo {{min}} per partire."
+      "body": "« {{title}} » ({{date}}): {{total}}/{{min}} iscritti. Confermala, altrimenti sarà annullata domani alle 9."
      },
      "both": {
       "title": "Mancano delle informazioni",
-      "body_one": "« {{title}} » ({{date}}): manca 1 scheda partecipante, e {{total}} iscritti su {{min}} minimo.",
-      "body_other": "« {{title}} » ({{date}}): mancano {{count}} schede partecipanti, e {{total}} iscritti su {{min}} minimo."
+      "body_one": "« {{title}} » ({{date}}): manca 1 scheda partecipante, e {{total}}/{{min}} iscritti. Confermala, altrimenti sarà annullata domani alle 9.",
+      "body_other": "« {{title}} » ({{date}}): mancano {{count}} schede partecipanti, e {{total}}/{{min}} iscritti. Confermala, altrimenti sarà annullata domani alle 9."
      }
     },
     "session_joined": {
      "title": "Nuova iscrizione",
      "body": "{{name}} · « {{title}} » · {{date}} · {{count}} pers."
+    },
+    "booking_confirmed": {
+     "title": "Partenza confermata",
+     "body": "La partenza di « {{title}} » del {{date}} è confermata."
+    },
+    "outing_auto_cancelled": {
+     "title": "Uscita annullata automaticamente",
+     "body": "« {{title}} » del {{date}}: minimo non raggiunto ({{total}}/{{min}}), l’uscita è annullata."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -961,17 +1051,39 @@
     "booking_request": {
      "title": "Nueva solicitud de reserva",
      "body_one": "{{name}} · «{{title}}» · {{date}}, {{period}} · 1 pers.",
-     "body_other": "{{name}} · «{{title}}» · {{date}}, {{period}} · {{count}} pers."
+     "body_other": "{{name}} · «{{title}}» · {{date}}, {{period}} · {{count}} pers.",
+     "day": {
+      "title": "Nueva solicitud de reserva",
+      "body_one": "{{name}} · «{{title}}» · {{date}}, día completo · 1 pers.",
+      "body_other": "{{name}} · «{{title}}» · {{date}}, día completo · {{count}} pers."
+     },
+     "multi": {
+      "title": "Nueva solicitud de reserva",
+      "body_one": "{{name}} · «{{title}}» · {{days}} días desde el {{date}} · 1 pers.",
+      "body_other": "{{name}} · «{{title}}» · {{days}} días desde el {{date}} · {{count}} pers."
+     }
     },
     "booking_accepted": {
      "title": "¡Reserva confirmada!",
-     "body": "{{name}} ha confirmado «{{title}}» el {{date}}, {{period}}. Pago in situ."
+     "body": "{{name}} ha confirmado «{{title}}» el {{date}}, {{period}}. Pago in situ.",
+     "day": {
+      "title": "¡Reserva confirmada!",
+      "body": "{{name}} ha confirmado «{{title}}» el {{date}}, día completo. Pago in situ."
+     },
+     "multi": {
+      "title": "¡Reserva confirmada!",
+      "body": "{{name}} ha confirmado «{{title}}»: {{days}} días desde el {{date}}. Pago in situ."
+     }
     },
     "booking_declined": {
      "title": "Franja no disponible",
      "body": "{{name}} no está disponible para «{{title}}» el {{date}}. Prueba otra franja."
     },
     "booking_cancelled": {
+     "auto_minimum": {
+      "title": "Salida cancelada",
+      "body": "«{{title}}» del {{date}} se cancela: no hay suficientes participantes."
+     },
      "title": "Salida cancelada",
      "body": "«{{title}}» del {{date}} ha sido cancelada.",
      "by_client": {
@@ -1022,17 +1134,25 @@
      "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes de {{total}}.",
      "minimum": {
       "title": "Mínimo no alcanzado",
-      "body": "«{{title}}» ({{date}}): {{total}} inscritos, mínimo {{min}} para salir."
+      "body": "«{{title}}» ({{date}}): {{total}}/{{min}} inscritos. Mantenla, o se cancelará mañana a las 9:00."
      },
      "both": {
       "title": "Faltan datos",
-      "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, y {{total}} inscritos de {{min}} mínimo.",
-      "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes, y {{total}} inscritos de {{min}} mínimo."
+      "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, y {{total}}/{{min}} inscritos. Mantenla, o se cancelará mañana a las 9:00.",
+      "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes, y {{total}}/{{min}} inscritos. Mantenla, o se cancelará mañana a las 9:00."
      }
     },
     "session_joined": {
      "title": "Nueva inscripción",
      "body": "{{name}} · «{{title}}» · {{date}} · {{count}} pers."
+    },
+    "booking_confirmed": {
+     "title": "Salida confirmada",
+     "body": "La salida de «{{title}}» del {{date}} está confirmada."
+    },
+    "outing_auto_cancelled": {
+     "title": "Salida cancelada automáticamente",
+     "body": "«{{title}}» del {{date}}: mínimo no alcanzado ({{total}}/{{min}}), la salida se cancela."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -1242,17 +1362,39 @@
     "booking_request": {
      "title": "Neue Buchungsanfrage",
      "body_one": "{{name}} · „{{title}}“ · {{date}}, {{period}} · 1 Pers.",
-     "body_other": "{{name}} · „{{title}}“ · {{date}}, {{period}} · {{count}} Pers."
+     "body_other": "{{name}} · „{{title}}“ · {{date}}, {{period}} · {{count}} Pers.",
+     "day": {
+      "title": "Neue Buchungsanfrage",
+      "body_one": "{{name}} · „{{title}}“ · {{date}}, ganzer Tag · 1 Pers.",
+      "body_other": "{{name}} · „{{title}}“ · {{date}}, ganzer Tag · {{count}} Pers."
+     },
+     "multi": {
+      "title": "Neue Buchungsanfrage",
+      "body_one": "{{name}} · „{{title}}“ · {{days}} Tage ab {{date}} · 1 Pers.",
+      "body_other": "{{name}} · „{{title}}“ · {{days}} Tage ab {{date}} · {{count}} Pers."
+     }
     },
     "booking_accepted": {
      "title": "Buchung bestätigt!",
-     "body": "{{name}} hat „{{title}}“ am {{date}}, {{period}} bestätigt. Bezahlung vor Ort."
+     "body": "{{name}} hat „{{title}}“ am {{date}}, {{period}} bestätigt. Bezahlung vor Ort.",
+     "day": {
+      "title": "Buchung bestätigt!",
+      "body": "{{name}} hat „{{title}}“ am {{date}}, ganzer Tag, bestätigt. Bezahlung vor Ort."
+     },
+     "multi": {
+      "title": "Buchung bestätigt!",
+      "body": "{{name}} hat „{{title}}“ bestätigt: {{days}} Tage ab {{date}}. Bezahlung vor Ort."
+     }
     },
     "booking_declined": {
      "title": "Termin nicht verfügbar",
      "body": "{{name}} ist am {{date}} für „{{title}}“ nicht verfügbar. Versuch einen anderen Termin."
     },
     "booking_cancelled": {
+     "auto_minimum": {
+      "title": "Tour abgesagt",
+      "body": "„{{title}}“ am {{date}} ist abgesagt: zu wenige Teilnehmer."
+     },
      "title": "Tour abgesagt",
      "body": "„{{title}}“ am {{date}} wurde abgesagt.",
      "by_client": {
@@ -1303,17 +1445,25 @@
      "body_other": "„{{title}}“ ({{date}}): {{count}} von {{total}} Teilnehmerbögen fehlen.",
      "minimum": {
       "title": "Mindestanzahl nicht erreicht",
-      "body": "„{{title}}“ ({{date}}): {{total}} angemeldet, mindestens {{min}} nötig."
+      "body": "„{{title}}“ ({{date}}): {{total}}/{{min}} angemeldet. Führ sie durch, sonst wird sie morgen um 9 Uhr abgesagt."
      },
      "both": {
       "title": "Angaben fehlen",
-      "body_one": "„{{title}}“ ({{date}}): 1 Teilnehmerbogen fehlt, und {{total}} von mindestens {{min}} angemeldet.",
-      "body_other": "„{{title}}“ ({{date}}): {{count}} Teilnehmerbögen fehlen, und {{total}} von mindestens {{min}} angemeldet."
+      "body_one": "„{{title}}“ ({{date}}): 1 Teilnehmerbogen fehlt, und {{total}}/{{min}} angemeldet. Führ sie durch, sonst wird sie morgen um 9 Uhr abgesagt.",
+      "body_other": "„{{title}}“ ({{date}}): {{count}} Teilnehmerbögen fehlen, und {{total}}/{{min}} angemeldet. Führ sie durch, sonst wird sie morgen um 9 Uhr abgesagt."
      }
     },
     "session_joined": {
      "title": "Neue Anmeldung",
      "body": "{{name}} · „{{title}}“ · {{date}} · {{count}} Pers."
+    },
+    "booking_confirmed": {
+     "title": "Start bestätigt",
+     "body": "Der Start von „{{title}}“ am {{date}} ist bestätigt."
+    },
+    "outing_auto_cancelled": {
+     "title": "Tour automatisch abgesagt",
+     "body": "„{{title}}“ am {{date}}: Mindestanzahl nicht erreicht ({{total}}/{{min}}), die Tour ist abgesagt."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -1523,11 +1673,29 @@
     "booking_request": {
      "title": "Nieuwe boekingsaanvraag",
      "body_one": "{{name}} · “{{title}}” · {{date}}, {{period}} · 1 pers.",
-     "body_other": "{{name}} · “{{title}}” · {{date}}, {{period}} · {{count}} pers."
+     "body_other": "{{name}} · “{{title}}” · {{date}}, {{period}} · {{count}} pers.",
+     "day": {
+      "title": "Nieuwe boekingsaanvraag",
+      "body_one": "{{name}} · „{{title}}” · {{date}}, hele dag · 1 pers.",
+      "body_other": "{{name}} · „{{title}}” · {{date}}, hele dag · {{count}} pers."
+     },
+     "multi": {
+      "title": "Nieuwe boekingsaanvraag",
+      "body_one": "{{name}} · „{{title}}” · {{days}} dagen vanaf {{date}} · 1 pers.",
+      "body_other": "{{name}} · „{{title}}” · {{days}} dagen vanaf {{date}} · {{count}} pers."
+     }
     },
     "booking_accepted": {
      "title": "Boeking bevestigd!",
-     "body": "{{name}} heeft “{{title}}” bevestigd op {{date}}, {{period}}. Betaling ter plaatse."
+     "body": "{{name}} heeft “{{title}}” bevestigd op {{date}}, {{period}}. Betaling ter plaatse.",
+     "day": {
+      "title": "Boeking bevestigd!",
+      "body": "{{name}} heeft „{{title}}” op {{date}}, hele dag, bevestigd. Betaling ter plaatse."
+     },
+     "multi": {
+      "title": "Boeking bevestigd!",
+      "body": "{{name}} heeft „{{title}}” bevestigd: {{days}} dagen vanaf {{date}}. Betaling ter plaatse."
+     }
     },
     "booking_declined": {
      "title": "Tijdslot niet beschikbaar",
@@ -1555,6 +1723,10 @@
      "by_pro_message": {
       "title": "Activiteit geannuleerd",
       "body": "{{name}} heeft „{{title}}” van {{date}} geannuleerd en je een bericht gestuurd."
+     },
+     "auto_minimum": {
+      "title": "Activiteit geannuleerd",
+      "body": "„{{title}}” van {{date}} is geannuleerd: te weinig deelnemers."
      }
     },
     "booking_expired": {
@@ -1669,17 +1841,25 @@
      "body_other": "„{{title}}” ({{date}}): {{count}} van de {{total}} deelnemersformulieren ontbreken.",
      "minimum": {
       "title": "Minimum niet gehaald",
-      "body": "„{{title}}” ({{date}}): {{total}} ingeschreven, minimum {{min}} om te vertrekken."
+      "body": "„{{title}}” ({{date}}): {{total}}/{{min}} ingeschreven. Behoud ze, anders wordt ze morgen om 9 uur geannuleerd."
      },
      "both": {
       "title": "Er ontbreken gegevens",
-      "body_one": "„{{title}}” ({{date}}): 1 deelnemersformulier ontbreekt, en {{total}} ingeschreven van minimum {{min}}.",
-      "body_other": "„{{title}}” ({{date}}): {{count}} deelnemersformulieren ontbreken, en {{total}} ingeschreven van minimum {{min}}."
+      "body_one": "„{{title}}” ({{date}}): 1 deelnemersformulier ontbreekt, en {{total}}/{{min}} ingeschreven. Behoud ze, anders wordt ze morgen om 9 uur geannuleerd.",
+      "body_other": "„{{title}}” ({{date}}): {{count}} deelnemersformulieren ontbreken, en {{total}}/{{min}} ingeschreven. Behoud ze, anders wordt ze morgen om 9 uur geannuleerd."
      }
     },
     "session_joined": {
      "title": "Nieuwe inschrijving",
      "body": "{{name}} · „{{title}}” · {{date}} · {{count}} pers."
+    },
+    "booking_confirmed": {
+     "title": "Vertrek bevestigd",
+     "body": "Het vertrek van „{{title}}” op {{date}} is bevestigd."
+    },
+    "outing_auto_cancelled": {
+     "title": "Activiteit automatisch geannuleerd",
+     "body": "„{{title}}” van {{date}}: minimum niet gehaald ({{total}}/{{min}}), de activiteit is geannuleerd."
     }
    },
    "period": {
@@ -1804,11 +1984,29 @@
     "booking_request": {
      "title": "Novo pedido de reserva",
      "body_one": "{{name}} · « {{title}} » · {{date}}, {{period}} · 1 pess.",
-     "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pess."
+     "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pess.",
+     "day": {
+      "title": "Novo pedido de reserva",
+      "body_one": "{{name}} · «{{title}}» · {{date}}, dia inteiro · 1 pess.",
+      "body_other": "{{name}} · «{{title}}» · {{date}}, dia inteiro · {{count}} pess."
+     },
+     "multi": {
+      "title": "Novo pedido de reserva",
+      "body_one": "{{name}} · «{{title}}» · {{days}} dias a partir de {{date}} · 1 pess.",
+      "body_other": "{{name}} · «{{title}}» · {{days}} dias a partir de {{date}} · {{count}} pess."
+     }
     },
     "booking_accepted": {
      "title": "Reserva confirmada!",
-     "body": "{{name}} confirmou « {{title}} » a {{date}}, {{period}}. Pagamento no local."
+     "body": "{{name}} confirmou « {{title}} » a {{date}}, {{period}}. Pagamento no local.",
+     "day": {
+      "title": "Reserva confirmada!",
+      "body": "{{name}} confirmou «{{title}}» a {{date}}, dia inteiro. Pagamento no local."
+     },
+     "multi": {
+      "title": "Reserva confirmada!",
+      "body": "{{name}} confirmou «{{title}}»: {{days}} dias a partir de {{date}}. Pagamento no local."
+     }
     },
     "booking_declined": {
      "title": "Horário indisponível",
@@ -1836,6 +2034,10 @@
      "by_pro_message": {
       "title": "Atividade cancelada",
       "body": "{{name}} cancelou «{{title}}» de {{date}} e deixou-te uma mensagem."
+     },
+     "auto_minimum": {
+      "title": "Atividade cancelada",
+      "body": "«{{title}}» de {{date}} foi cancelada: participantes insuficientes."
      }
     },
     "booking_expired": {
@@ -1950,17 +2152,25 @@
      "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes de {{total}}.",
      "minimum": {
       "title": "Mínimo não atingido",
-      "body": "«{{title}}» ({{date}}): {{total}} inscritos, mínimo {{min}} para sair."
+      "body": "«{{title}}» ({{date}}): {{total}}/{{min}} inscritos. Mantém-na, senão será cancelada amanhã às 9h."
      },
      "both": {
       "title": "Faltam dados",
-      "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, e {{total}} inscritos de {{min}} mínimo.",
-      "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes, e {{total}} inscritos de {{min}} mínimo."
+      "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, e {{total}}/{{min}} inscritos. Mantém-na, senão será cancelada amanhã às 9h.",
+      "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes, e {{total}}/{{min}} inscritos. Mantém-na, senão será cancelada amanhã às 9h."
      }
     },
     "session_joined": {
      "title": "Nova inscrição",
      "body": "{{name}} · «{{title}}» · {{date}} · {{count}} pess."
+    },
+    "booking_confirmed": {
+     "title": "Saída confirmada",
+     "body": "A saída de «{{title}}» de {{date}} está confirmada."
+    },
+    "outing_auto_cancelled": {
+     "title": "Atividade cancelada automaticamente",
+     "body": "«{{title}}» de {{date}}: mínimo não atingido ({{total}}/{{min}}), a atividade foi cancelada."
     }
    },
    "period": {

@@ -62,6 +62,7 @@ const NOTIFICATION_TYPES = [
   'booking_forms_reminder',
   'booking_forms_missing',
   'session_joined',
+  'booking_confirmed',
 ] as const;
 
 // These two reminders are not just reminders: the T-10min data push is what

@@ -115,11 +115,29 @@
     "booking_request": {
       "title": "Novo pedido de reserva",
       "body_one": "{{name}} · « {{title}} » · {{date}}, {{period}} · 1 pess.",
-      "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pess."
+      "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pess.",
+      "day": {
+        "title": "Novo pedido de reserva",
+        "body_one": "{{name}} · «{{title}}» · {{date}}, dia inteiro · 1 pess.",
+        "body_other": "{{name}} · «{{title}}» · {{date}}, dia inteiro · {{count}} pess."
+      },
+      "multi": {
+        "title": "Novo pedido de reserva",
+        "body_one": "{{name}} · «{{title}}» · {{days}} dias a partir de {{date}} · 1 pess.",
+        "body_other": "{{name}} · «{{title}}» · {{days}} dias a partir de {{date}} · {{count}} pess."
+      }
     },
     "booking_accepted": {
       "title": "Reserva confirmada!",
-      "body": "{{name}} confirmou « {{title}} » a {{date}}, {{period}}. Pagamento no local."
+      "body": "{{name}} confirmou « {{title}} » a {{date}}, {{period}}. Pagamento no local.",
+      "day": {
+        "title": "Reserva confirmada!",
+        "body": "{{name}} confirmou «{{title}}» a {{date}}, dia inteiro. Pagamento no local."
+      },
+      "multi": {
+        "title": "Reserva confirmada!",
+        "body": "{{name}} confirmou «{{title}}»: {{days}} dias a partir de {{date}}. Pagamento no local."
+      }
     },
     "booking_declined": {
       "title": "Horário indisponível",
@@ -147,6 +165,10 @@
       "by_pro_message": {
         "title": "Atividade cancelada",
         "body": "{{name}} cancelou «{{title}}» de {{date}} e deixou-te uma mensagem."
+      },
+      "auto_minimum": {
+        "title": "Atividade cancelada",
+        "body": "«{{title}}» de {{date}} foi cancelada: participantes insuficientes."
       }
     },
     "booking_expired": {
@@ -261,17 +283,25 @@
       "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes de {{total}}.",
       "minimum": {
         "title": "Mínimo não atingido",
-        "body": "«{{title}}» ({{date}}): {{total}} inscritos, mínimo {{min}} para sair."
+        "body": "«{{title}}» ({{date}}): {{total}}/{{min}} inscritos. Mantém-na, senão será cancelada amanhã às 9h."
       },
       "both": {
         "title": "Faltam dados",
-        "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, e {{total}} inscritos de {{min}} mínimo.",
-        "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes, e {{total}} inscritos de {{min}} mínimo."
+        "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, e {{total}}/{{min}} inscritos. Mantém-na, senão será cancelada amanhã às 9h.",
+        "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes, e {{total}}/{{min}} inscritos. Mantém-na, senão será cancelada amanhã às 9h."
       }
     },
     "session_joined": {
       "title": "Nova inscrição",
       "body": "{{name}} · «{{title}}» · {{date}} · {{count}} pess."
+    },
+    "booking_confirmed": {
+      "title": "Saída confirmada",
+      "body": "A saída de «{{title}}» de {{date}} está confirmada."
+    },
+    "outing_auto_cancelled": {
+      "title": "Atividade cancelada automaticamente",
+      "body": "«{{title}}» de {{date}}: mínimo não atingido ({{total}}/{{min}}), a atividade foi cancelada."
     }
   },
   "format": {
@@ -930,7 +960,8 @@
       "session_cap": "Já tens 100 datas futuras.",
       "session_conflict": "Estes dias não estão livres na tua agenda (outra data fixa, reserva aceite ou agenda importada).",
       "session_closed": "Esta data já começou ou já não está aberta.",
-      "session_has_clients": "Há clientes inscritos: para mudar os dias, cancela a data e publica outra."
+      "session_has_clients": "Há clientes inscritos: para mudar os dias, cancela a data e publica outra.",
+      "offering_request_days": "Duração a pedido: entre 1 e 14 dias."
     },
     "createActivity": "Não foi possível criar a atividade. Verifica os dados e tenta outra vez.",
     "updateActivity": "Não foi possível alterar a atividade. Tenta outra vez.",
@@ -1369,7 +1400,8 @@
       "presence_end_reminder": "Fim de uma atividade longa — presença por confirmar",
       "booking_forms_reminder": "Ficha do grupo por preencher (3 dias antes)",
       "booking_forms_missing": "Fichas em falta e mínimo (pro)",
-      "session_joined": "Inscrições nas minhas datas fixas (pro)"
+      "session_joined": "Inscrições nas minhas datas fixas (pro)",
+      "booking_confirmed": "Saída confirmada das minhas atividades"
     },
     "editPhoto": "Alterar a foto",
     "sportsSeeAll": "Ver tudo ({{count}})",
@@ -2151,7 +2183,8 @@
       "duration": "Duração",
       "level": "Nível",
       "place": "Local",
-      "group": "Grupo"
+      "group": "Grupo",
+      "onRequest": "A pedido"
     },
     "newOutingTitle": "Nova atividade",
     "editOutingTitle": "Editar a atividade",
@@ -2256,7 +2289,17 @@
     "customQuestionPlaceholder": "＋ Pergunta livre — ex.: « Sabes nadar 25 m? »",
     "equipProvidedLabel": "Fornecido",
     "equipRequiredLabel": "A trazer",
-    "yourGuide": "O teu guia"
+    "yourGuide": "O teu guia",
+    "secRequest": "Duração a pedido",
+    "requestHalf": "Meio dia",
+    "requestDay": "Dia",
+    "requestMulti": "Vários dias",
+    "requestDaysN": "{{count}} dias",
+    "requestLess": "Menos um dia",
+    "requestMore": "Mais um dia",
+    "requestHalfHelp": "O cliente pede uma manhã ou uma tarde abertas na tua agenda.",
+    "requestDaysHelp": "O cliente escolhe o dia de partida. Cada dia tem de estar aberto de manhã e à tarde na tua agenda, com lugares.",
+    "requestNotSaved": "Atividade guardada, mas não a duração a pedido — tenta de novo a partir de Alterar."
   },
   "common": {
     "share": "Partilhar",
@@ -2693,7 +2736,17 @@
     "cancelOutingConfirm": "Cancelar a atividade",
     "outingCancelled": "Atividade cancelada, clientes avisados",
     "slotBusy": "ocupado",
-    "legendBusy": "Ocupado (tua agenda)"
+    "legendBusy": "Ocupado (tua agenda)",
+    "nextStarts": "Próximas partidas possíveis",
+    "noWholeDay": "Nenhum dia inteiro livre por agora. Contacta o profissional a partir da página dele.",
+    "noRange": "Nenhum período de {{count}} dias livres seguidos por agora. Contacta o profissional a partir da página dele.",
+    "departureSure": "Saída garantida",
+    "departureNotSure": "Saída ainda não garantida ({{total}}/{{min}})",
+    "maintained": "Atividade mantida (mín. {{count}})",
+    "maintainTitle": "Manter a atividade?",
+    "maintainBody": "Vai sair com {{count}}: os clientes são avisados de que a saída está confirmada, e já não será cancelada automaticamente.",
+    "maintain": "Manter a atividade",
+    "maintainedToast": "Atividade mantida, clientes avisados"
   },
   "calendar": {
     "mon": "S",

@@ -39,6 +39,12 @@ export interface AgendaItem {
   max_participants: number | null;
   // Sign-up to a fixed date (00575).
   session_id: string | null;
+  // 00577: last day of an on-request booking by the day / over days (start
+  // morning → end_day afternoon); its on-request outing's minimum and whether
+  // it is confirmed (a fixed date's come from get_my_sessions).
+  end_day: string | null;
+  min_participants: number | null;
+  confirmed: boolean | null;
 }
 
 export interface MyBooking {
@@ -66,6 +72,11 @@ export interface MyBooking {
   end_day: string | null;
   end_period: BookingPeriod | null;
   meeting_point: string | null;
+  // 00577, accepted bookings only: the outing's minimum, how many are signed
+  // up (a number, no names) and whether the departure is confirmed.
+  min_participants: number | null;
+  outing_total: number | null;
+  confirmed: boolean | null;
 }
 
 export const bookingService = {
@@ -173,6 +184,16 @@ export const bookingService = {
     });
     if (error) throw error;
     return data ?? 0;
+  },
+
+  // « Maintenir la sortie » (00577): keeps an outing below its minimum —
+  // clients are told the departure is confirmed. False if it already was.
+  confirmOuting: async (offeringId: string, day: string, period: BookingPeriod): Promise<boolean> => {
+    const { data, error } = await supabase.rpc('confirm_outing', {
+      p_offering_id: offeringId, p_day: day, p_period: period,
+    });
+    if (error) throw error;
+    return data ?? false;
   },
 
   cancelAsPro: async (bookingId: string): Promise<void> => {

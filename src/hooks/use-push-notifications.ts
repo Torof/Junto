@@ -63,11 +63,11 @@ export function usePushNotifications(enabled: boolean) {
         router.push(`/(auth)/booking-form/${data.booking_id}`);
         return;
       }
-      if (data?.type === 'booking_request' || data?.type === 'booking_requests_waiting' || data?.type === 'booking_forms_missing' || data?.type === 'session_joined') {
+      if (data?.type === 'booking_request' || data?.type === 'booking_requests_waiting' || data?.type === 'booking_forms_missing' || data?.type === 'session_joined' || data?.type === 'outing_auto_cancelled') {
         router.push('/(auth)/pro/agenda');
         return;
       }
-      if (data?.type === 'booking_reminder') {
+      if (data?.type === 'booking_reminder' || data?.type === 'booking_confirmed') {
         router.push('/(auth)/my-bookings');
         return;
       }

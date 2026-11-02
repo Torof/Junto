@@ -102,8 +102,9 @@ export default function MyBookingsScreen() {
     const c = statusColor(item.status);
     const sc = sportCategoryColor(item.sport_category, colors.cta);
     const cancellable = item.status === 'pending' || (item.status === 'accepted' && item.day >= todayIso);
-    // Fixed date (00575): « Ven. 13 → dim. 15 nov. » instead of the half-day.
-    const sessionWhen = item.session_id && item.end_day && item.end_period
+    // Fixed date (00575) or on request over days (00577): « Ven. 13 → dim.
+    // 15 nov. » instead of the half-day.
+    const sessionWhen = item.end_day && item.end_period
       ? sessionRange({ start_day: item.day, start_period: item.period, end_day: item.end_day, end_period: item.end_period })
       : null;
     const price = item.price_eur != null
@@ -128,6 +129,19 @@ export default function MyBookingsScreen() {
               <AppText style={styles.sub} numberOfLines={2}>
                 {t('session.meetingShort', { defaultValue: 'RDV : {{text}}', text: item.meeting_point })}
               </AppText>
+            ) : null}
+            {/* 00577: the outing's minimum — the departure is sure once it is
+                reached or the pro maintains the outing. */}
+            {showTicket && item.min_participants != null ? (
+              item.confirmed || (item.outing_total ?? 0) >= item.min_participants ? (
+                <AppText style={[styles.sub, { color: colors.cta, fontWeight: '700' }]} numberOfLines={1}>
+                  {t('booking.departureSure', { defaultValue: 'Départ assuré' })}
+                </AppText>
+              ) : (
+                <AppText style={[styles.sub, { color: colors.warning, fontWeight: '700' }]} numberOfLines={1}>
+                  {t('booking.departureNotSure', { defaultValue: 'Départ pas encore assuré ({{total}}/{{min}})', total: item.outing_total ?? 0, min: item.min_participants })}
+                </AppText>
+              )
             ) : null}
           </View>
           <View style={[styles.statusPill, { backgroundColor: c + '1A' }]}>

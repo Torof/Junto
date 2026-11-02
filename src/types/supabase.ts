@@ -470,6 +470,7 @@ export type Database = {
           client_id: string | null
           created_at: string
           day: string
+          end_day: string | null
           id: string
           last_submitted_at: string
           manual_name: string | null
@@ -491,6 +492,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           day: string
+          end_day?: string | null
           id?: string
           last_submitted_at?: string
           manual_name?: string | null
@@ -512,6 +514,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           day?: string
+          end_day?: string | null
           id?: string
           last_submitted_at?: string
           manual_name?: string | null
@@ -2245,6 +2248,7 @@ export type Database = {
           price_eur: number | null
           price_unit: string | null
           pro_id: string
+          request_days: number | null
           schedule_text: string | null
           sport_id: string
           title: string
@@ -2270,6 +2274,7 @@ export type Database = {
           price_eur?: number | null
           price_unit?: string | null
           pro_id: string
+          request_days?: number | null
           schedule_text?: string | null
           sport_id: string
           title: string
@@ -2295,6 +2300,7 @@ export type Database = {
           price_eur?: number | null
           price_unit?: string | null
           pro_id?: string
+          request_days?: number | null
           schedule_text?: string | null
           sport_id?: string
           title?: string
@@ -3558,6 +3564,7 @@ export type Database = {
           price_unit: string | null
           pro_id: string | null
           pro_name: string | null
+          request_days: number | null
           schedule_text: string | null
           sport_category: string | null
           sport_icon: string | null
@@ -3868,6 +3875,10 @@ export type Database = {
         }[]
       }
       confirm_age_adult: { Args: never; Returns: undefined }
+      confirm_outing: {
+        Args: { p_day: string; p_offering_id: string; p_period: string }
+        Returns: boolean
+      }
       confirm_presence_via_geo: {
         Args: {
           p_activity_id: string
@@ -4379,6 +4390,7 @@ export type Database = {
       get_my_bookings: {
         Args: never
         Returns: {
+          confirmed: boolean
           conversation_id: string
           created_at: string
           day: string
@@ -4388,8 +4400,10 @@ export type Database = {
           id: string
           location_name: string
           meeting_point: string
+          min_participants: number
           offering_id: string
           offering_title: string
+          outing_total: number
           participant_fields: Json
           participant_info: Json
           party_size: number
@@ -4495,6 +4509,7 @@ export type Database = {
       get_my_sessions: {
         Args: { p_from: string; p_to: string }
         Returns: {
+          confirmed: boolean
           end_day: string
           end_period: string
           id: string
@@ -4546,13 +4561,16 @@ export type Database = {
           client_avatar_url: string
           client_id: string
           client_name: string
+          confirmed: boolean
           day: string
+          end_day: string
           id: string
           is_manual: boolean
           kind: string
           manual_phone: string
           max_participants: number
           message: string
+          min_participants: number
           offering_id: string
           offering_title: string
           participant_fields: Json
@@ -5013,6 +5031,10 @@ export type Database = {
           p_participant_custom: string[]
           p_participant_std: string[]
         }
+        Returns: undefined
+      }
+      set_offering_request_length: {
+        Args: { p_days: number; p_offering_id: string }
         Returns: undefined
       }
       set_participation_transport: {

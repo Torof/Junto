@@ -23,6 +23,8 @@ export interface MySession extends SessionWindow {
   min_participants: number | null;
   meeting_point: string | null;
   taken: number;
+  // 00577: minimum reached or maintained by the pro.
+  confirmed: boolean;
 }
 
 // An upcoming date as a client sees it on the outing page.

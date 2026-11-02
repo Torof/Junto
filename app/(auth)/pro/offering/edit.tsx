@@ -47,7 +47,7 @@ import { CoverPicker, type CoverChange } from '@/components/cover-picker';
 
 type DurationPreset = 'half' | 'day' | 'h2' | 'h3' | 'other';
 const PRESET_MINUTES: Record<Exclude<DurationPreset, 'other'>, number> = { half: 240, day: 480, h2: 120, h3: 180 };
-type DetailKey = 'level' | 'places' | 'gear' | 'form' | 'route';
+type DetailKey = 'level' | 'places' | 'request' | 'gear' | 'form' | 'route';
 
 export default function ProOfferingEditScreen() {
   const { t } = useTranslation();
@@ -95,6 +95,8 @@ export default function ProOfferingEditScreen() {
   const [priceEur, setPriceEur] = useState<string>('');
   const [priceUnit, setPriceUnit] = useState<'person' | 'group'>('person');
   const [saving, setSaving] = useState(false);
+  // How clients ask for it (00577): null = a half-day, 1 = a day, 2-14 = days.
+  const [requestDays, setRequestDays] = useState<number | null>(null);
   // Chantiers A+B (00422) : matériel + fiche participant demandée.
   const [equipProvided, setEquipProvided] = useState<string[]>([]);
   const [equipRequired, setEquipRequired] = useState<string[]>([]);
@@ -107,7 +109,7 @@ export default function ProOfferingEditScreen() {
   const [pickerPinLng, setPickerPinLng] = useState<number | null>(null);
   const [pickerPinLat, setPickerPinLat] = useState<number | null>(null);
   const [openDetails, setOpenDetails] = useState<Record<DetailKey, boolean>>({
-    level: false, places: false, gear: false, form: false, route: false,
+    level: false, places: false, request: false, gear: false, form: false, route: false,
   });
   const toggleDetail = (k: DetailKey) => setOpenDetails((o) => ({ ...o, [k]: !o[k] }));
 
@@ -152,6 +154,7 @@ export default function ProOfferingEditScreen() {
     setEquipRequired(existing.equipment_required ?? []);
     setPStd(existing.participant_fields?.std ?? []);
     setPCustom(existing.participant_fields?.custom ?? []);
+    setRequestDays(existing.request_days ?? null);
   }, [existing]);
 
   // New outing: the meeting place defaults to the pro's own address — most
@@ -344,6 +347,17 @@ export default function ProOfferingEditScreen() {
           });
         }
       };
+      const saveRequestLength = async (id: string) => {
+        if (requestDays === (existing?.request_days ?? null)) return;
+        try {
+          await proOfferingService.setRequestLength(id, requestDays);
+        } catch {
+          Burnt.toast({
+            title: t('proOffering.requestNotSaved', { defaultValue: 'Sortie enregistrée, mais pas la durée sur demande — réessaie depuis Modifier.' }),
+            preset: 'error',
+          });
+        }
+      };
       const saveCover = async (id: string) => {
         if (coverChange.kind === 'unchanged') return;
         try {
@@ -360,6 +374,7 @@ export default function ProOfferingEditScreen() {
       if (isEdit && offeringId) {
         await proOfferingService.update({ ...payload, offering_id: offeringId });
         await saveDetails(offeringId);
+        await saveRequestLength(offeringId);
         await saveCover(offeringId);
         await queryClient.invalidateQueries({ queryKey: ['pro-offering', offeringId] });
         await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
@@ -367,6 +382,7 @@ export default function ProOfferingEditScreen() {
       } else {
         const newId = await proOfferingService.create(payload);
         await saveDetails(newId);
+        await saveRequestLength(newId);
         await saveCover(newId);
         await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
         // Land on the detail page so the freshly-created offering is
@@ -406,6 +422,11 @@ export default function ProOfferingEditScreen() {
     : maxParticipants
       ? t('proOffering.placesUpTo', { defaultValue: 'jusqu’à {{count}}', count: Number(maxParticipants) })
       : t('proOffering.placesAny', { defaultValue: 'Sans limite' });
+  const requestSummary = requestDays == null
+    ? t('proOffering.requestHalf', { defaultValue: 'Demi-journée' })
+    : requestDays === 1
+      ? t('proOffering.requestDay', { defaultValue: 'Journée' })
+      : t('proOffering.requestDaysN', { defaultValue: '{{count}} jours', count: requestDays });
   const gearSummary = equipProvided.length + equipRequired.length > 0
     ? `${equipProvided.length + equipRequired.length}`
     : '—';
@@ -649,6 +670,56 @@ export default function ProOfferingEditScreen() {
                 <AppTextInput style={styles.input} value={maxParticipants} onChangeText={setMaxParticipants} placeholder={t('proOffering.maxParticipantsPlaceholder')} placeholderTextColor={colors.textMuted} keyboardType="number-pad" maxLength={2} />
               </Field>
             </View>
+          </View>
+        )}
+
+        <DetailRow k="request" label={t('proOffering.secRequest', { defaultValue: 'Durée sur demande' })} summary={requestSummary} />
+        {openDetails.request && (
+          <View style={styles.detailBody}>
+            <View style={styles.chipRow}>
+              {([
+                [null, t('proOffering.requestHalf', { defaultValue: 'Demi-journée' })],
+                [1, t('proOffering.requestDay', { defaultValue: 'Journée' })],
+                [2, t('proOffering.requestMulti', { defaultValue: 'Plusieurs jours' })],
+              ] as const).map(([v, label]) => {
+                const on = v === 2 ? (requestDays ?? 0) >= 2 : requestDays === v;
+                return (
+                  <Pressable
+                    key={label}
+                    style={[styles.chip, on && styles.chipOn]}
+                    onPress={() => setRequestDays(v === 2 ? Math.max(2, requestDays ?? 2) : v)}
+                  >
+                    <AppText style={[styles.chipText, on && styles.chipTextOn]}>{label}</AppText>
+                  </Pressable>
+                );
+              })}
+            </View>
+            {(requestDays ?? 0) >= 2 && (
+              <View style={[styles.chipRow, { alignItems: 'center', marginTop: spacing.sm }]}>
+                <Pressable
+                  style={styles.chip}
+                  onPress={() => setRequestDays(Math.max(2, (requestDays ?? 2) - 1))}
+                  accessibilityLabel={t('proOffering.requestLess', { defaultValue: 'Un jour de moins' })}
+                >
+                  <AppText style={styles.chipText}>−</AppText>
+                </Pressable>
+                <AppText style={styles.chipText}>
+                  {t('proOffering.requestDaysN', { defaultValue: '{{count}} jours', count: requestDays ?? 2 })}
+                </AppText>
+                <Pressable
+                  style={styles.chip}
+                  onPress={() => setRequestDays(Math.min(14, (requestDays ?? 2) + 1))}
+                  accessibilityLabel={t('proOffering.requestMore', { defaultValue: 'Un jour de plus' })}
+                >
+                  <AppText style={styles.chipText}>+</AppText>
+                </Pressable>
+              </View>
+            )}
+            <AppText style={styles.helper}>
+              {requestDays == null
+                ? t('proOffering.requestHalfHelp', { defaultValue: 'Le client demande un matin ou un après-midi ouvert dans ton agenda.' })
+                : t('proOffering.requestDaysHelp', { defaultValue: 'Le client choisit le jour de départ. Chaque jour doit être ouvert matin et après-midi dans ton agenda, avec des places.' })}
+            </AppText>
           </View>
         )}
 

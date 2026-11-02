@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import dayjs from 'dayjs';
-import { X, Share2, Pencil, Star, ChevronRight, Clock, BarChart3, MapPin, Users, Camera, Check } from 'lucide-react-native';
+import { X, Share2, Pencil, Star, ChevronRight, Clock, BarChart3, MapPin, Users, Camera, Check, CalendarDays } from 'lucide-react-native';
 import { GearPills } from '@/components/gear-pills';
 import { AppText } from '@/components/app-text';
 import { UserAvatar } from '@/components/user-avatar';
@@ -134,7 +134,21 @@ export function OfferingPage({ offering, isOwner }: Props) {
     ...(duration ? [{ key: 'duration', icon: <Clock size={16} color={accent} strokeWidth={2.4} />, label: t('proOffering.page.duration', { defaultValue: 'Durée' }), value: duration }] : []),
     ...(offering.level ? [{ key: 'level', icon: <BarChart3 size={16} color={accent} strokeWidth={2.4} />, label: t('proOffering.page.level', { defaultValue: 'Niveau' }), value: offering.level }] : []),
     { key: 'place', icon: <MapPin size={16} color={accent} strokeWidth={2.4} />, label: t('proOffering.page.place', { defaultValue: 'Lieu' }), value: offering.location_name },
-    ...(offering.max_participants ? [{ key: 'group', icon: <Users size={16} color={accent} strokeWidth={2.4} />, label: t('proOffering.page.group', { defaultValue: 'Groupe' }), value: t('pro.page.upTo', { defaultValue: "jusqu'à {{count}} pers.", count: offering.max_participants }) }] : []),
+    // 00577: the minimum reads « départ assuré à 3 », like a fixed date.
+    ...(offering.max_participants || offering.min_participants ? [{
+      key: 'group', icon: <Users size={16} color={accent} strokeWidth={2.4} />, label: t('proOffering.page.group', { defaultValue: 'Groupe' }),
+      value: [
+        offering.max_participants ? t('pro.page.upTo', { defaultValue: "jusqu'à {{count}} pers.", count: offering.max_participants }) : null,
+        offering.min_participants ? t('session.sureAt', { defaultValue: 'départ assuré à {{count}}', count: offering.min_participants }) : null,
+      ].filter(Boolean).join(' · '),
+    }] : []),
+    // 00577: asked for by the day / over days.
+    ...(offering.request_days != null ? [{
+      key: 'request', icon: <CalendarDays size={16} color={accent} strokeWidth={2.4} />, label: t('proOffering.page.onRequest', { defaultValue: 'Sur demande' }),
+      value: offering.request_days === 1
+        ? t('proOffering.requestDay', { defaultValue: 'Journée' })
+        : t('proOffering.requestDaysN', { defaultValue: '{{count}} jours', count: offering.request_days }),
+    }] : []),
   ];
 
   return (

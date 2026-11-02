@@ -53,3 +53,10 @@ export function sessionHalfDays(w: SessionWindow): [string, 'am' | 'pm'][] {
   }
   return out;
 }
+
+// An on-request booking (00577) as a window: a half-day, or start morning →
+// last day afternoon when the offering is asked for by the day / over days.
+export function requestWindow(day: string, period: 'am' | 'pm', days: number | null): SessionWindow {
+  if (days == null) return { start_day: day, start_period: period, end_day: day, end_period: period };
+  return { start_day: day, start_period: 'am', end_day: dayjs(day).add(days - 1, 'day').format('YYYY-MM-DD'), end_period: 'pm' };
+}

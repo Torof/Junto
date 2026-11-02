@@ -11,6 +11,7 @@ import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import type { AgendaItem, BookingPeriod } from '@/services/booking-service';
+import { requestWindow, sessionBlockSub, sessionHalfDays, sessionRange } from '@/utils/session-time';
 
 // Pro agenda building blocks (maquette validée 2026-11-01): a booking reads as
 // « what, when, who » with real buttons, and dates say « Matin » / « Après-midi »
@@ -23,9 +24,19 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 export const periodWord = (p: BookingPeriod, t: TFn) =>
   p === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' });
 
-// « Jeu. 5 nov. · Après-midi »
-export const bookingWhen = (day: string, period: BookingPeriod, t: TFn) =>
-  `${capitalize(dayjs(day).format('ddd D MMM'))} · ${capitalize(periodWord(period, t))}`;
+// Days of an on-request booking by the day / over days (00577), else null.
+export const itemDays = (b: Pick<AgendaItem, 'day' | 'end_day'>) =>
+  b.end_day ? dayjs(b.end_day).diff(dayjs(b.day), 'day') + 1 : null;
+
+// The half-days a booking covers: its own, or start morning → end_day afternoon.
+export const itemHalves = (b: AgendaItem): [string, BookingPeriod][] =>
+  b.end_day ? sessionHalfDays(requestWindow(b.day, 'am', itemDays(b))) : [[b.day, b.period]];
+
+// « Jeu. 5 nov. · Après-midi » — « Ven. 13 → dim. 15 nov. » over days.
+export const bookingWhen = (day: string, period: BookingPeriod, t: TFn, endDay?: string | null) =>
+  endDay
+    ? sessionRange(requestWindow(day, 'am', dayjs(endDay).diff(dayjs(day), 'day') + 1))
+    : `${capitalize(dayjs(day).format('ddd D MMM'))} · ${capitalize(periodWord(period, t))}`;
 
 // Filled participant forms vs party size — null when the outing asks for none.
 export const formsState = (b: AgendaItem): { done: number; total: number } | null => {
@@ -34,14 +45,19 @@ export const formsState = (b: AgendaItem): { done: number; total: number } | nul
   return { done: Math.min(b.participant_info?.length ?? 0, b.party_size ?? 0), total: b.party_size ?? 0 };
 };
 
-// Same count as the DB (00566): places ACCEPTED on the half-day, all outings.
-// True when accepting this request would overflow its outing's places.
+// Same count as the DB (00566, 00577): places ACCEPTED on each half-day of
+// the request, all outings, ranges included. True when accepting this request
+// would overflow its outing's places.
 export const wouldOverflow = (b: AgendaItem, items: AgendaItem[]) => {
   if (b.status !== 'pending' || b.max_participants == null) return false;
-  const taken = items
-    .filter((x) => x.kind === 'booking' && x.status === 'accepted' && x.day === b.day && x.period === b.period)
-    .reduce((n, x) => n + (x.party_size ?? 0), 0);
-  return taken + (b.party_size ?? 0) > b.max_participants;
+  const max = b.max_participants;
+  const accepted = items.filter((x) => x.kind === 'booking' && x.status === 'accepted');
+  return itemHalves(b).some(([day, period]) => {
+    const taken = accepted
+      .filter((x) => itemHalves(x).some(([d, p]) => d === day && p === period))
+      .reduce((n, x) => n + (x.party_size ?? 0), 0);
+    return taken + (b.party_size ?? 0) > max;
+  });
 };
 
 // Square sport tile — solid for a confirmed booking, tinted for a request.
@@ -69,7 +85,9 @@ export function DateBlock({ b }: { b: AgendaItem }) {
       <AppText style={{ color: c, fontSize: fontSizes.xs - 2, fontWeight: '800' }}>{dayjs(b.day).format('ddd').toUpperCase()}</AppText>
       <AppText style={{ color: c, fontSize: fontSizes.lg + 2, lineHeight: 24, fontWeight: '800' }}>{dayjs(b.day).date()}</AppText>
       <AppText style={{ color: c, fontSize: fontSizes.xs - 2, fontWeight: '700' }}>
-        {b.period === 'am' ? t('booking.halfAm', { defaultValue: 'matin' }) : t('booking.halfPm', { defaultValue: 'a-midi' })}
+        {b.end_day
+          ? sessionBlockSub(requestWindow(b.day, 'am', itemDays(b)))
+          : b.period === 'am' ? t('booking.halfAm', { defaultValue: 'matin' }) : t('booking.halfPm', { defaultValue: 'a-midi' })}
       </AppText>
     </View>
   );
@@ -117,7 +135,7 @@ export function AgendaBookingCard({ b, variant, full, onProfile, onWrite, onCall
             <SportTile b={b} size={44} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <AppText style={styles.title} numberOfLines={2}>{b.offering_title ?? '—'}</AppText>
-              <AppText style={[styles.when, { color: c }]}>{bookingWhen(b.day, b.period, t)}</AppText>
+              <AppText style={[styles.when, { color: c }]}>{bookingWhen(b.day, b.period, t, b.end_day)}</AppText>
             </View>
           </>
         ) : (

@@ -20,6 +20,7 @@ import { PressableScale } from '@/components/pressable-scale';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { SportIcon } from '@/components/sport-icon';
+import { requestWindow, sessionBlockSub, sessionHalfDays, sessionRange } from '@/utils/session-time';
 
 export default function BookOfferingScreen() {
   const colors = useColors();
@@ -57,6 +58,31 @@ export default function BookOfferingScreen() {
     return map;
   }, [slots, offering?.max_participants]);
 
+  // 00577: an offering asked for by the day / over days is booked from a start
+  // day — one that works when every half-day of the range is open, with the
+  // fewest places left over the range.
+  const reqDays = offering?.request_days ?? null;
+  const starts = useMemo(() => {
+    if (reqDays == null) return null;
+    const map = new Map<string, { taken: number; free: number | null }>();
+    for (const s of slots ?? []) {
+      if (s.period !== 'am') continue;
+      let ok = true;
+      let taken = 0;
+      let free: number | null = null;
+      for (const [d, p] of sessionHalfDays(requestWindow(s.day, 'am', reqDays))) {
+        const info = slotInfo.get(`${d}|${p}`);
+        if (!info) { ok = false; break; }
+        taken = Math.max(taken, info.taken);
+        if (info.free != null) free = free == null ? info.free : Math.min(free, info.free);
+      }
+      if (ok) map.set(s.day, { taken, free });
+    }
+    return map;
+  }, [reqDays, slots, slotInfo]);
+  const infoFor = (day: string, period: BookingPeriod) =>
+    starts ? (period === 'am' ? starts.get(day) : undefined) : slotInfo.get(`${day}|${period}`);
+
   const [selected, setSelected] = useState<{ day: string; period: BookingPeriod } | null>(() =>
     presetDay && (presetPeriod === 'am' || presetPeriod === 'pm')
       ? { day: presetDay, period: presetPeriod }
@@ -69,7 +95,7 @@ export default function BookOfferingScreen() {
 
   // The stepper stops at the places LEFT on the chosen slot, not only at the
   // offer's maximum — the screen said « reste 2 » and let you ask for 6.
-  const selectedFree = selected ? slotInfo.get(`${selected.day}|${selected.period}`)?.free ?? null : null;
+  const selectedFree = selected ? infoFor(selected.day, selected.period)?.free ?? null : null;
   const maxParty = Math.min(offering?.max_participants ?? 50, selectedFree ?? 50, 50);
   useEffect(() => {
     if (partySize > maxParty) setPartySize(Math.max(1, maxParty));
@@ -81,17 +107,20 @@ export default function BookOfferingScreen() {
   useEffect(() => {
     if (presetChecked.current || !slots || !selected) return;
     presetChecked.current = true;
-    const info = slotInfo.get(`${selected.day}|${selected.period}`);
+    const info = infoFor(selected.day, selected.period);
     if (!info || (info.free != null && info.free <= 0)) {
       setSelected(null);
       Burnt.toast({ title: t('booking.presetSlotGone', { defaultValue: 'Ce créneau n’est plus disponible — choisis-en un autre.' }) });
     }
-  }, [slots, selected, slotInfo, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slots, selected, slotInfo, starts, t]);
 
   // Liste des prochains créneaux (maquette v2) : le calendrier passe en appui.
   const nextSlots = useMemo(
-    () => [...(slots ?? [])].sort((a, b) => (a.day + a.period).localeCompare(b.day + b.period)).slice(0, 6),
-    [slots],
+    () => starts
+      ? [...starts.keys()].sort().slice(0, 6).map((day) => ({ day, period: 'am' as BookingPeriod }))
+      : [...(slots ?? [])].sort((a, b) => (a.day + a.period).localeCompare(b.day + b.period)).slice(0, 6),
+    [slots, starts],
   );
 
   const submit = async () => {
@@ -126,7 +155,7 @@ export default function BookOfferingScreen() {
     p === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' });
 
   const freeLabel = (day: string, period: BookingPeriod): { text: string; full: boolean } => {
-    const info = slotInfo.get(`${day}|${period}`);
+    const info = infoFor(day, period);
     if (!info || info.free == null) {
       return info && info.taken > 0
         ? { text: t('booking.slotTaken', { defaultValue: '{{count}} pers. déjà inscrites', count: info.taken }), full: false }
@@ -167,9 +196,21 @@ export default function BookOfferingScreen() {
               {t('booking.noAvailability', { defaultValue: 'Ce professionnel n’a pas encore ouvert de disponibilités. Contacte-le depuis sa page.' })}
             </AppText>
           </View>
+        ) : starts && starts.size === 0 ? (
+          <View style={styles.emptyCard}>
+            <AppText style={styles.emptyText}>
+              {reqDays === 1
+                ? t('booking.noWholeDay', { defaultValue: 'Aucune journée entière libre pour le moment. Contacte le professionnel depuis sa page.' })
+                : t('booking.noRange', { defaultValue: 'Aucune période de {{count}} jours libres de suite pour le moment. Contacte le professionnel depuis sa page.', count: reqDays ?? 2 })}
+            </AppText>
+          </View>
         ) : (
           <>
-            <AppText style={styles.sectionLabel}>{t('booking.nextSlots', { defaultValue: 'Prochains créneaux' })}</AppText>
+            <AppText style={styles.sectionLabel}>
+              {starts
+                ? t('booking.nextStarts', { defaultValue: 'Prochains départs possibles' })
+                : t('booking.nextSlots', { defaultValue: 'Prochains créneaux' })}
+            </AppText>
             <View style={styles.slotCard}>
               {nextSlots.map((s, i) => {
                 const isOn = selected?.day === s.day && selected?.period === s.period;
@@ -184,11 +225,15 @@ export default function BookOfferingScreen() {
                   >
                     <View style={[styles.radio, isOn && styles.radioOn]} />
                     <View style={{ flex: 1, minWidth: 0 }}>
-                      <AppText style={styles.slotDay}>{dayjs(s.day).format('ddd D MMMM')}</AppText>
+                      <AppText style={styles.slotDay}>
+                        {starts ? sessionRange(requestWindow(s.day, 'am', reqDays)) : dayjs(s.day).format('ddd D MMMM')}
+                      </AppText>
                       <AppText style={[styles.slotCap, full && { color: colors.textMuted }]}>{text}</AppText>
                     </View>
                     <View style={[styles.periodPill, full && styles.periodPillOff]}>
-                      <AppText style={[styles.periodPillText, full && { color: colors.textMuted }]}>{periodName(s.period)}</AppText>
+                      <AppText style={[styles.periodPillText, full && { color: colors.textMuted }]}>
+                        {starts ? sessionBlockSub(requestWindow(s.day, 'am', reqDays)) : periodName(s.period)}
+                      </AppText>
                     </View>
                   </PressableScale>
                 );
@@ -208,10 +253,11 @@ export default function BookOfferingScreen() {
                 <AvailabilityCalendar
                   mode="pick"
                   slotState={(day, period) => {
-                    const info = slotInfo.get(`${day}|${period}`);
+                    // Over days: both half-days of a possible start day can be tapped.
+                    const info = infoFor(day, starts ? 'am' : period);
                     return { available: !!info && (info.free == null || info.free > 0) };
                   }}
-                  onPick={(day, period) => setSelected({ day, period })}
+                  onPick={(day, period) => setSelected({ day, period: starts ? 'am' : period })}
                   selected={selected}
                 />
               </View>
@@ -248,7 +294,7 @@ export default function BookOfferingScreen() {
                 <AppText style={styles.recapKey}>{t('booking.slot', { defaultValue: 'Créneau' })}</AppText>
                 <AppText style={styles.recapVal}>
                   {selected
-                    ? `${dayjs(selected.day).format('ddd D MMM')} · ${periodName(selected.period)}`
+                    ? sessionRange(requestWindow(selected.day, selected.period, reqDays))
                     : t('booking.noSlotSelected', { defaultValue: 'Aucun créneau choisi' })}
                 </AppText>
               </View>

@@ -69,6 +69,8 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   booking_forms_reminder: { icon: ClipboardList, color: colors.warning },
   booking_forms_missing: { icon: ClipboardList, color: colors.warning },
   session_joined: { icon: CalendarCheck, color: colors.cta },
+  booking_confirmed: { icon: CalendarCheck, color: colors.success },
+  outing_auto_cancelled: { icon: CalendarX2, color: colors.warning },
 });
 
 const getDefaultIcon = (colors: AppColors): IconMeta => ({ icon: Bell, color: colors.textSecondary });
@@ -128,9 +130,9 @@ export function NotificationsView() {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
     } else if (notification.type === 'booking_forms_reminder' && notification.data?.booking_id) {
       router.push(`/(auth)/booking-form/${notification.data.booking_id}`);
-    } else if (notification.type === 'booking_request' || notification.type === 'booking_requests_waiting' || notification.type === 'booking_forms_missing' || notification.type === 'session_joined') {
+    } else if (notification.type === 'booking_request' || notification.type === 'booking_requests_waiting' || notification.type === 'booking_forms_missing' || notification.type === 'session_joined' || notification.type === 'outing_auto_cancelled') {
       router.push('/(auth)/pro/agenda');
-    } else if (notification.type === 'booking_reminder') {
+    } else if (notification.type === 'booking_reminder' || notification.type === 'booking_confirmed') {
       router.push('/(auth)/my-bookings');
     } else if (notification.type === 'booking_cancelled' && notification.data?.by === 'pro' && notification.data?.conversation_id) {
       // 00567: the pro left a reason in the thread.

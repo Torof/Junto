@@ -115,11 +115,29 @@
     "booking_request": {
       "title": "Nieuwe boekingsaanvraag",
       "body_one": "{{name}} · “{{title}}” · {{date}}, {{period}} · 1 pers.",
-      "body_other": "{{name}} · “{{title}}” · {{date}}, {{period}} · {{count}} pers."
+      "body_other": "{{name}} · “{{title}}” · {{date}}, {{period}} · {{count}} pers.",
+      "day": {
+        "title": "Nieuwe boekingsaanvraag",
+        "body_one": "{{name}} · „{{title}}” · {{date}}, hele dag · 1 pers.",
+        "body_other": "{{name}} · „{{title}}” · {{date}}, hele dag · {{count}} pers."
+      },
+      "multi": {
+        "title": "Nieuwe boekingsaanvraag",
+        "body_one": "{{name}} · „{{title}}” · {{days}} dagen vanaf {{date}} · 1 pers.",
+        "body_other": "{{name}} · „{{title}}” · {{days}} dagen vanaf {{date}} · {{count}} pers."
+      }
     },
     "booking_accepted": {
       "title": "Boeking bevestigd!",
-      "body": "{{name}} heeft “{{title}}” bevestigd op {{date}}, {{period}}. Betaling ter plaatse."
+      "body": "{{name}} heeft “{{title}}” bevestigd op {{date}}, {{period}}. Betaling ter plaatse.",
+      "day": {
+        "title": "Boeking bevestigd!",
+        "body": "{{name}} heeft „{{title}}” op {{date}}, hele dag, bevestigd. Betaling ter plaatse."
+      },
+      "multi": {
+        "title": "Boeking bevestigd!",
+        "body": "{{name}} heeft „{{title}}” bevestigd: {{days}} dagen vanaf {{date}}. Betaling ter plaatse."
+      }
     },
     "booking_declined": {
       "title": "Tijdslot niet beschikbaar",
@@ -147,6 +165,10 @@
       "by_pro_message": {
         "title": "Activiteit geannuleerd",
         "body": "{{name}} heeft „{{title}}” van {{date}} geannuleerd en je een bericht gestuurd."
+      },
+      "auto_minimum": {
+        "title": "Activiteit geannuleerd",
+        "body": "„{{title}}” van {{date}} is geannuleerd: te weinig deelnemers."
       }
     },
     "booking_expired": {
@@ -261,17 +283,25 @@
       "body_other": "„{{title}}” ({{date}}): {{count}} van de {{total}} deelnemersformulieren ontbreken.",
       "minimum": {
         "title": "Minimum niet gehaald",
-        "body": "„{{title}}” ({{date}}): {{total}} ingeschreven, minimum {{min}} om te vertrekken."
+        "body": "„{{title}}” ({{date}}): {{total}}/{{min}} ingeschreven. Behoud ze, anders wordt ze morgen om 9 uur geannuleerd."
       },
       "both": {
         "title": "Er ontbreken gegevens",
-        "body_one": "„{{title}}” ({{date}}): 1 deelnemersformulier ontbreekt, en {{total}} ingeschreven van minimum {{min}}.",
-        "body_other": "„{{title}}” ({{date}}): {{count}} deelnemersformulieren ontbreken, en {{total}} ingeschreven van minimum {{min}}."
+        "body_one": "„{{title}}” ({{date}}): 1 deelnemersformulier ontbreekt, en {{total}}/{{min}} ingeschreven. Behoud ze, anders wordt ze morgen om 9 uur geannuleerd.",
+        "body_other": "„{{title}}” ({{date}}): {{count}} deelnemersformulieren ontbreken, en {{total}}/{{min}} ingeschreven. Behoud ze, anders wordt ze morgen om 9 uur geannuleerd."
       }
     },
     "session_joined": {
       "title": "Nieuwe inschrijving",
       "body": "{{name}} · „{{title}}” · {{date}} · {{count}} pers."
+    },
+    "booking_confirmed": {
+      "title": "Vertrek bevestigd",
+      "body": "Het vertrek van „{{title}}” op {{date}} is bevestigd."
+    },
+    "outing_auto_cancelled": {
+      "title": "Activiteit automatisch geannuleerd",
+      "body": "„{{title}}” van {{date}}: minimum niet gehaald ({{total}}/{{min}}), de activiteit is geannuleerd."
     }
   },
   "format": {
@@ -930,7 +960,8 @@
       "session_conflict": "Deze dagen zijn niet vrij in je agenda (andere vaste datum, geaccepteerde boeking of geïmporteerde agenda).",
       "session_cap": "Je hebt al 100 komende data.",
       "session_closed": "Deze datum is begonnen of niet meer open.",
-      "session_has_clients": "Er zijn klanten ingeschreven: annuleer de datum en plaats een nieuwe om de dagen te wijzigen."
+      "session_has_clients": "Er zijn klanten ingeschreven: annuleer de datum en plaats een nieuwe om de dagen te wijzigen.",
+      "offering_request_days": "Duur op aanvraag: tussen 1 en 14 dagen."
     },
     "createActivity": "Kan de activiteit niet aanmaken. Controleer de gegevens en probeer het opnieuw.",
     "updateActivity": "Kan de activiteit niet wijzigen. Probeer het opnieuw.",
@@ -1369,7 +1400,8 @@
       "presence_end_reminder": "Einde van een lange activiteit — aanwezigheid bevestigen",
       "booking_forms_reminder": "Groepsformulier invullen (3 dagen vooraf)",
       "booking_forms_missing": "Ontbrekende formulieren en minimum (pro)",
-      "session_joined": "Inschrijvingen voor mijn vaste data (pro)"
+      "session_joined": "Inschrijvingen voor mijn vaste data (pro)",
+      "booking_confirmed": "Bevestigd vertrek van mijn activiteiten"
     },
     "editPhoto": "Foto wijzigen",
     "sportsSeeAll": "Alles bekijken ({{count}})",
@@ -2151,7 +2183,8 @@
       "duration": "Duur",
       "level": "Niveau",
       "place": "Locatie",
-      "group": "Groep"
+      "group": "Groep",
+      "onRequest": "Op aanvraag"
     },
     "newOutingTitle": "Nieuwe activiteit",
     "editOutingTitle": "Activiteit bewerken",
@@ -2256,7 +2289,17 @@
     "customQuestionPlaceholder": "＋ Eigen vraag — bv.: “Kun je 25 m zwemmen?”",
     "equipProvidedLabel": "Voorzien",
     "equipRequiredLabel": "Meebrengen",
-    "yourGuide": "Je begeleider"
+    "yourGuide": "Je begeleider",
+    "secRequest": "Duur op aanvraag",
+    "requestHalf": "Halve dag",
+    "requestDay": "Dag",
+    "requestMulti": "Meerdere dagen",
+    "requestDaysN": "{{count}} dagen",
+    "requestLess": "Een dag minder",
+    "requestMore": "Een dag meer",
+    "requestHalfHelp": "De klant vraagt een ochtend of middag aan die open staat in je agenda.",
+    "requestDaysHelp": "De klant kiest de startdag. Elke dag moet 's ochtends en 's middags open staan in je agenda, met plaatsen.",
+    "requestNotSaved": "Activiteit opgeslagen, maar niet de duur op aanvraag — probeer opnieuw via Wijzigen."
   },
   "common": {
     "share": "Delen",
@@ -2693,7 +2736,17 @@
     "cancelOutingConfirm": "Activiteit annuleren",
     "outingCancelled": "Activiteit geannuleerd, klanten gewaarschuwd",
     "slotBusy": "bezet",
-    "legendBusy": "Bezet (je agenda)"
+    "legendBusy": "Bezet (je agenda)",
+    "nextStarts": "Volgende mogelijke startdagen",
+    "noWholeDay": "Op dit moment is er geen hele dag vrij. Neem contact op met de pro via zijn pagina.",
+    "noRange": "Op dit moment zijn er geen {{count}} vrije dagen op rij. Neem contact op met de pro via zijn pagina.",
+    "departureSure": "Gaat zeker door",
+    "departureNotSure": "Nog niet zeker ({{total}}/{{min}})",
+    "maintained": "Activiteit behouden (min. {{count}})",
+    "maintainTitle": "Activiteit behouden?",
+    "maintainBody": "Ze gaat door met {{count}}: de klanten horen dat het vertrek bevestigd is, en ze wordt niet meer automatisch geannuleerd.",
+    "maintain": "Activiteit behouden",
+    "maintainedToast": "Activiteit behouden, klanten verwittigd"
   },
   "calendar": {
     "mon": "M",
