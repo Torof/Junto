@@ -74,7 +74,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 ### Idées Scott 2026-11-01 — après publication, en parallèle sur preview
 - [ ] **Séances programmées (pro)** : à côté du « sur demande » actuel, le pro programme une sortie à date fixe (« yoga dimanche matin, 12 places ») ; plusieurs jours (raid, retraite) ; cycles sur plusieurs semaines avec inscription en cours de route (au cycle ou à la séance — à décider). Maquette d'abord. S'appuie sur places / Complet / Écrire à tous / Annuler la sortie (00566-00567).
 - [ ] **Sorties de plusieurs jours entre passionnés** : la base accepte déjà 7 jours (`activities_duration_check`), l'écran de création bloque à 24 h. Idée Scott : au-delà d'un seuil (~12 h), mode « sortie longue » = QR / géo au départ comme aujourd'hui, puis **second tour en fin de sortie** (QR + témoignage des pairs réactivé pour ce cas). Règles de présence à trancher.
-- [ ] **Points d'étape sur les traces GPX** (refuge, eau, point de vue, pique-nique…) — voir proposition du 2026-11-01.
+- [x] **Points d'étape sur les traces GPX** — LIVRÉ en preview 2026-11-02 (mig 00570, option 2 : on tape sur la trace existante, le point se cale dessus ; 9 types ; lus/écrits dans les GPX `<wpt>` ; création d'activité + menu carte « Étapes du parcours » sur la fiche). Reste possible : édition dans la bibliothèque de traces, affichage dans l'aperçu de trace partagée en conversation. **À tester par Scott sur téléphone.**
 
 ### Page pro — refonte (décidée 2026-10-25, voir DECISIONS) — LIVRÉE en preview, restes ci-dessous
 - [x] Base (migs 00554-00555, 00557 ; tests 06/16 ; 2561 verts) : `profession`, `featured_offering_id`, avis réservés à qui a réservé, `pin_icon` élargi (univers ou sport, NULL = métier).
