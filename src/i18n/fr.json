@@ -49,6 +49,8 @@
     "booking_expired": { "title": "Demande expirée", "body": "Ta demande pour « {{title}} » du {{date}}, {{period}} a expiré sans réponse. Tu peux demander un autre créneau." },
     "booking_reminder": {"title": "C’est demain !", "body": "« {{title}} » avec {{name}}, demain {{period}}.", "forms": {"title": "C’est demain !", "body": "« {{title}} » demain {{period}} — pense à remplir tes fiches participants."}},
     "booking_requests_waiting": {"title": "Demandes en attente", "body_one": "1 demande attend ta réponse depuis plus de 24 h.", "body_other": "{{count}} demandes attendent ta réponse depuis plus de 24 h."},
+    "booking_forms_reminder": {"title": "Fiche du groupe à compléter", "body": "{{name}} attend les infos de ton groupe pour « {{title}} » ({{date}})."},
+    "booking_forms_missing": {"title": "Il manque des infos", "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante sur {{total}}.", "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes sur {{total}}."},
     "presence_pre_warning": { "title": "{{title}}", "body": "Démarre dans 2 h — prépare-toi à valider ta présence sur place" },
     "presence_pre_warning_10min": { "title": "{{title}}", "body": "Démarre dans 10 min — pense à valider ta présence sur place" },
     "presence_validate_warning": { "title": "Valide ta présence", "body": "Scanne le QR de l’organisateur — valable jusqu’à 3 h après la fin de « {{title}} »." },
@@ -1165,7 +1167,9 @@
       "booking_declined": "Réservation refusée",
       "booking_cancelled": "Réservation annulée",
       "booking_reminder": "Rappel la veille d’une sortie réservée",
-      "booking_requests_waiting": "Demandes de réservation en attente (pro)"
+      "booking_requests_waiting": "Demandes de réservation en attente (pro)",
+      "booking_forms_reminder": "Fiche du groupe à compléter (3 jours avant)",
+      "booking_forms_missing": "Fiches participants manquantes (pro)"
     },
     "editPhoto": "Modifier la photo",
     "sportsSeeAll": "Voir tout ({{count}})",

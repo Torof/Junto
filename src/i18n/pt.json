@@ -250,6 +250,15 @@
         "body_one": "1 participante ainda não confirmou a presença em «{{title}}».",
         "body_other": "{{count}} participantes ainda não confirmaram a presença em «{{title}}»."
       }
+    },
+    "booking_forms_reminder": {
+      "title": "Ficha do grupo por preencher",
+      "body": "{{name}} aguarda os dados do teu grupo para «{{title}}» ({{date}})."
+    },
+    "booking_forms_missing": {
+      "title": "Faltam dados",
+      "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante de {{total}}.",
+      "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes de {{total}}."
     }
   },
   "format": {
@@ -1337,7 +1346,9 @@
       "booking_cancelled": "Reserva cancelada",
       "booking_reminder": "Lembrete na véspera de uma atividade reservada",
       "booking_requests_waiting": "Pedidos de reserva pendentes (pro)",
-      "presence_end_reminder": "Fim de uma atividade longa — presença por confirmar"
+      "presence_end_reminder": "Fim de uma atividade longa — presença por confirmar",
+      "booking_forms_reminder": "Ficha do grupo por preencher (3 dias antes)",
+      "booking_forms_missing": "Fichas de participantes em falta (pro)"
     },
     "editPhoto": "Alterar a foto",
     "sportsSeeAll": "Ver tudo ({{count}})",

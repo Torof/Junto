@@ -250,6 +250,15 @@
         "body_one": "1 deelnemer heeft zijn aanwezigheid bij „{{title}}” nog niet bevestigd.",
         "body_other": "{{count}} deelnemers hebben hun aanwezigheid bij „{{title}}” nog niet bevestigd."
       }
+    },
+    "booking_forms_reminder": {
+      "title": "Groepsformulier invullen",
+      "body": "{{name}} wacht op de gegevens van je groep voor „{{title}}” ({{date}})."
+    },
+    "booking_forms_missing": {
+      "title": "Er ontbreken gegevens",
+      "body_one": "„{{title}}” ({{date}}): 1 van de {{total}} deelnemersformulieren ontbreekt.",
+      "body_other": "„{{title}}” ({{date}}): {{count}} van de {{total}} deelnemersformulieren ontbreken."
     }
   },
   "format": {
@@ -1337,7 +1346,9 @@
       "booking_cancelled": "Boeking geannuleerd",
       "booking_reminder": "Herinnering de dag voor een geboekte activiteit",
       "booking_requests_waiting": "Openstaande boekingsaanvragen (pro)",
-      "presence_end_reminder": "Einde van een lange activiteit — aanwezigheid bevestigen"
+      "presence_end_reminder": "Einde van een lange activiteit — aanwezigheid bevestigen",
+      "booking_forms_reminder": "Groepsformulier invullen (3 dagen vooraf)",
+      "booking_forms_missing": "Ontbrekende deelnemersformulieren (pro)"
     },
     "editPhoto": "Foto wijzigen",
     "sportsSeeAll": "Alles bekijken ({{count}})",

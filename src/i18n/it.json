@@ -49,6 +49,8 @@
     "booking_expired": { "title": "Richiesta scaduta", "body": "La tua richiesta per « {{title}} » del {{date}}, {{period}} è scaduta senza risposta. Puoi chiedere un altro slot." },
     "booking_reminder": {"title": "È domani!", "body": "« {{title}} » con {{name}}, domani {{period}}.", "forms": {"title": "È domani!", "body": "« {{title}} » domani {{period}} — ricordati di compilare le schede partecipanti."}},
     "booking_requests_waiting": {"title": "Richieste in attesa", "body_one": "1 richiesta aspetta la tua risposta da più di 24 h.", "body_other": "{{count}} richieste aspettano la tua risposta da più di 24 h."},
+    "booking_forms_reminder": {"title": "Scheda del gruppo da completare", "body": "{{name}} aspetta le informazioni del tuo gruppo per « {{title}} » ({{date}})."},
+    "booking_forms_missing": {"title": "Mancano delle informazioni", "body_one": "« {{title}} » ({{date}}): manca 1 scheda partecipante su {{total}}.", "body_other": "« {{title}} » ({{date}}): mancano {{count}} schede partecipanti su {{total}}."},
     "presence_pre_warning": { "title": "{{title}}", "body": "Inizia tra 2 h — preparati a convalidare la presenza sul posto" },
     "presence_pre_warning_10min": { "title": "{{title}}", "body": "Inizia tra 10 min — ricordati di convalidare la presenza sul posto" },
     "presence_validate_warning": { "title": "Convalida la tua presenza", "body": "Scansiona il QR dell'organizzatore — valido fino a 3 h dopo la fine di « {{title}} »." },
@@ -1165,7 +1167,9 @@
       "booking_declined": "Prenotazione rifiutata",
       "booking_cancelled": "Prenotazione annullata",
       "booking_reminder": "Promemoria il giorno prima di un’uscita prenotata",
-      "booking_requests_waiting": "Richieste di prenotazione in attesa (pro)"
+      "booking_requests_waiting": "Richieste di prenotazione in attesa (pro)",
+      "booking_forms_reminder": "Scheda del gruppo da completare (3 giorni prima)",
+      "booking_forms_missing": "Schede partecipanti mancanti (pro)"
     },
     "editPhoto": "Modifica la foto",
     "sportsSeeAll": "Vedi tutto ({{count}})",

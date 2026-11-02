@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
-import { CalendarCheck, CalendarClock, CalendarX2,
+import { CalendarCheck, CalendarClock, CalendarX2, ClipboardList,
   Bell, UserPlus, UserCheck, UserMinus, Check, X, LogOut, Ban,
   Pencil, Star, AlertTriangle, MessageCircle, AlarmClock, Hourglass, QrCode,
   Car, CarFront, CarTaxiFront, Mail, MailCheck, BadgeCheck, Trophy,
@@ -66,6 +66,8 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   booking_expired: { icon: CalendarClock, color: colors.textSecondary },
   booking_reminder: { icon: CalendarCheck, color: colors.cta },
   booking_requests_waiting: { icon: CalendarClock, color: colors.warning },
+  booking_forms_reminder: { icon: ClipboardList, color: colors.warning },
+  booking_forms_missing: { icon: ClipboardList, color: colors.warning },
 });
 
 const getDefaultIcon = (colors: AppColors): IconMeta => ({ icon: Bell, color: colors.textSecondary });
@@ -123,7 +125,9 @@ export function NotificationsView() {
       router.push('/(auth)/(tabs)/messagerie');
     } else if (notification.type === 'seat_request_accepted' && notification.data?.conversation_id) {
       router.push(`/(auth)/conversation/${notification.data.conversation_id}`);
-    } else if (notification.type === 'booking_request' || notification.type === 'booking_requests_waiting') {
+    } else if (notification.type === 'booking_forms_reminder' && notification.data?.booking_id) {
+      router.push(`/(auth)/booking-form/${notification.data.booking_id}`);
+    } else if (notification.type === 'booking_request' || notification.type === 'booking_requests_waiting' || notification.type === 'booking_forms_missing') {
       router.push('/(auth)/pro/agenda');
     } else if (notification.type === 'booking_reminder') {
       router.push('/(auth)/my-bookings');

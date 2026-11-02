@@ -6,7 +6,7 @@ export interface Notification {
   type: string;
   title: string;
   body: string;
-  data: { activity_id?: string; conversation_id?: string; pro_id?: string; offering_id?: string; review_id?: string; by?: 'client' | 'pro';
+  data: { activity_id?: string; conversation_id?: string; pro_id?: string; offering_id?: string; review_id?: string; booking_id?: string; by?: 'client' | 'pro';
   changes?: Record<string, boolean>;
   // Lot 0 (2026-10): variables of the sentence + optional template variant —
   // the app recomposes the text in the reader's language from `notif.<type>`.

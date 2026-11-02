@@ -49,6 +49,8 @@
     "booking_expired": { "title": "Anfrage abgelaufen", "body": "Deine Anfrage für „{{title}}“ am {{date}}, {{period}} ist ohne Antwort abgelaufen. Du kannst einen anderen Termin anfragen." },
     "booking_reminder": {"title": "Morgen ist es so weit!", "body": "„{{title}}“ mit {{name}}, morgen {{period}}.", "forms": {"title": "Morgen ist es so weit!", "body": "„{{title}}“ morgen {{period}} – denk daran, deine Teilnehmerbögen auszufüllen."}},
     "booking_requests_waiting": {"title": "Offene Anfragen", "body_one": "1 Anfrage wartet seit über 24 Std. auf deine Antwort.", "body_other": "{{count}} Anfragen warten seit über 24 Std. auf deine Antwort."},
+    "booking_forms_reminder": {"title": "Gruppenbogen ausfüllen", "body": "{{name}} wartet auf die Angaben deiner Gruppe für „{{title}}“ ({{date}})."},
+    "booking_forms_missing": {"title": "Angaben fehlen", "body_one": "„{{title}}“ ({{date}}): 1 von {{total}} Teilnehmerbögen fehlt.", "body_other": "„{{title}}“ ({{date}}): {{count}} von {{total}} Teilnehmerbögen fehlen."},
     "presence_pre_warning": { "title": "{{title}}", "body": "Start in 2 h — bereite dich darauf vor, deine Anwesenheit vor Ort zu bestätigen" },
     "presence_pre_warning_10min": { "title": "{{title}}", "body": "Start in 10 min — denk daran, deine Anwesenheit vor Ort zu bestätigen" },
     "presence_validate_warning": { "title": "Bestätige deine Anwesenheit", "body": "Scanne den QR-Code der Organisation — gültig bis 3 h nach Ende von „{{title}}“." },
@@ -1165,7 +1167,9 @@
       "booking_declined": "Buchung abgelehnt",
       "booking_cancelled": "Buchung storniert",
       "booking_reminder": "Erinnerung am Vortag einer gebuchten Tour",
-      "booking_requests_waiting": "Offene Buchungsanfragen (Pro)"
+      "booking_requests_waiting": "Offene Buchungsanfragen (Pro)",
+      "booking_forms_reminder": "Gruppenbogen ausfüllen (3 Tage vorher)",
+      "booking_forms_missing": "Fehlende Teilnehmerbögen (Pro)"
     },
     "editPhoto": "Foto ändern",
     "sportsSeeAll": "Alle anzeigen ({{count}})",

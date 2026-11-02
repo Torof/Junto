@@ -59,7 +59,11 @@ export function usePushNotifications(enabled: boolean) {
       // Booking pushes (00416-00420) — mirrors notifications-view. Without
       // these a booking_request fell into the offering_id branch and opened
       // the OFFER instead of the agenda; booking_cancelled opened nothing.
-      if (data?.type === 'booking_request' || data?.type === 'booking_requests_waiting') {
+      if (data?.type === 'booking_forms_reminder' && data.booking_id) {
+        router.push(`/(auth)/booking-form/${data.booking_id}`);
+        return;
+      }
+      if (data?.type === 'booking_request' || data?.type === 'booking_requests_waiting' || data?.type === 'booking_forms_missing') {
         router.push('/(auth)/pro/agenda');
         return;
       }

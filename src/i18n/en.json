@@ -49,6 +49,8 @@
     "booking_expired": { "title": "Request expired", "body": "Your request for “{{title}}” on {{date}}, {{period}} expired without an answer. You can ask for another slot." },
     "booking_reminder": {"title": "It’s tomorrow!", "body": "“{{title}}” with {{name}}, tomorrow {{period}}.", "forms": {"title": "It’s tomorrow!", "body": "“{{title}}” tomorrow {{period}} — remember to fill in your participant forms."}},
     "booking_requests_waiting": {"title": "Requests waiting", "body_one": "1 request has been waiting for your answer for over 24 h.", "body_other": "{{count}} requests have been waiting for your answer for over 24 h."},
+    "booking_forms_reminder": {"title": "Group form to complete", "body": "{{name}} is waiting for your group’s details for “{{title}}” ({{date}})."},
+    "booking_forms_missing": {"title": "Details missing", "body_one": "“{{title}}” ({{date}}): 1 participant form missing out of {{total}}.", "body_other": "“{{title}}” ({{date}}): {{count}} participant forms missing out of {{total}}."},
     "presence_pre_warning": { "title": "{{title}}", "body": "Starts in 2 h — get ready to validate your presence on site" },
     "presence_pre_warning_10min": { "title": "{{title}}", "body": "Starts in 10 min — remember to validate your presence on site" },
     "presence_validate_warning": { "title": "Validate your presence", "body": "Scan the organiser's QR — valid until 3 h after the end of “{{title}}”." },
@@ -1165,7 +1167,9 @@
       "booking_declined": "Booking declined",
       "booking_cancelled": "Booking cancelled",
       "booking_reminder": "Reminder the day before a booked outing",
-      "booking_requests_waiting": "Pending booking requests (pro)"
+      "booking_requests_waiting": "Pending booking requests (pro)",
+      "booking_forms_reminder": "Group form to complete (3 days before)",
+      "booking_forms_missing": "Missing participant forms (pro)"
     },
     "editPhoto": "Change photo",
     "sportsSeeAll": "See all ({{count}})",

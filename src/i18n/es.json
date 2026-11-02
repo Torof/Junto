@@ -49,6 +49,8 @@
     "booking_expired": { "title": "Solicitud caducada", "body": "Tu solicitud para «{{title}}» del {{date}}, {{period}} ha caducado sin respuesta. Puedes pedir otra franja." },
     "booking_reminder": {"title": "¡Es mañana!", "body": "«{{title}}» con {{name}}, mañana por la {{period}}.", "forms": {"title": "¡Es mañana!", "body": "«{{title}}» mañana por la {{period}}: recuerda rellenar tus fichas de participantes."}},
     "booking_requests_waiting": {"title": "Solicitudes pendientes", "body_one": "1 solicitud espera tu respuesta desde hace más de 24 h.", "body_other": "{{count}} solicitudes esperan tu respuesta desde hace más de 24 h."},
+    "booking_forms_reminder": {"title": "Ficha del grupo por completar", "body": "{{name}} espera los datos de tu grupo para «{{title}}» ({{date}})."},
+    "booking_forms_missing": {"title": "Faltan datos", "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante de {{total}}.", "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes de {{total}}."},
     "presence_pre_warning": { "title": "{{title}}", "body": "Empieza en 2 h: prepárate para validar tu presencia in situ" },
     "presence_pre_warning_10min": { "title": "{{title}}", "body": "Empieza en 10 min: recuerda validar tu presencia in situ" },
     "presence_validate_warning": { "title": "Valida tu presencia", "body": "Escanea el QR del organizador: válido hasta 3 h después del final de «{{title}}»." },
@@ -1165,7 +1167,9 @@
       "booking_declined": "Reserva rechazada",
       "booking_cancelled": "Reserva cancelada",
       "booking_reminder": "Recordatorio el día antes de una salida reservada",
-      "booking_requests_waiting": "Solicitudes de reserva pendientes (pro)"
+      "booking_requests_waiting": "Solicitudes de reserva pendientes (pro)",
+      "booking_forms_reminder": "Ficha del grupo por completar (3 días antes)",
+      "booking_forms_missing": "Fichas de participantes pendientes (pro)"
     },
     "editPhoto": "Cambiar la foto",
     "sportsSeeAll": "Ver todo ({{count}})",
