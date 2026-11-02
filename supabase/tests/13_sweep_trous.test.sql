@@ -263,7 +263,10 @@ PERFORM pg_temp.put('sw_auth', $ref$ARRAY[
   'public.set_offering_auto_cancel(p_offering_id uuid, p_on boolean)',
   -- 00571 (chaîne documentée 2026-11-02, DOC-WAYPOINTS fermé) : auth, suspension, fréquence,
   -- propriétaire, validation renvoyée (00578) — testée dans 21_divers_recents.
-  'public.set_gpx_trace_waypoints(p_id uuid, p_waypoints jsonb)']$ref$);
+  'public.set_gpx_trace_waypoints(p_id uuid, p_waypoints jsonb)',
+  -- 00580 (CLIENT-3) : auth, suspendu → false, pas sa page, pro non suspendu, approuvé non démo, pas bloqué
+  -- par le pro, sortie finie avec ce pro — testée dans 22_pro_audit2.
+  'public.can_add_community_photo(p_pro_id uuid, p_offering_id uuid)']$ref$);
 -- Appelables par un compte mais PAS encore documentées comme RPC client dans SECURITY.md
 -- (« Chaîne d'autorisation » + table de classification) : à tenir ici, signalées en échec
 -- jusqu'à ce que la doc existe — alors les déplacer dans sw_auth. Vide aujourd'hui.
@@ -286,6 +289,14 @@ PERFORM pg_temp.eq('S2 aucune fonction appelable sans compte en dehors de la lis
     AND has_function_privilege('anon', p.oid, 'EXECUTE') EXCEPT SELECT unnest(%s)) x$q$, pg_temp.get('sw_anon')), '');
 PERFORM pg_temp.eq('S2 delete_account_as reste réservée au service', $q$SELECT (has_function_privilege('authenticated', 'public.delete_account_as(uuid)', 'EXECUTE')
   OR has_function_privilege('anon', 'public.delete_account_as(uuid)', 'EXECUTE'))::text$q$, 'false');
+-- 00580 (VITRINE-7) : la liste des fichiers communautaires orphelins sert le seul nettoyage (edge
+-- function storage-cleanup, rôle service) ; le déclencheur planifié n'est accordé à personne.
+PERFORM pg_temp.eq('S2 community_photo_orphans réservée au service', $q$SELECT (has_function_privilege('authenticated', 'public.community_photo_orphans(integer)', 'EXECUTE')
+  OR has_function_privilege('anon', 'public.community_photo_orphans(integer)', 'EXECUTE'))::text
+  || '/' || has_function_privilege('service_role', 'public.community_photo_orphans(integer)', 'EXECUTE')::text$q$, 'false/true');
+PERFORM pg_temp.eq('S2 private.trigger_storage_cleanup accordée à personne', $q$SELECT (has_function_privilege('authenticated', 'private.trigger_storage_cleanup()', 'EXECUTE')
+  OR has_function_privilege('anon', 'private.trigger_storage_cleanup()', 'EXECUTE')
+  OR has_function_privilege('service_role', 'private.trigger_storage_cleanup()', 'EXECUTE'))::text$q$, 'false');
 
 -- ═════ S3 — Le bloqué ne voit pas qui l'a bloqué et ne peut pas lever le blocage ═════
 PERFORM pg_temp.as_('db');

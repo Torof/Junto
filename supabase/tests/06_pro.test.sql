@@ -222,9 +222,18 @@ INSERT INTO public.blocked_users (blocker_id, blocked_id) VALUES (pg_temp.id('pr
 -- et le fichier doit être dans son propre dossier community/<pro>/ (non réécrivable).
 EXECUTE $p$CREATE FUNCTION pg_temp.po_cm_url(p_label text, p_pro text, p_file text) RETURNS text
   LANGUAGE sql AS $b$ SELECT pg_temp.po_url(p_label, 'community/' || pg_temp.id(p_pro)::text || '/' || p_file) $b$$p$;
+-- 00580 (CLIENT-1) : le fichier doit déjà être dans le stockage, envoyé par l'appelant (owner_id) —
+-- posé ici en base comme l'aurait fait l'envoi de l'appli.
+EXECUTE $p$CREATE FUNCTION pg_temp.po_cm_file(p_label text, p_pro text, p_file text) RETURNS void
+  LANGUAGE sql SECURITY DEFINER AS $b$ INSERT INTO storage.objects (bucket_id, name, owner_id)
+    VALUES ('pro-photos', pg_temp.id(p_label)::text || '/community/' || pg_temp.id(p_pro)::text || '/' || p_file, pg_temp.id(p_label)::text)
+    ON CONFLICT DO NOTHING $b$$p$;
+PERFORM pg_temp.po_cm_file('cli', 'pro', f) FROM unnest(ARRAY['c0.jpg', 'c1.jpg', 'c3.jpg', 'cc2.jpg', 'cc3.jpg', 'cc4.jpg', 'cc5.jpg', 'c6.jpg']) f;
+PERFORM pg_temp.po_cm_file('pro', 'pro', 'self.jpg');
+PERFORM pg_temp.po_cm_file('har', 'pro', 'h.jpg');
 PERFORM pg_temp.as_('cli');
 PERFORM pg_temp.denied('photo communautaire sans réservation terminée chez ce pro refusée',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pro'), pg_temp.po_cm_url('cli', 'pro', 'c0.jpg')), 'junto\.review_requires_booking');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pro'), pg_temp.po_cm_url('cli', 'pro', 'c0.jpg')), 'junto\.photo_requires_booking');  -- 00580 (CLIENT-3)
 PERFORM pg_temp.as_('db');
 PERFORM set_config('junto.bypass_lock', 'true', true);
 INSERT INTO public.bookings (offering_id, pro_id, client_id, day, period, party_size, status) VALUES
@@ -237,7 +246,7 @@ PERFORM pg_temp.denied('photo communautaire hors du sous-dossier community/<pro>
 PERFORM pg_temp.denied('photo communautaire sur une candidature en attente refusée', format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('cand'), pg_temp.po_cm_url('cli', 'cand', 'c2.jpg')));
 -- (l'offre d'un autre pro ne peut porter aucune réservation chez ce pro : refus dès la condition de réservation)
 PERFORM pg_temp.denied('photo communautaire liée à l''offre d''un autre pro refusée', format($$SELECT public.add_pro_community_photo(%L, %L, NULL, %L)::text$$, pg_temp.id('pro'), pg_temp.po_cm_url('cli', 'pro', 'c3.jpg'), pg_temp.id('off2')),
-  'Operation not permitted|junto\.review_requires_booking');
+  'Operation not permitted|junto\.photo_requires_booking');
 PERFORM pg_temp.ok('4 photos communautaires de plus (fixture)', format($q$DO $d$ BEGIN FOR i IN 2..5 LOOP PERFORM public.add_pro_community_photo(%L, %L || 'cc' || i || '.jpg'); END LOOP; END $d$$q$,
   pg_temp.id('pro'), pg_temp.po_cm_url('cli', 'pro', '')));
 PERFORM pg_temp.denied('6e photo communautaire refusée (plafond 5)', format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pro'), pg_temp.po_cm_url('cli', 'pro', 'c6.jpg')), 'junto.photo_limit');

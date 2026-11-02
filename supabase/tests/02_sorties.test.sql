@@ -174,7 +174,8 @@ PERFORM pg_temp.as_('anon');
 PERFORM pg_temp.denied('anon ne lit pas le détail', format($$SELECT count(*)::text FROM public.get_activity_detail(%L)$$, pg_temp.id('pub')));
 PERFORM pg_temp.denied('anon ne lit pas les participants', format($$SELECT count(*)::text FROM public.get_activity_participants(%L)$$, pg_temp.id('pub')));
 PERFORM pg_temp.eq('anon ne voit pas une sortie privée dans la vue carte', format($$SELECT count(*)::text FROM public.activities_with_coords WHERE id = %L$$, pg_temp.id('priv')), '0');
-PERFORM pg_temp.eq('anon ne lit pas la table activities', $$SELECT count(*)::text FROM public.activities$$, '0');
+-- 00580 (GRANTS-2) : plus aucun droit d'anon sur la table (la carte visiteur passe par activities_with_coords).
+PERFORM pg_temp.denied('anon ne lit pas la table activities', $$SELECT count(*)::text FROM public.activities$$, 'permission denied');
 PERFORM pg_temp.as_('sam');
 PERFORM pg_temp.denied('un compte suspendu ne lit pas le détail', format($$SELECT count(*)::text FROM public.get_activity_detail(%L)$$, pg_temp.id('pub')));
 PERFORM pg_temp.eq('un compte suspendu ne lit pas les participants', format($$SELECT count(*)::text FROM public.get_activity_participants(%L)$$, pg_temp.id('pub')), '0');

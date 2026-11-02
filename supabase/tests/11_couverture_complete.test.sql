@@ -567,6 +567,9 @@ INSERT INTO public.bookings (offering_id, pro_id, client_id, day, period, party_
 VALUES (pg_temp.id('off'), pg_temp.id('pro'), pg_temp.id('cli'), current_date - 8, 'am', 1, 'accepted');
 PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.put('cph_url', pg_temp.fc_url('pro-photos', 'cli', 'community/' || pg_temp.get('pro') || '/c1.jpg'));
+-- 00580 (CLIENT-1) : le fichier est déjà dans le stockage, envoyé par le contributeur.
+INSERT INTO storage.objects (bucket_id, name, owner_id)
+VALUES ('pro-photos', pg_temp.get('cli') || '/community/' || pg_temp.get('pro') || '/c1.jpg', pg_temp.get('cli'));
 PERFORM pg_temp.as_('cli');
 PERFORM pg_temp.put('cph', pg_temp.ok('fixture : un membre ajoute une photo communautaire', format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pro'), pg_temp.get('cph_url'))));
 PERFORM pg_temp.as_('db');

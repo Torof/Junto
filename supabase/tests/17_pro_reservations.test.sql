@@ -83,6 +83,17 @@ EXECUTE $p$CREATE FUNCTION pg_temp.blk(a text, b text, p_on boolean) RETURNS voi
     ELSE DELETE FROM public.blocked_users WHERE blocker_id = pg_temp.id(a) AND blocked_id = pg_temp.id(b); END IF;
     PERFORM set_config('junto.bypass_lock', 'false', true);  -- le trigger de blocage le laisse levé
   END $b$$p$;
+-- 00580 (BOOKINGS-R4) : un blocage retire les demandes EN ATTENTE entre le client et le pro. Pour les
+-- contrôles qui posent un blocage temporaire, on note ces demandes avant et on les remet en attente après.
+EXECUTE $p$CREATE FUNCTION pg_temp.pend_save(p_key text, p_client text, p_pro text) RETURNS void
+  LANGUAGE sql AS $b$ SELECT pg_temp.put(p_key, coalesce((SELECT string_agg(id::text, ',') FROM public.bookings
+    WHERE status = 'pending' AND client_id = pg_temp.id(p_client) AND pro_id = pg_temp.id(p_pro)), '')) $b$$p$;
+EXECUTE $p$CREATE FUNCTION pg_temp.pend_restore(p_key text) RETURNS void
+  LANGUAGE plpgsql AS $b$ BEGIN
+    PERFORM set_config('junto.bypass_lock', 'true', true);
+    UPDATE public.bookings SET status = 'pending' WHERE id::text = ANY (string_to_array(pg_temp.get(p_key), ','));
+    PERFORM set_config('junto.bypass_lock', 'false', true);
+  END $b$$p$;
 -- Créneaux ouverts par le pro principal (jour T+n, période).
 EXECUTE $p$CREATE FUNCTION pg_temp.slots() RETURNS TABLE(n int, p text)
   LANGUAGE sql AS $b$
@@ -456,12 +467,19 @@ PERFORM pg_temp.as_('rs_pro');
 PERFORM pg_temp.denied('R6 client suspendu : refus', pg_temp.call('accept_booking', 'bk_s'), 'Operation not permitted');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.susp('rs_cli5', false);
+PERFORM pg_temp.pend_save('pend_cli5', 'rs_cli5', 'rs_pro');
 PERFORM pg_temp.blk('rs_pro', 'rs_cli5', true);
+-- 00580 (BOOKINGS-R4) : le blocage par le pro décline la demande en attente ; acceptée par une
+-- course, elle serait encore refusée (contrôle du blocage dans accept_booking) — on la remet en attente.
+PERFORM pg_temp.eq('R6 BOOKINGS-R4 : le pro bloque le client, sa demande en attente est déclinée', format($$SELECT status FROM public.bookings WHERE id = %L$$, pg_temp.id('bk_s')), 'declined');
+PERFORM pg_temp.pend_restore('pend_cli5');
 PERFORM pg_temp.as_('rs_pro');
 PERFORM pg_temp.denied('R6 le pro a bloqué le client : refus', pg_temp.call('accept_booking', 'bk_s'), 'Operation not permitted');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.blk('rs_pro', 'rs_cli5', false);
 PERFORM pg_temp.blk('rs_cli5', 'rs_pro', true);
+PERFORM pg_temp.eq('R6 BOOKINGS-R4 : le client bloque le pro, sa demande en attente est retirée (cancelled)', format($$SELECT status FROM public.bookings WHERE id = %L$$, pg_temp.id('bk_s')), 'cancelled');
+PERFORM pg_temp.pend_restore('pend_cli5');
 PERFORM pg_temp.as_('rs_pro');
 PERFORM pg_temp.denied('R6 le client a bloqué le pro : refus', pg_temp.call('accept_booking', 'bk_s'), 'Operation not permitted');
 PERFORM pg_temp.as_('db');
@@ -510,8 +528,12 @@ PERFORM pg_temp.as_('rs_pro');
 PERFORM pg_temp.ok('R7 acceptation T+50 matin', pg_temp.call('accept_booking', 'bk_b4a'));
 PERFORM pg_temp.ok('R7 acceptation T+50 après-midi', pg_temp.call('accept_booking', 'bk_b4b'));
 PERFORM pg_temp.as_('db');
+PERFORM pg_temp.pend_save('pend_cli4', 'rs_cli4', 'rs_pro');
+PERFORM pg_temp.pend_save('pend_cli2', 'rs_cli2', 'rs_pro');
 PERFORM pg_temp.blk('rs_pro', 'rs_cli4', true);
 PERFORM pg_temp.blk('rs_cli2', 'rs_pro', true);
+PERFORM pg_temp.eq('R7 BOOKINGS-R4 : les réservations acceptées restent acceptées malgré le blocage',
+  format($$SELECT string_agg(status, ',' ORDER BY id = %L DESC) FROM public.bookings WHERE id IN (%L, %L)$$, pg_temp.id('bk_b4a'), pg_temp.id('bk_b4a'), pg_temp.id('bk_b4b')), 'accepted,accepted');
 PERFORM pg_temp.as_('rs_cli4');
 PERFORM pg_temp.ok('R7 bloqué par le pro, le client annule quand même', pg_temp.call('cancel_booking', 'bk_b4a'));
 PERFORM pg_temp.as_('rs_cli2');
@@ -526,6 +548,8 @@ PERFORM pg_temp.eq('R7 BOOKINGS-4 : le pro est quand même prévenu, variante cl
     UNION ALL SELECT * FROM pg_temp.nf('rs_pro', 'booking_cancelled', 'bk_b4b')) n$$, 'client_gone,client_gone');
 PERFORM pg_temp.blk('rs_pro', 'rs_cli4', false);
 PERFORM pg_temp.blk('rs_cli2', 'rs_pro', false);
+PERFORM pg_temp.pend_restore('pend_cli4');
+PERFORM pg_temp.pend_restore('pend_cli2');
 
 -- ═════ R8 — create_manual_booking ═════
 PERFORM pg_temp.as_('rs_pro');
@@ -804,8 +828,9 @@ PERFORM pg_temp.eq('R14 pas de DM pour un client bloqué',
   $$SELECT count(*)::text FROM public.messages WHERE conversation_id = pg_temp.dm('rs_o3', 'rs_pro') AND content LIKE '%REASON-XYZ%'$$, '0');
 PERFORM pg_temp.eq('R14 notif client accepté : by_pro_message avec le fil',
   $$SELECT data->>'variant' || '/' || (data->>'conversation_id' = pg_temp.dm('rs_o1', 'rs_pro')::text) FROM pg_temp.nf('rs_o1', 'booking_cancelled', 'bk_o1')$$, 'by_pro_message/true');
-PERFORM pg_temp.eq('R14 notif client bloqué : by_pro, sans fil',
-  $$SELECT data->>'variant' || '/' || coalesce(data->>'conversation_id', 'NULL') FROM pg_temp.nf('rs_o3', 'booking_cancelled', 'bk_o4')$$, 'by_pro/NULL');
+-- 00580 (BOOKINGS-R4) : bloqués → avis neutre, sans variante ni nom du pro.
+PERFORM pg_temp.eq('R14 notif client bloqué : avis neutre (sans variante, sans nom), sans fil',
+  $$SELECT coalesce(data->>'variant', 'NULL') || '/' || coalesce(data->>'conversation_id', 'NULL') || '/' || coalesce(data->'params'->>'name', 'NULL') FROM pg_temp.nf('rs_o3', 'booking_cancelled', 'bk_o4')$$, 'NULL/NULL/NULL');
 PERFORM pg_temp.eq('R14 notif client en attente : booking_declined', $$SELECT count(*)::text FROM pg_temp.nf('rs_o2', 'booking_declined', 'bk_o2')$$, '1');
 PERFORM pg_temp.eq('R14 le motif n''est dans AUCUNE notification',
   $$SELECT count(*)::text FROM public.notifications WHERE title || body || coalesce(data::text, '') LIKE '%REASON-XYZ%'$$, '0');

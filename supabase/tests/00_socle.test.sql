@@ -346,4 +346,16 @@ BEGIN
   PERFORM pg_temp.ok('GRANTS-4 un visiteur lit toujours la carte (activities_with_coords appelle private.user_is_suspended)',
     $$SELECT count(*) FROM public.activities_with_coords$$);
   PERFORM pg_temp.as_('db');
+  -- GRANTS-2 (corrigé 00580) : un visiteur ne lit les sorties que par la vue activities_with_coords. Plus
+  -- aucun droit d'anon, ni sur une table de public ni sur une de ses colonnes, hors deux référentiels.
+  PERFORM pg_temp.eq('GRANTS-2 anon n''a aucun droit (table ou colonne) sur les tables de public, hors sports et gear_catalog',
+    $$SELECT coalesce(string_agg(c.relname, ',' ORDER BY c.relname), '') FROM pg_class c
+      WHERE c.relnamespace = 'public'::regnamespace AND c.relkind = 'r'
+        AND c.relname NOT IN ('sports', 'gear_catalog')
+        AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.classid = 'pg_class'::regclass AND d.objid = c.oid AND d.deptype = 'e')
+        AND (has_table_privilege('anon', c.oid, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
+             OR has_any_column_privilege('anon', c.oid, 'SELECT,INSERT,UPDATE,REFERENCES'))$$, '');
+  PERFORM pg_temp.eq('GRANTS-2 plus aucun droit de colonne d''anon sur activities',
+    $$SELECT count(*)::text FROM pg_attribute a WHERE a.attrelid = 'public.activities'::regclass AND a.attnum > 0
+      AND NOT a.attisdropped AND has_column_privilege('anon', a.attrelid, a.attnum, 'SELECT')$$, '0');
 END;

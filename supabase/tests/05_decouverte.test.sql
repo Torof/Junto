@@ -138,8 +138,9 @@ PERFORM pg_temp.eq('anon ne voit pas une sortie démo',
   format($$SELECT count(*)::text FROM public.activities_with_coords WHERE id = %L$$, pg_temp.id('a_demo')), '0');
 PERFORM pg_temp.eq('anon ne voit pas une sortie supprimée',
   format($$SELECT count(*)::text FROM public.activities_with_coords WHERE id = %L$$, pg_temp.id('a_del')), '0');
-PERFORM pg_temp.eq('anon : aucune ligne dans la table activities',
-  format($$SELECT count(*)::text FROM public.activities WHERE id = %L$$, pg_temp.id('a_pub')), '0');
+-- 00580 (GRANTS-2) : plus aucun droit d'anon sur la table elle-même.
+PERFORM pg_temp.denied('anon : aucune ligne dans la table activities (refus, GRANTS-2)',
+  format($$SELECT count(*)::text FROM public.activities WHERE id = %L$$, pg_temp.id('a_pub')), 'permission denied');
 PERFORM pg_temp.denied('anon : my_activities refusée (00547 : aucun droit sans compte)', $$SELECT count(*)::text FROM public.my_activities$$);
 PERFORM pg_temp.denied('anon : my_joined_activities refusée (00547 : aucun droit sans compte)', $$SELECT count(*)::text FROM public.my_joined_activities$$);
 PERFORM pg_temp.denied('anon : my_pending_activities refusée (00547 : aucun droit sans compte)', $$SELECT count(*)::text FROM public.my_pending_activities$$);

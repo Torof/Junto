@@ -431,6 +431,12 @@ INSERT INTO public.bookings (offering_id, pro_id, client_id, day, period, end_da
   (pg_temp.id('pv_off'), pg_temp.id('pv_pro'), pg_temp.id('pv_cli5'), pg_temp.d(-1), 'am', NULL,         1, 'accepted', pg_temp.id('pv_sess_now')),
   (pg_temp.id('pv_off'), pg_temp.id('pv_pro'), pg_temp.id('pv_cli6'), pg_temp.d(-4), 'am', pg_temp.d(-1), 2, 'accepted', NULL),
   (pg_temp.id('pv_off'), pg_temp.id('pv_pro'), pg_temp.id('pv_cli7'), pg_temp.d(-4), 'am', NULL,         1, 'accepted', pg_temp.id('pv_sess_done'));
+-- 00580 (CLIENT-1) : chaque fichier est déjà dans le stockage, envoyé par son contributeur (owner_id).
+INSERT INTO storage.objects (bucket_id, name, owner_id)
+SELECT 'pro-photos', pg_temp.get(v.u) || '/community/' || pg_temp.get('pv_pro') || '/' || v.f, pg_temp.get(v.u)
+FROM (VALUES ('pv_cli2', 'p1.jpg'), ('pv_cli2', 'p2.jpg'), ('pv_cli2', 'p3.jpg'), ('pv_cli2', 'p4.jpg'), ('pv_cli6', 'p.jpg'),
+             ('pv_cli', 'p.jpg'), ('pv_cli3', 'p.jpg'), ('pv_cli4', 'p.jpg'), ('pv_cli5', 'p.jpg'), ('pv_cli7', 'p.jpg'),
+             ('pv_sam', 's.jpg'), ('pv_pro', 'self.jpg')) v(u, f);
 
 -- Chaîne (00578, VITRINE-1) : auth, suspension, pro non suspendu, pas sa propre page, pas bloqué par le
 -- pro, pro approuvé non démo, fichier dans <moi>/community/<pro>/, réservation acceptée et sortie finie
@@ -463,21 +469,22 @@ PERFORM pg_temp.denied('PV8 VITRINE-1 le pro ne poste pas de photo communautaire
   format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_pro', 'self.jpg')), '^Operation not permitted$');
 
 -- VITRINE-1 (corrigé 00578) : il faut une sortie FAITE avec ce pro (et avec cette offre si elle est précisée).
+-- 00580 (CLIENT-3) : refus sous son propre code, junto.photo_requires_booking.
 PERFORM pg_temp.as_('pv_cli');
 PERFORM pg_temp.denied('PV8 VITRINE-1 sans réservation : pas de photo communautaire',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli', 'p.jpg')), 'junto\.review_requires_booking');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli', 'p.jpg')), 'junto\.photo_requires_booking');
 PERFORM pg_temp.as_('pv_cli3');
 PERFORM pg_temp.denied('PV8 VITRINE-1 réservation acceptée à venir : pas de photo',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli3', 'p.jpg')), 'junto\.review_requires_booking');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli3', 'p.jpg')), 'junto\.photo_requires_booking');
 PERFORM pg_temp.as_('pv_cli4');
 PERFORM pg_temp.denied('PV8 VITRINE-1 demande sur plusieurs jours en cours : pas de photo',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli4', 'p.jpg')), 'junto\.review_requires_booking');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli4', 'p.jpg')), 'junto\.photo_requires_booking');
 PERFORM pg_temp.as_('pv_cli5');
 PERFORM pg_temp.denied('PV8 VITRINE-1 date fixe en cours : pas de photo',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli5', 'p.jpg')), 'junto\.review_requires_booking');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli5', 'p.jpg')), 'junto\.photo_requires_booking');
 PERFORM pg_temp.as_('pv_cli2');
 PERFORM pg_temp.denied('PV8 VITRINE-1 photo rattachée à une offre jamais réservée refusée',
-  format($$SELECT public.add_pro_community_photo(%L, %L, NULL, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli2', 'p4.jpg'), pg_temp.id('pv_offb')), 'junto\.review_requires_booking');
+  format($$SELECT public.add_pro_community_photo(%L, %L, NULL, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli2', 'p4.jpg'), pg_temp.id('pv_offb')), 'junto\.photo_requires_booking');
 PERFORM pg_temp.as_('pv_cli7');
 PERFORM pg_temp.ok('PV8 date fixe finie : photo acceptée',
   format($$SELECT public.add_pro_community_photo(%L, %L, NULL, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli7', 'p.jpg'), pg_temp.id('pv_off')));

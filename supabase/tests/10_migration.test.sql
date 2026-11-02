@@ -40,7 +40,7 @@ PERFORM pg_temp.eq('M2 notifications en REPLICA IDENTITY FULL (filtres des abonn
 -- 00574 : formulaires participants (rappel la veille, manquants le matin). 00577 : annulation
 -- automatique des sorties sous le minimum (J-1 9 h Paris). Deux heures UTC = une seule exécution
 -- utile selon l'heure d'été (la fonction filtre l'heure de Paris).
-PERFORM pg_temp.eq('M3 exactement les 12 tâches planifiées, actives, au bon rythme, en postgres',
+PERFORM pg_temp.eq('M3 exactement les 13 tâches planifiées, actives, au bon rythme, en postgres',
   $$SELECT string_agg(jobname || '|' || schedule || '|' || active || '|' || username || '|' || command, ' ¦ ' ORDER BY jobname) FROM cron.job$$,
   'junto-booking-forms-missing|0 7,8 * * *|true|postgres|SELECT private.notify_booking_forms_missing(); ¦ '
   || 'junto-booking-forms-reminders|0 16,17 * * *|true|postgres|SELECT private.notify_booking_forms_reminders(); ¦ '
@@ -53,6 +53,7 @@ PERFORM pg_temp.eq('M3 exactement les 12 tâches planifiées, actives, au bon ry
   || 'junto-notif-purge|0 4 * * *|true|postgres|SELECT public.purge_old_notifications(); ¦ '
   || 'junto-outing-auto-cancel|0 7,8 * * *|true|postgres|SELECT private.auto_cancel_short_outings(); ¦ '
   || 'junto-presence-sweep|* * * * *|true|postgres|SELECT public.check_activity_transitions(); ¦ '
+  || 'junto-storage-cleanup|20 * * * *|true|postgres|SELECT private.trigger_storage_cleanup(); ¦ '  -- 00580 (VITRINE-7)
   || 'junto-throttle-purge|45 4 * * *|true|postgres|SELECT public.purge_throttle_tables();');
 PERFORM pg_temp.eq('M3 chaque fonction appelée par une tâche existe (sans argument, public ou private)',
   $$SELECT coalesce(string_agg(m[1], ', '), '') FROM cron.job j CROSS JOIN LATERAL regexp_matches(j.command, '((?:public|private)\.[a-z0-9_]+)\(\)', 'g') m

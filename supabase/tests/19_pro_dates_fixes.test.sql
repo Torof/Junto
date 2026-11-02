@@ -431,7 +431,7 @@ PERFORM pg_temp.put('sR2', pg_temp.ok('DF4 date R2', pg_temp.df_new('off_b', 61,
 PERFORM pg_temp.put('sR3', pg_temp.ok('DF4 date R3', pg_temp.df_new('off_b', 62, 'am', 62, 'am', 2)));
 PERFORM pg_temp.put('sR4', pg_temp.ok('DF4 date R4', pg_temp.df_new('off_b', 62, 'pm', 62, 'pm', 2)));
 PERFORM pg_temp.as_('df_cQ');
-PERFORM pg_temp.denied('DF4 un groupe de 7 sur une date de 10 est refusé', pg_temp.df_join('sQ', 7), 'junto.booking_party_size');
+PERFORM pg_temp.denied('DF4 un groupe de 7 sur une date de 10 est refusé (00580 CLIENT-4 : message propre)', pg_temp.df_join('sQ', 7), 'junto.session_group_cap');
 PERFORM pg_temp.ok('DF4 un groupe de 6 sur une date de 10 passe', pg_temp.df_join('sQ', 6));
 PERFORM pg_temp.as_('df_cS');
 PERFORM pg_temp.ok('DF4 inscription active n°1 chez ce pro', pg_temp.df_join('sR1', 1));
@@ -588,8 +588,9 @@ PERFORM pg_temp.eq('DF9 notification by_pro_message, sans le motif',
     FROM public.notifications WHERE user_id = pg_temp.id('df_cF') AND type = 'booking_cancelled' AND data->>'booking_id' = pg_temp.get('bk_F_sH')$$, 'by_pro_message/true');
 PERFORM pg_temp.eq('DF9 client bloqué : pas de motif en DM',
   format($$SELECT count(*)::text FROM public.messages WHERE conversation_id = %L AND content = 'Météo pourrie'$$, pg_temp.df_dm('df_pro', 'df_cG')), '0');
-PERFORM pg_temp.eq('DF9 client bloqué : notification by_pro quand même',
-  $$SELECT string_agg(data->>'variant', ',') FROM public.notifications WHERE user_id = pg_temp.id('df_cG') AND type = 'booking_cancelled' AND data->>'booking_id' = pg_temp.get('bk_G_sH')$$, 'by_pro');
+-- 00580 (BOOKINGS-R4) : bloqués → avis neutre, sans variante ni nom du pro.
+PERFORM pg_temp.eq('DF9 client bloqué : notification neutre quand même (sans variante, sans nom)',
+  $$SELECT string_agg(coalesce(data->>'variant', 'NULL') || '/' || coalesce(data->'params'->>'name', 'NULL'), ',') FROM public.notifications WHERE user_id = pg_temp.id('df_cG') AND type = 'booking_cancelled' AND data->>'booking_id' = pg_temp.get('bk_G_sH')$$, 'NULL/NULL');
 PERFORM pg_temp.as_('df_pro');
 PERFORM pg_temp.eq('DF9 annulation sans motif', format($$SELECT public.cancel_pro_session(%L)::text$$, pg_temp.id('sI')), '1');
 PERFORM pg_temp.as_('db');
@@ -795,7 +796,8 @@ PERFORM pg_temp.df_bk('bk_k5_T5', 'o4a', 'df_k5', 1, 'am', 1, 'accepted', 'T5');
 PERFORM pg_temp.df_ss('T7', 'o4a', 2, 'pm', 2, 'pm', 8, 3);
 PERFORM pg_temp.df_bk('bk_k8_T7', 'o4a', 'df_k8', 2, 'pm', 1, 'accepted', 'T7');
 PERFORM pg_temp.df_oc('o4a', 2, 'pm', 'T7', 'pro');
--- T6 (SESSIONS-1) : demain après-midi, minimum 3 ; k6 s'inscrit à 3 puis annule, k7 s'inscrit à 1.
+-- T6 (SESSIONS-1, puis SESSIONS-B 00580) : demain après-midi, minimum 3 ; k6 s'inscrit à 3 puis annule,
+-- k7 s'inscrit à 1. Après le rappel J-2, le « Départ confirmé » déjà annoncé tient : la date reste.
 PERFORM pg_temp.df_ss('T6', 'o4a', 1, 'pm', 1, 'pm', 6, 3);
 PERFORM pg_temp.as_('df_k6');
 PERFORM pg_temp.put('bk_k6_T6', pg_temp.ok('DF11 k6 s''inscrit à 3 (minimum atteint)', pg_temp.df_join('T6', 3)));
@@ -836,7 +838,8 @@ PERFORM pg_temp.eq('DF11 minimum atteint : la date reste', $$SELECT pg_temp.df_s
 PERFORM pg_temp.eq('DF11 date maintenue par le pro : reste', $$SELECT pg_temp.df_sst('T3') || '/' || pg_temp.df_bst('bk_k3_T3')$$, 'scheduled/accepted');
 PERFORM pg_temp.eq('DF11 seulement demain : la date d''après-demain reste', $$SELECT pg_temp.df_sst('T4') || '/' || pg_temp.df_bst('bk_k4_T4')$$, 'scheduled/accepted');
 PERFORM pg_temp.eq('DF11 date sans minimum : reste', $$SELECT pg_temp.df_sst('T5') || '/' || pg_temp.df_bst('bk_k5_T5')$$, 'scheduled/accepted');
-PERFORM pg_temp.eq('DF11 SESSIONS-1 : inscription annulée → la date sous le minimum est annulée', $$SELECT pg_temp.df_sst('T6')$$, 'cancelled');
+PERFORM pg_temp.eq('DF11 SESSIONS-B : annulation après le rappel J-2 → la confirmation « minimum » tient, la date reste',
+  $$SELECT pg_temp.df_sst('T6') || '/' || pg_temp.df_reason('o4a', 1, 'pm', 'T6')$$, 'scheduled/minimum');
 -- Sur demande.
 PERFORM pg_temp.eq('DF11 sur demande sous le minimum : acceptée → cancelled_pro, en attente → declined',
   $$SELECT pg_temp.df_bst('bk_k9_b') || '/' || pg_temp.df_bst('bk_k10_b')$$, 'cancelled_pro/declined');

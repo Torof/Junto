@@ -764,6 +764,9 @@ PERFORM set_config('junto.bypass_lock', 'true', true);
 INSERT INTO public.bookings (offering_id, pro_id, client_id, day, period, party_size, status)
 VALUES (pg_temp.id('pc_off'), pg_temp.id('pc_pro'), pg_temp.id('pc_c1'), current_date - 7, 'am', 1, 'accepted');
 PERFORM set_config('junto.bypass_lock', 'false', true);
+-- 00580 (CLIENT-1) : le fichier est déjà dans le stockage, envoyé par le contributeur.
+INSERT INTO storage.objects (bucket_id, name, owner_id)
+VALUES ('pro-photos', pg_temp.get('pc_c1') || '/community/' || pg_temp.get('pc_pro') || '/c.jpg', pg_temp.get('pc_c1'));
 PERFORM pg_temp.as_('pc_c1');
 PERFORM pg_temp.put('pc_ph', pg_temp.ok('D3 pc_c1 ajoute une photo communautaire', format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pc_pro'),
   pg_temp.host() || '/storage/v1/object/public/pro-photos/' || pg_temp.get('pc_c1') || '/community/' || pg_temp.get('pc_pro') || '/c.jpg')));

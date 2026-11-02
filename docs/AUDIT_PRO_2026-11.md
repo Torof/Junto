@@ -60,7 +60,7 @@ CLIENT-1/2 (place des participants dans les fiches), CLIENT-3 (cache des places)
 
 ## Deuxième tour (2026-11-02, après 00578-00579)
 
-Même méthode : 6 relecteurs (réservations, dates fixes et minimum, page pro, calendrier, droits, app), chaque point vérifié par un second agent sur la base, en transaction annulée. 23 points, 19 une fois les doublons retirés, aucun critique ni grave ; trois correctifs du premier tour étaient incomplets (ordre des verrous, fichiers des photos de la communauté, signalement sans entrée dans l'app). Recommandations et chaînes validées par Scott le 2026-11-02 ; **tout est corrigé** par la migration 00580, les fonctions `calendar-import` et `storage-cleanup` et l'app (preview).
+Même méthode : 6 relecteurs (réservations, dates fixes et minimum, page pro, calendrier, droits, app), chaque point vérifié par un second agent sur la base, en transaction annulée. 23 points, 19 une fois les doublons retirés, aucun critique ni grave ; trois correctifs du premier tour étaient incomplets (ordre des verrous, fichiers des photos de la communauté, signalement sans entrée dans l'app). Recommandations et chaînes validées par Scott le 2026-11-02 ; **tout est corrigé** par la migration 00580, les fonctions `calendar-import` et `storage-cleanup` et l'app (preview). Tests : `supabase/tests/22_pro_audit2` (124 vérifications) + 00, 13, 17 ; suite complète 4 139 vérifications, 0 échec, seule faille connue restante CALENDAR-7-PLATFORM. BOOKINGS-R1/R2 (courses) sont couverts par un contrôle de l'ordre des verrous dans le code des fonctions.
 
 | Id | Gravité | Point | Correctif |
 |---|---|---|---|
