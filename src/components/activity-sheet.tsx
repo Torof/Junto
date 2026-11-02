@@ -19,6 +19,7 @@ import { sportCategoryColor } from '@/utils/sport-category-color';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getRemainingPlaces } from '@/utils/activity-status';
 import { SportIcon } from '@/components/sport-icon';
+import { formatInterval, multiDayRange } from '@/utils/activity-time';
 
 // UA (peer outing) drawer — a pure TEASER (Scott, 2026-07-05): what catches the
 // eye + what decides "do I want to know more", nothing else. Joining and the
@@ -31,17 +32,6 @@ import { SportIcon } from '@/components/sport-icon';
 // (enableDynamicSizing) instead of the PP/RA two-stage collapse; same modal
 // shell (present/dismiss, lip border, sheet shadow, above the tab bar).
 
-// Interval → "3h" / "3h30" / "45min" (same parsing as the RA's duration).
-function formatDuration(d: string | null): string | null {
-  if (!d) return null;
-  const match = d.match(/^(\d+):(\d+):/);
-  if (!match) return d;
-  const h = parseInt(match[1] ?? '0', 10);
-  const m = parseInt(match[2] ?? '0', 10);
-  if (h > 0 && m > 0) return `${h}h${m.toString().padStart(2, '0')}`;
-  if (h > 0) return `${h}h`;
-  return `${m}min`;
-}
 
 interface Props {
   // The selected activity, or null. Always mounted; present()/dismiss() follow.
@@ -134,14 +124,15 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
             <View style={styles.infoRow}>
               <Calendar size={15} color={accent} strokeWidth={2.2} />
               <AppText style={styles.infoText}>
-                {dayjs(activity.starts_at).locale(i18n.language).format(t('format.dateTimeAt', { defaultValue: 'ddd D MMM [à] H[h]mm' }))}
+                {multiDayRange(activity.starts_at, activity.duration)
+                  ?? dayjs(activity.starts_at).locale(i18n.language).format(t('format.dateTimeAt', { defaultValue: 'ddd D MMM [à] H[h]mm' }))}
               </AppText>
             </View>
 
-            {formatDuration(activity.duration) ? (
+            {formatInterval(activity.duration) ? (
               <View style={styles.infoRow}>
                 <Clock size={15} color={accent} strokeWidth={2.2} />
-                <AppText style={styles.infoText}>{formatDuration(activity.duration)}</AppText>
+                <AppText style={styles.infoText}>{formatInterval(activity.duration)}</AppText>
               </View>
             ) : null}
 

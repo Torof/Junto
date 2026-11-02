@@ -62,6 +62,7 @@ import { SportIcon } from '@/components/sport-icon';
 import { ChatBackdrop } from '@/components/chat-backdrop';
 import { formatMeetingLabel, MEETING_LABEL_INLINE_MAX } from '@/utils/meeting-label';
 import { isMockedFix } from '@/utils/mock-location';
+import { formatDurationMs, multiDayRange } from '@/utils/activity-time';
 
 export type ActivityTab = 'info' | 'transport' | 'gear' | 'chat';
 
@@ -323,15 +324,8 @@ export function ActivityDetail({
     });
   }, [navigation, isCreator, canShare, isPrivateLink, timeStatus, statusColor, activity.visibility, activity.id, t, handleShare, colors, styles]);
 
-  const formatDuration = (d: string): string => {
-    const ms = parsePgIntervalMs(d);
-    const totalMinutes = Math.round(ms / 60000);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    if (hours === 0) return `${minutes}min`;
-    if (minutes === 0) return `${hours}h`;
-    return `${hours}h${String(minutes).padStart(2, '0')}`;
-  };
+  // « 3h30 », or « 2 j 4h » for a multi-day outing.
+  const formatDuration = (d: string): string => formatDurationMs(parsePgIntervalMs(d));
 
   const startsAtMs = new Date(activity.starts_at).getTime();
   const durationMs = parsePgIntervalMs(activity.duration);
@@ -955,7 +949,8 @@ export function ActivityDetail({
                   <View style={styles.heroMetaPill}>
                     <Calendar size={12} color="#FFFFFF" strokeWidth={2.6} />
                     <AppText style={styles.heroMetaText} numberOfLines={1}>
-                      {dayjs(activity.starts_at).locale(i18n.language).format(t('format.dateTimeAt', { defaultValue: 'ddd D MMM [à] H[h]mm' }))}
+                      {multiDayRange(activity.starts_at, activity.duration)
+                        ?? dayjs(activity.starts_at).locale(i18n.language).format(t('format.dateTimeAt', { defaultValue: 'ddd D MMM [à] H[h]mm' }))}
                     </AppText>
                   </View>
                   <View style={styles.heroMetaPill}>

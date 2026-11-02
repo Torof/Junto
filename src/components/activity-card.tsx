@@ -13,6 +13,7 @@ import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces, type ActivityTimeStatus } from '@/utils/activity-status';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { SportIcon } from '@/components/sport-icon';
+import { multiDayRange } from '@/utils/activity-time';
 
 interface ActivityCardProps {
   activity: NearbyActivity;
@@ -43,7 +44,9 @@ export function ActivityCard({ activity, onPress, distanceKm, showCreator = true
   const isFull = remaining <= 0;
   const sportAccent = sportCategoryColor(activity.sport_category, colors.cta);
 
-  const datePart = dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm');
+  // Multi-day outing → « sam. 8 → lun. 10 nov. » (Scott 2026-11-02).
+  const datePart = multiDayRange(activity.starts_at, activity.duration)
+    ?? dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm');
 
   return (
     <Pressable

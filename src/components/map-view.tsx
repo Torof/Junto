@@ -27,6 +27,7 @@ import i18n from '@/i18n';
 import 'dayjs/locale/fr';
 
 import { useMapStyleStore, MAP_STYLE_URLS, MAP_STYLE_JSONS, MAP_STYLE_ATTRIBUTIONS, type MapStyleScope } from '@/store/map-style-store';
+import { multiDayRange } from '@/utils/activity-time';
 
 const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -460,7 +461,7 @@ export function JuntoMapView({
         if (!a) return [];
         const d = dayjs(a.starts_at);
         name = a.title;
-        d2 = `${d.format('ddd D MMM')} à ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}`;
+        d2 = multiDayRange(a.starts_at, a.duration) ?? `${d.format('ddd D MMM')} à ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}`;
         d2icon = 'cal';
         lvl = formatDifficultySignal(a.sport_key, a.level, a.distance_km, a.elevation_gain_m, a.level_max);
         lvlicon = lvl ? 'lvl' : '';
@@ -601,7 +602,7 @@ export function JuntoMapView({
       const a = activityMap.get(pinProps.id); if (!a) return null;
       const d = dayjs(a.starts_at);
       const lvl = formatDifficultySignal(a.sport_key, a.level, a.distance_km, a.elevation_gain_m, a.level_max);
-      const lines: FanLine[] = [{ icon: 'cal', text: `${d.format('ddd D MMM')} à ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}` }];
+      const lines: FanLine[] = [{ icon: 'cal', text: multiDayRange(a.starts_at, a.duration) ?? `${d.format('ddd D MMM')} à ${d.minute() === 0 ? d.format('H[h]') : d.format('H[h]mm')}` }];
       if (lvl) lines.push({ icon: 'lvl', text: lvl });
       return { name: a.title, lines, color: SPORT_CATEGORY_COLORS[a.sport_category] ?? colors.cta };
     }

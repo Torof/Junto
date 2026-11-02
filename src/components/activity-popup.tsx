@@ -12,6 +12,7 @@ import { type NearbyActivity } from '@/services/activity-service';
 import { formatDifficultySignal } from '@/constants/sport-levels';
 import { getRemainingPlaces } from '@/utils/activity-status';
 import { sportCategoryColor } from '@/utils/sport-category-color';
+import { multiDayRange } from '@/utils/activity-time';
 
 interface ActivityPopupProps {
   activity: NearbyActivity;
@@ -56,7 +57,8 @@ export function ActivityPopup({ activity, onPress }: ActivityPopupProps) {
       <View style={styles.row}>
         <Calendar size={12} color={colors.textPrimary} strokeWidth={2} />
         <AppText style={styles.value}>
-          {dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
+          {multiDayRange(activity.starts_at, activity.duration)
+            ?? dayjs(activity.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')}
         </AppText>
       </View>
 
