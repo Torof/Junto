@@ -1,6 +1,7 @@
-// Edge function: reads each pro's imported calendar (its secret iCal address,
+// Edge function: reads a pro's imported calendar (its secret iCal address,
 // mig 00568) and turns it into busy half-days — nothing else is kept, never a
-// title. Called every 15 min by pg_cron (private.trigger_calendar_import).
+// title. pg_cron (private.trigger_calendar_import) calls it every 15 min, ONE
+// call per pro (00578): a heavy or broken calendar never stops the others.
 // Deployment: supabase functions deploy calendar-import --no-verify-jwt
 //
 // Auth: shared secret header `x-junto-push-secret` (same as send-push).
@@ -19,7 +20,12 @@ const SECRET = Deno.env.get('PUSH_WEBHOOK_SECRET');
 const HOST_OK = /^https:\/\/(calendar\.google\.com|p[0-9]+-caldav\.icloud\.com|outlook\.office365\.com|outlook\.live\.com)\//;
 const MAX_BYTES = 2 * 1024 * 1024;
 const HORIZON_DAYS = 190;
-const MAX_OCCURRENCES = 3000;
+const MAX_OCCURRENCES = 3000;   // occurrences inside the window, per event
+// Work budget per calendar (00578): a small crafted file must not burn the
+// worker's CPU. Over budget → 'too_large', shown to the pro, never a silent drop.
+const MAX_EVENTS = 5000;
+const MAX_STEPS = 25_000;          // days walked + occurrences in the window
+const MAX_SKIPPED = 300_000;       // cheap steps over occurrences before the window
 
 function constantTimeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -64,27 +70,41 @@ type Slot = { day: string; period: 'am' | 'pm' };
 
 function busySlots(ics: string, today: string): Slot[] {
   const comp = new ICAL.Component(ICAL.parse(ics));
-  for (const tz of comp.getAllSubcomponents('vtimezone')) ICAL.TimezoneService.register(tz);
+  // The timezone registry is global to the worker: start clean, and never let
+  // a feed redefine UTC (one pro's file must not shift another's hours).
+  ICAL.TimezoneService.reset();
+  for (const tz of comp.getAllSubcomponents('vtimezone')) {
+    const id = String(tz.getFirstPropertyValue('tzid') ?? '').toUpperCase();
+    if (id && !['UTC', 'Z', 'GMT', 'ETC/UTC'].includes(id)) ICAL.TimezoneService.register(tz);
+  }
   const last = addDays(today, HORIZON_DAYS);
   const windowStart = parisToUtc(today, 0);
   const windowEnd = parisToUtc(last, 23);
   const out = new Set<string>();
+  let steps = 0;
+  let skipped = 0;
+  const step = () => { if (++steps > MAX_STEPS) throw new Error('too large'); };
 
+  // Days walked only inside [today, last]: an event spanning a century costs
+  // the window, not 36 000 iterations.
   const add = (start: IcalTime, end: IcalTime | null) => {
     if (start.isDate) {
       // All-day: [start, end) days, both half-days.
       const first = start.toString().slice(0, 10);
       const stop = end ? end.toString().slice(0, 10) : addDays(first, 1);
-      for (let d = first; d < stop && d <= last; d = addDays(d, 1)) {
-        if (d >= today) { out.add(`${d}|am`); out.add(`${d}|pm`); }
+      for (let d = first > today ? first : today; d < stop && d <= last; d = addDays(d, 1)) {
+        step();
+        out.add(`${d}|am`); out.add(`${d}|pm`);
       }
       return;
     }
     const s = start.toJSDate();
     const e = end ? end.toJSDate() : new Date(s.getTime() + 60 * 60 * 1000);
     if (e <= windowStart || s >= windowEnd || e <= s) return;
-    for (let d = parisDay(s); d <= parisDay(e) && d <= last; d = addDays(d, 1)) {
-      if (d < today) continue;
+    const sDay = parisDay(s);
+    const eDay = parisDay(e);
+    for (let d = sDay > today ? sDay : today; d <= eDay && d <= last; d = addDays(d, 1)) {
+      step();
       for (const period of ['am', 'pm'] as const) {
         const [h0, h1] = HALF_DAYS[period];
         if (s < parisToUtc(d, h1) && e > parisToUtc(d, h0)) out.add(`${d}|${period}`);
@@ -98,6 +118,7 @@ function busySlots(ics: string, today: string): Slot[] {
     || String(c.getFirstPropertyValue('uid') ?? '').endsWith('@askandgo.io');
 
   const vevents = comp.getAllSubcomponents('vevent');
+  if (vevents.length > MAX_EVENTS) throw new Error('too large');
   const exceptions = new Map<string, IcalComponent[]>();
   const masters: IcalComponent[] = [];
   for (const v of vevents) {
@@ -116,10 +137,23 @@ function busySlots(ics: string, today: string): Slot[] {
     if (ev.isRecurring() && !m.hasProperty('recurrence-id')) {
       for (const x of exceptions.get(ev.uid) ?? []) ev.relateException(x);
       const it = ev.iterator();
+      // Occurrences long before the window are skipped cheaply and do not
+      // count toward the cap: a daily event started in 2015 still marks
+      // today's half-days.
+      const durMs = ev.duration ? ev.duration.toSeconds() * 1000 : 0;
+      const skipBefore = windowStart.getTime() - durMs - 2 * 86_400_000;  // margin for moved exceptions
       let n = 0;
-      for (let next = it.next(); next && n < MAX_OCCURRENCES; next = it.next(), n++) {
-        if (next.toJSDate() > windowEnd) break;
+      for (let next = it.next(); next && n < MAX_OCCURRENCES; next = it.next()) {
+        const at = next.toJSDate();
+        if (at.getTime() < skipBefore) {
+          if (++skipped > MAX_SKIPPED) throw new Error('too large');
+          continue;
+        }
+        step();
+        if (at > windowEnd) break;
         const det = ev.getOccurrenceDetails(next);
+        if (det.endDate.toJSDate() <= windowStart) continue;
+        n++;
         if (det.item.component !== m && skip(det.item.component)) continue;
         add(det.startDate, det.endDate);
       }
@@ -135,6 +169,11 @@ Deno.serve(async (req) => {
   const provided = req.headers.get('x-junto-push-secret') ?? '';
   if (!SECRET || !constantTimeEqual(provided, SECRET)) return new Response('Forbidden', { status: 403 });
 
+  // One pro per call (00578); its address is read here, never from the body.
+  const body = await req.json().catch(() => ({})) as { pro_id?: unknown };
+  const proId = typeof body.pro_id === 'string' ? body.pro_id : null;
+  if (!proId) return new Response('Bad request', { status: 400 });
+
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   const { data: targets, error } = await supabase.rpc('calendar_import_targets');
   if (error) return new Response('Unavailable', { status: 503 });
@@ -142,10 +181,12 @@ Deno.serve(async (req) => {
   const today = parisDay(new Date());
   let ok = 0;
   let failed = 0;
-  for (const t of (targets ?? []) as { pro_id: string; import_url: string }[]) {
+  for (const t of ((targets ?? []) as { pro_id: string; import_url: string }[]).filter((x) => x.pro_id === proId)) {
     try {
       const slots = busySlots(await fetchCalendar(t.import_url), today);
-      const { error: e } = await supabase.rpc('calendar_import_apply', { p_pro: t.pro_id, p_slots: slots, p_error: null });
+      // The address read goes back with the result: if the pro changed it
+      // meanwhile, the stale result is ignored.
+      const { error: e } = await supabase.rpc('calendar_import_apply', { p_pro: t.pro_id, p_slots: slots, p_error: null, p_url: t.import_url });
       if (e) throw new Error('apply');
       ok++;
     } catch (e) {
@@ -155,7 +196,7 @@ Deno.serve(async (req) => {
       const reason = msg.startsWith('http 404') || msg.startsWith('http 403') || msg.startsWith('http 401')
         ? 'link_invalid'
         : msg === 'too large' ? 'too_large' : msg === 'apply' ? 'internal' : 'unreachable';
-      await supabase.rpc('calendar_import_apply', { p_pro: t.pro_id, p_slots: null, p_error: reason });
+      await supabase.rpc('calendar_import_apply', { p_pro: t.pro_id, p_slots: null, p_error: reason, p_url: t.import_url });
     }
   }
   console.log(`calendar-import: ${ok} ok, ${failed} failed`);

@@ -26,12 +26,21 @@ const text = (v: string) =>
   v.replace(/[\u0000-\u001f]/g, ' ').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,');
 
 // Fold lines at 74 chars (continuation lines start with a space).
+// RFC 5545: at most 75 octets per line, folded between code points only (an
+// emoji or an accented name is never cut in half).
+const encoder = new TextEncoder();
 function fold(line: string): string {
   const out: string[] = [];
-  let rest = line;
-  while (rest.length > 74) { out.push(rest.slice(0, 74)); rest = ' ' + rest.slice(74); }
-  out.push(rest);
-  return out.join('\r\n');
+  let cur = '';
+  let bytes = 0;
+  for (const ch of line) {
+    const n = encoder.encode(ch).length;
+    if (bytes + n > (out.length === 0 ? 75 : 74)) { out.push(cur); cur = ''; bytes = 0; }
+    cur += ch;
+    bytes += n;
+  }
+  out.push(cur);
+  return out.join('\r\n ');
 }
 
 Deno.serve(async (req) => {
