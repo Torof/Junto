@@ -138,7 +138,7 @@ Every public table has FORCE RLS. A client write needs a table/column grant AND 
 - `pro_profile_photos` / `pro_offering_photos` / `pro_community_photos` — `add/remove/reorder_*` RPCs
 - `pro_reviews` / `offering_reviews` — `create/update/delete/reply_to_*_review`
 - `pro_availabilities` — `set_pro_availability(_bulk)`
-- `bookings` — `create_booking`, `create_manual_booking`, accept/decline/cancel RPCs, `cancel_outing`, `set_booking_participant_info`, `join_pro_session`, `cancel_pro_session`, `auto_cancel_short_outings` (cron)
+- `bookings` — `create_booking`, `create_manual_booking`, accept/decline/cancel RPCs, `cancel_outing`, `set_booking_participant_info`, `join_pro_session`, `cancel_pro_session`, `auto_cancel_short_outings` (cron), `cascade_block_cleanup` (block trigger: pending requests withdrawn)
 - `pro_sessions` (fixed dates; SELECT revoked too — `get_offering_sessions` / `get_my_sessions`) — `create/update/cancel_pro_session`
 - `users` (INSERT) — `handle_new_user` trigger + `ensure_user_row`; `notifications` (INSERT, DELETE) — `create_notification` + `notify_*`; `reports` (INSERT) — `create_report`, DELETE never; `activity_alerts` (INSERT/UPDATE) — `create_alert`
 - Internal tables, no client grant: `outing_confirmations` (`confirm_outing` + minimum reached), `rate_events`, `late_cancels`, `invite_grants`, `invitation_declines`, `conversation_departures`, `message_original_content`, `contact_qr_tokens`, `contact_qr_scans`, `contact_removal_archive`, `map_broadcasts`, `snap_trail_calls`, `trace_elevation_calls`, `admin_actions`, `banned_email_hashes`. No write policy: `app_config` (only `admin_set_demo_mode`), `gear_catalog` (migrations only)

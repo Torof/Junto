@@ -17,7 +17,7 @@ Recommandations validées par Scott le 2026-11-02. **Statut 2026-11-02 : tout es
 | SESSIONS-4 | faible | Un compte peut remplir une date fixe (taille de groupe déclarée) | ≤ 6 personnes par inscription, ≤ 3 inscriptions à venir par pro | 19 |
 | SESSIONS-5 | faible | Résa manuelle rattachée à une date en cours d'annulation (course) | Relire le statut de la date sous verrou | commentaire (course) |
 | SESSIONS-6 | faible | La suspension d'un pro laisse ses dates fixes et confirmations | Fermer dates + confirmations, plages commencées incluses | 19 |
-| SESSIONS-3 / BOOKINGS-2 / BOOKINGS-3 | faible | Ordre des verrous inversé → interblocage possible (cron du jour annulé en entier) | Même ordre partout ; cron sortie par sortie | commentaires (course) |
+| SESSIONS-3 / BOOKINGS-2 / BOOKINGS-3 | faible | Ordre des verrous inversé → interblocage possible (cron du jour annulé en entier) | Même ordre partout ; cron sortie par sortie — incomplet en 00578, terminé en 00580 (2ᵉ tour, BOOKINGS-R1) | commentaires (course) |
 | BOOKINGS-1 | moyenne | Le pro peut écrire indéfiniment à ses anciens clients | Refus 7 jours après la fin (`junto.outing_closed`) ; demande en attente passée refusée | 17 |
 | BOOKINGS-4 | faible | Notification d'annulation nommant un client bloqué | Notification sans nom | 17 |
 | BOOKINGS-5 | doc | Le motif d'annulation apparaît dans l'aperçu du push (comme tout message privé) | Corriger SECURITY.md | — |
@@ -57,3 +57,32 @@ CLIENT-1/2 (place des participants dans les fiches), CLIENT-3 (cache des places)
 | T-SESSION-CONF | Les confirmations d'une date annulée ne sont jamais supprimées (sans effet aujourd'hui) | Supprimer à l'annulation | — |
 | T-BYPASS | `cascade_block_cleanup` laisse `junto.bypass_lock` actif jusqu'à la fin de la transaction | Le refermer | — |
 | T-WORDING | Refus / annulation d'une résa sur plusieurs jours : seul le jour de départ est cité | Citer la plage | — |
+
+## Deuxième tour (2026-11-02, après 00578-00579)
+
+Même méthode : 6 relecteurs (réservations, dates fixes et minimum, page pro, calendrier, droits, app), chaque point vérifié par un second agent sur la base, en transaction annulée. 23 points, 19 une fois les doublons retirés, aucun critique ni grave ; trois correctifs du premier tour étaient incomplets (ordre des verrous, fichiers des photos de la communauté, signalement sans entrée dans l'app). Recommandations et chaînes validées par Scott le 2026-11-02 ; **tout est corrigé** par la migration 00580, les fonctions `calendar-import` et `storage-cleanup` et l'app (preview).
+
+| Id | Gravité | Point | Correctif |
+|---|---|---|---|
+| SESSIONS-A | moyenne | « Maintenir » perdu quand le minimum était déjà atteint, puis sortie annulée au premier désistement | « Maintenir » l'emporte sur « minimum atteint » |
+| SESSIONS-B | faible | Désistement après le rappel J-2 : confirmation retirée sans prévenir, annulation auto le lendemain | Après le rappel J-2, un « Départ confirmé » annoncé tient |
+| SESSIONS-C | faible | Retiré d'une date par le pro, le client pouvait se réinscrire aussitôt | Refus sur cette même date |
+| SESSIONS-D | faible | Date fixe déplacée : ancienne confirmation gardée | Supprimée au déplacement (reprise si la nouvelle date est après le rappel J-2) |
+| BOOKINGS-R1 / SESSIONS-E | faible | Ordre des verrous encore inversé (`cancel_outing`, `admin_suspend_user`) | Date avant créneau ; dates avant réservations (course, non testable) |
+| BOOKINGS-R2 | faible | Désistement et acceptation simultanés : sortie confirmée sous le minimum | Désistement sous le verrou de la sortie (course, non testable) |
+| BOOKINGS-R3 | faible | Message ou nom fait de caractères invisibles → erreur brute | Caractères invisibles retirés avant les contrôles |
+| BOOKINGS-R4 | faible | Blocage sans effet sur les réservations (demande en attente visible, notifications nommant le pro) | Demandes en attente retirées ; notifications sans nom entre une paire bloquée |
+| VITRINE-5 | moyenne | Suppression d'une offre / départ du statut pro pendant une sortie de plusieurs jours en cours | Garde-fous sur le dernier jour de la sortie |
+| VITRINE-6 | faible | Signalement des photos de la communauté sans entrée dans l'app | « Signaler » sur ces photos ; retrait et suspension du contributeur en modération |
+| VITRINE-7 / GRANTS-1 | faible | Fichier d'une photo retirée jamais effacé (même après modération) | Nettoyage horaire des fichiers orphelins (`storage-cleanup`) |
+| CLIENT-1 | faible | Photo enregistrée avant que le fichier existe, remplie plus tard | Le fichier doit exister au moment de l'ajout |
+| CLIENT-3 | faible | « Ajouter » montré à tous, envoi puis échec avec un message d'avis | Bouton réservé aux clients éligibles (`can_add_community_photo`), message propre |
+| CALENDAR-8 | faible | Fuseau horaire piégé contournant le budget de l'import | Fuseaux ordinaires seulement ; budget de temps 800 ms |
+| CLIENT-2 | moyenne | Double appui sur la réservation manuelle → doublon | Verrou d'envoi dans l'app |
+| CLIENT-4 | faible | Inscription à une date fixe : plus de 6 personnes proposées | Stepper limité à 6, message dédié (`junto.session_group_cap`) |
+| CLIENT-5 | faible | Créneaux de la page d'offre faux pour les sorties sur plusieurs jours | Jours de départ possibles |
+| CLIENT-6 | faible | Motif de refus de candidature absent de l'Espace pro | Lu via `get_my_pro_application` |
+| GRANTS-2 | faible | Droit de lecture visiteur restant sur les colonnes de `activities` | Révoqué ; test socle |
+| GRANTS-3 | faible | Fonctions de `private` = révélateurs si le schéma était exposé | Règle stricte documentée (SECURITY.md) |
+| GRANTS-4 | doc | SECURITY.md décrivait des droits périmés | Mis à jour |
+
