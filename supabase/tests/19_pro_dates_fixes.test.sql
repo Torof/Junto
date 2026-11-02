@@ -10,7 +10,7 @@
 -- les correctifs SESSIONS-2a (une résa acceptée / une date postée après le rappel J-2 vaut
 -- « maintenue ») ne changent pas le sens de ces contrôles une fois livrés.
 --
--- Trous connus (audit 2026-11, cible validée, correctifs pas encore livrés) :
+-- Trous de l'audit 2026-11 — SESSIONS-1/2/4/6 corrigés en 00578 (contrôles désormais ordinaires) :
 --   SESSIONS-1 / GRANTS-1  la confirmation « minimum » ne retombe jamais (annulation, baisse du minimum)
 --   SESSIONS-2             (a) acceptée / ajoutée / postée après le rappel J-2 = maintenue (raison pro) ;
 --                          (b) l'annulation auto devient un choix : pro_offerings.auto_cancel (défaut false)
@@ -110,7 +110,7 @@ EXECUTE $p$CREATE FUNCTION pg_temp.df_n(p_user text, p_type text, p_booking text
 EXECUTE $p$CREATE FUNCTION pg_temp.df_dm(p_a text, p_b text) RETURNS uuid
   LANGUAGE sql SECURITY DEFINER AS $b$ SELECT id FROM public.conversations WHERE type = 'dm'
     AND user_1 = LEAST(pg_temp.id(p_a), pg_temp.id(p_b)) AND user_2 = GREATEST(pg_temp.id(p_a), pg_temp.id(p_b)) $b$$p$;
--- Opt-in d'annulation auto (SESSIONS-2b) : sans effet tant que la colonne n'existe pas.
+-- Opt-in d'annulation auto (SESSIONS-2b, 00578) posé en base ; la RPC set_offering_auto_cancel est testée en DF11b.
 EXECUTE $p$CREATE FUNCTION pg_temp.df_optin(p_off text) RETURNS void
   LANGUAGE plpgsql SECURITY DEFINER AS $b$
   BEGIN
@@ -406,14 +406,20 @@ PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.as_('df_cA');
 PERFORM pg_temp.denied('DF4 5 soumissions atteintes : refusé', pg_temp.df_join('sA', 1), 'junto.booking_cooldown');
 -- Une demande déclinée par la date (même offre, même départ) est la ligne réactivée.
-PERFORM pg_temp.as_('df_cP1');
-PERFORM pg_temp.denied('DF4 demande déclinée il y a moins d''1 h : cooldown', pg_temp.df_join('sD', 1), 'junto.booking_cooldown');
+-- 00578 (T-COOLDOWN) : une ligne fermée par le PRO (déclinée, annulée par le pro, expirée) n'est pas une
+-- resoumission du client : pas de délai d'1 h, et elle ne compte pas dans le plafond de 5 soumissions.
 PERFORM pg_temp.as_('db');
-PERFORM set_config('junto.bypass_lock', 'true', true);
-UPDATE public.bookings SET last_submitted_at = now() - INTERVAL '2 hours' WHERE id = pg_temp.id('bk_p1_35');
-PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.put('p1_cnt', (SELECT submitted_count::text FROM public.bookings WHERE id = pg_temp.id('bk_p1_35')));
+PERFORM pg_temp.eq('DF4 (fixture) la demande déclinée date de moins d''1 h',
+  $$SELECT (last_submitted_at > now() - INTERVAL '1 hour')::text FROM public.bookings WHERE id = pg_temp.id('bk_p1_35')$$, 'true');
 PERFORM pg_temp.as_('df_cP1');
-PERFORM pg_temp.eq('DF4 l''ancienne demande devient l''inscription', pg_temp.df_join('sD', 1), pg_temp.get('bk_p1_35'));
+PERFORM pg_temp.eq('DF4 demande déclinée par le pro il y a moins d''1 h : pas de délai, l''ancienne demande devient l''inscription',
+  pg_temp.df_join('sD', 1), pg_temp.get('bk_p1_35'));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('DF4 réactivation d''une ligne déclinée : pas comptée comme soumission',
+  $$SELECT submitted_count::text FROM public.bookings WHERE id = pg_temp.id('bk_p1_35')$$, pg_temp.get('p1_cnt'));
+PERFORM pg_temp.as_('df_cP1');
+PERFORM pg_temp.denied('DF4 déjà inscrit : refusé', pg_temp.df_join('sD', 1), 'junto.booking_already');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('DF4 réactivée : rattachée à la date, plage « sur demande » effacée',
   format($$SELECT status || '/' || (session_id = %L)::text || '/' || coalesce(end_day::text, 'NULL') FROM public.bookings WHERE id = %L$$, pg_temp.id('sD'), pg_temp.id('bk_p1_35')), 'accepted/true/NULL');
@@ -425,12 +431,13 @@ PERFORM pg_temp.put('sR2', pg_temp.ok('DF4 date R2', pg_temp.df_new('off_b', 61,
 PERFORM pg_temp.put('sR3', pg_temp.ok('DF4 date R3', pg_temp.df_new('off_b', 62, 'am', 62, 'am', 2)));
 PERFORM pg_temp.put('sR4', pg_temp.ok('DF4 date R4', pg_temp.df_new('off_b', 62, 'pm', 62, 'pm', 2)));
 PERFORM pg_temp.as_('df_cQ');
-PERFORM pg_temp.denied('DF4 un groupe de 7 sur une date de 10 est refusé', pg_temp.df_join('sQ', 7), 'junto.booking_party_size', 'SESSIONS-4');
+PERFORM pg_temp.denied('DF4 un groupe de 7 sur une date de 10 est refusé', pg_temp.df_join('sQ', 7), 'junto.booking_party_size');
+PERFORM pg_temp.ok('DF4 un groupe de 6 sur une date de 10 passe', pg_temp.df_join('sQ', 6));
 PERFORM pg_temp.as_('df_cS');
 PERFORM pg_temp.ok('DF4 inscription active n°1 chez ce pro', pg_temp.df_join('sR1', 1));
 PERFORM pg_temp.ok('DF4 inscription active n°2 chez ce pro', pg_temp.df_join('sR2', 1));
 PERFORM pg_temp.ok('DF4 inscription active n°3 chez ce pro', pg_temp.df_join('sR3', 1));
-PERFORM pg_temp.denied('DF4 une 4e inscription active à venir chez le même pro est refusée', pg_temp.df_join('sR4', 1), 'junto.session_signup_cap', 'SESSIONS-4');
+PERFORM pg_temp.denied('DF4 une 4e inscription active à venir chez le même pro est refusée', pg_temp.df_join('sR4', 1), 'junto.session_signup_cap');
 
 -- ═════ DF5 — get_offering_sessions ═════
 PERFORM pg_temp.as_('df_cB');
@@ -705,7 +712,7 @@ PERFORM pg_temp.ok('DF10 m8 annule', format($$SELECT public.cancel_booking(%L)::
 PERFORM pg_temp.eq('DF10 la confirmation « pro » reste', $$SELECT pg_temp.df_reason('o5d', 27, 'am', 'sP')$$, 'pro');
 PERFORM pg_temp.eq('DF10 get_my_bookings : rien pour une inscription annulée',
   format($$SELECT coalesce(min_participants::text, 'NULL') || '/' || coalesce(confirmed::text, 'NULL') FROM public.get_my_bookings() WHERE id = %L$$, pg_temp.id('bk_m8_sP')), 'NULL/NULL');
--- SESSIONS-1 : la confirmation « minimum » doit retomber ; baisser le minimum doit confirmer.
+-- SESSIONS-1 (corrigé 00578) : la confirmation « minimum » retombe ; baisser le minimum confirme.
 PERFORM pg_temp.as_('df_pro5');
 PERFORM pg_temp.put('sK', pg_temp.ok('DF10 date J+26 minimum 3', pg_temp.df_new('o5d', 26, 'am', 26, 'am', 6, 3)));
 PERFORM pg_temp.put('sL', pg_temp.ok('DF10 date J+25 minimum 5', pg_temp.df_new('o5d', 25, 'am', 25, 'am', 6, 5)));
@@ -713,27 +720,38 @@ PERFORM pg_temp.as_('df_m6');
 PERFORM pg_temp.put('bk_m6_sK', pg_temp.ok('DF10 m6 s''inscrit à 3', pg_temp.df_join('sK', 3)));
 PERFORM pg_temp.eq('DF10 confirmée par le minimum', $$SELECT pg_temp.df_conf('o5d', 26, 'am', 'sK')$$, 'true');
 PERFORM pg_temp.ok('DF10 m6 annule', format($$SELECT public.cancel_booking(%L)::text$$, pg_temp.id('bk_m6_sK')));
-PERFORM pg_temp.eq('DF10 sous le minimum après annulation : plus confirmée', $$SELECT pg_temp.df_conf('o5d', 26, 'am', 'sK')$$, 'false', 'SESSIONS-1');
+PERFORM pg_temp.eq('DF10 sous le minimum après annulation : plus confirmée', $$SELECT pg_temp.df_conf('o5d', 26, 'am', 'sK')$$, 'false');
 PERFORM pg_temp.as_('df_m7');
 PERFORM pg_temp.put('bk_m7_sK', pg_temp.ok('DF10 m7 s''inscrit à 1', pg_temp.df_join('sK', 1)));
 PERFORM pg_temp.eq('DF10 m7 ne lit pas « confirmée » (1/3)',
-  format($$SELECT outing_total || '/' || confirmed FROM public.get_my_bookings() WHERE id = %L$$, pg_temp.id('bk_m7_sK')), '1/false', 'SESSIONS-1');
+  format($$SELECT outing_total || '/' || confirmed FROM public.get_my_bookings() WHERE id = %L$$, pg_temp.id('bk_m7_sK')), '1/false');
 PERFORM pg_temp.as_('df_m5');
 PERFORM pg_temp.put('bk_m5_sL', pg_temp.ok('DF10 m5 s''inscrit à 2 (minimum 5)', pg_temp.df_join('sL', 2)));
 PERFORM pg_temp.as_('df_pro5');
 PERFORM pg_temp.ok('DF10 le pro baisse le minimum à 2', pg_temp.df_upd('sL', 25, 'am', 25, 'am', 6, 2));
-PERFORM pg_temp.eq('DF10 minimum baissé sous le total : confirmée', $$SELECT pg_temp.df_conf('o5d', 25, 'am', 'sL')$$, 'true', 'SESSIONS-1');
-PERFORM pg_temp.eq('DF10 minimum baissé : « Départ confirmé » au client', $$SELECT pg_temp.df_n('df_m5', 'booking_confirmed', 'bk_m5_sL')$$, '1', 'SESSIONS-1');
--- SESSIONS-2a : après le rappel J-2 (ici : pour demain), accepter / ajouter / poster = maintenir.
+PERFORM pg_temp.eq('DF10 minimum baissé sous le total : confirmée', $$SELECT pg_temp.df_conf('o5d', 25, 'am', 'sL')$$, 'true');
+PERFORM pg_temp.eq('DF10 minimum baissé : « Départ confirmé » au client', $$SELECT pg_temp.df_n('df_m5', 'booking_confirmed', 'bk_m5_sL')$$, '1');
+-- SESSIONS-2a (corrigé 00578) : après le rappel J-2 (ici : pour demain), accepter / ajouter / poster = maintenir.
 PERFORM pg_temp.as_('df_m6');
 PERFORM pg_temp.put('bk_m6_d1', pg_temp.ok('DF10 m6 demande pour demain (min 3)', pg_temp.df_req('o5min3', 1, 'am', 1)));
 PERFORM pg_temp.as_('df_pro5');
 PERFORM pg_temp.ok('DF10 le pro accepte pour demain', format($$SELECT public.accept_booking(%L)::text$$, pg_temp.id('bk_m6_d1')));
-PERFORM pg_temp.eq('DF10 acceptée après le rappel J-2 : maintenue (raison pro)', $$SELECT pg_temp.df_reason('o5min3', 1, 'am')$$, 'pro', 'SESSIONS-2');
+PERFORM pg_temp.eq('DF10 acceptée après le rappel J-2 : maintenue (raison pro)', $$SELECT pg_temp.df_reason('o5min3', 1, 'am')$$, 'pro');
 PERFORM pg_temp.ok('DF10 le pro ajoute un manuel pour demain (min 2)', pg_temp.df_manual('o5min', 1, 'am', 1));
-PERFORM pg_temp.eq('DF10 manuelle après le rappel J-2 : maintenue (raison pro)', $$SELECT pg_temp.df_reason('o5min', 1, 'am')$$, 'pro', 'SESSIONS-2');
+PERFORM pg_temp.eq('DF10 manuelle après le rappel J-2 : maintenue (raison pro)', $$SELECT pg_temp.df_reason('o5min', 1, 'am')$$, 'pro');
 PERFORM pg_temp.put('s_d1', pg_temp.ok('DF10 le pro poste une date pour demain après-midi (min 3)', pg_temp.df_new('o5d', 1, 'pm', 1, 'pm', 6, 3)));
-PERFORM pg_temp.eq('DF10 date postée après le rappel J-2 : maintenue (raison pro)', $$SELECT pg_temp.df_reason('o5d', 1, 'pm', 's_d1')$$, 'pro', 'SESSIONS-2');
+PERFORM pg_temp.eq('DF10 date postée après le rappel J-2 : maintenue (raison pro)', $$SELECT pg_temp.df_reason('o5d', 1, 'pm', 's_d1')$$, 'pro');
+-- T-SESSION-CONF (00578) : une date annulée perd ses confirmations.
+PERFORM pg_temp.put('sCx', pg_temp.ok('DF10 date J+28 minimum 3', pg_temp.df_new('o5d', 28, 'am', 28, 'am', 6, 3)));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.df_bk('bk_m4_sCx', 'o5d', 'df_m4', 28, 'am', 1, 'accepted', 'sCx');
+PERFORM pg_temp.as_('df_pro5');
+PERFORM pg_temp.eq('DF10 le pro maintient la date J+28 (1/3)', pg_temp.df_confirm('o5d', 28, 'am'), 'true');
+PERFORM pg_temp.eq('DF10 date J+28 confirmée (raison pro)', $$SELECT pg_temp.df_reason('o5d', 28, 'am', 'sCx')$$, 'pro');
+PERFORM pg_temp.ok('DF10 le pro annule la date J+28', format($$SELECT public.cancel_pro_session(%L)::text$$, pg_temp.id('sCx')));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('DF10 T-SESSION-CONF date annulée : plus aucune confirmation',
+  $$SELECT count(*)::text FROM private.outing_confirmations WHERE session_id = pg_temp.id('sCx')$$, '0');
 
 -- ═════ DF11 — Crons : annulation auto J-1, rappel J-2 (minimum) ═════
 -- Copies pg_temp des fonctions vivantes, porte horaire (9 h Paris) neutralisée.
@@ -818,7 +836,7 @@ PERFORM pg_temp.eq('DF11 minimum atteint : la date reste', $$SELECT pg_temp.df_s
 PERFORM pg_temp.eq('DF11 date maintenue par le pro : reste', $$SELECT pg_temp.df_sst('T3') || '/' || pg_temp.df_bst('bk_k3_T3')$$, 'scheduled/accepted');
 PERFORM pg_temp.eq('DF11 seulement demain : la date d''après-demain reste', $$SELECT pg_temp.df_sst('T4') || '/' || pg_temp.df_bst('bk_k4_T4')$$, 'scheduled/accepted');
 PERFORM pg_temp.eq('DF11 date sans minimum : reste', $$SELECT pg_temp.df_sst('T5') || '/' || pg_temp.df_bst('bk_k5_T5')$$, 'scheduled/accepted');
-PERFORM pg_temp.eq('DF11 SESSIONS-1 : inscription annulée → la date sous le minimum est annulée', $$SELECT pg_temp.df_sst('T6')$$, 'cancelled', 'SESSIONS-1');
+PERFORM pg_temp.eq('DF11 SESSIONS-1 : inscription annulée → la date sous le minimum est annulée', $$SELECT pg_temp.df_sst('T6')$$, 'cancelled');
 -- Sur demande.
 PERFORM pg_temp.eq('DF11 sur demande sous le minimum : acceptée → cancelled_pro, en attente → declined',
   $$SELECT pg_temp.df_bst('bk_k9_b') || '/' || pg_temp.df_bst('bk_k10_b')$$, 'cancelled_pro/declined');
@@ -831,20 +849,26 @@ PERFORM pg_temp.eq('DF11 sur demande sans minimum : reste', $$SELECT pg_temp.df_
 PERFORM pg_temp.eq('DF11 sur demande minimum atteint : reste', $$SELECT pg_temp.df_bst('bk_k9_d')$$, 'accepted');
 PERFORM pg_temp.eq('DF11 sur demande en attente seulement : rien ne bouge', $$SELECT pg_temp.df_bst('bk_k10_f')$$, 'pending');
 PERFORM pg_temp.eq('DF11 SESSIONS-2b : la colonne d''opt-in pro_offerings.auto_cancel existe',
-  $$SELECT count(*)::text FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'pro_offerings' AND column_name = 'auto_cancel'$$, '1', 'SESSIONS-2');
-PERFORM pg_temp.eq('DF11 SESSIONS-2b : sans opt-in, une offre avec minimum n''est pas annulée', $$SELECT pg_temp.df_bst('bk_k9_e')$$, 'accepted', 'SESSIONS-2');
+  $$SELECT count(*)::text FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'pro_offerings' AND column_name = 'auto_cancel'$$, '1');
+PERFORM pg_temp.eq('DF11 SESSIONS-2b : sans opt-in, une offre avec minimum n''est pas annulée', $$SELECT pg_temp.df_bst('bk_k9_e')$$, 'accepted');
 
 -- Rappel J-2 : partie minimum.
+-- 00578 (SESSIONS-2) : offre SANS opt-in (o4e) sous le minimum à J+2 → variante « minimum » (pas « annulée demain »).
+PERFORM pg_temp.df_bk('bk_k15_e2', 'o4e', 'df_k15', 2, 'am', 1, 'accepted');
 PERFORM pg_temp.ok('DF11 rappel J-2 (copie sans porte horaire)', $$SELECT pg_temp.nbf()::text$$);
-PERFORM pg_temp.eq('DF11 date J+2 sous le minimum : variante minimum, 1/3',
+PERFORM pg_temp.eq('DF11 sans opt-in, J+2 sous le minimum : variante minimum, sans annonce d''annulation',
+  $$SELECT string_agg((data->>'variant') || '/' || (data->'params'->>'total') || '/' || (data->'params'->>'min') || '/' || (body NOT LIKE '%annulée%')::text, ',') FROM public.notifications
+    WHERE user_id = pg_temp.id('df_pro4') AND type = 'booking_forms_missing' AND data->>'offering_id' = pg_temp.get('o4e')$$, 'minimum/1/3/true');
+-- Offres avec opt-in (pg_temp.df_optin) : variantes *_auto.
+PERFORM pg_temp.eq('DF11 opt-in, date J+2 sous le minimum : variante minimum_auto, 1/3',
   $$SELECT string_agg((data->>'variant') || '/' || (data->'params'->>'total') || '/' || (data->'params'->>'min'), ',') FROM public.notifications
-    WHERE user_id = pg_temp.id('df_pro4') AND type = 'booking_forms_missing' AND data->>'offering_id' = pg_temp.get('o4a') AND data->'params'->>'period' = 'am'$$, 'minimum/1/3');
+    WHERE user_id = pg_temp.id('df_pro4') AND type = 'booking_forms_missing' AND data->>'offering_id' = pg_temp.get('o4a') AND data->'params'->>'period' = 'am'$$, 'minimum_auto/1/3');
 PERFORM pg_temp.eq('DF11 date J+2 maintenue : pas signalée',
   $$SELECT count(*)::text FROM public.notifications
     WHERE user_id = pg_temp.id('df_pro4') AND type = 'booking_forms_missing' AND data->>'offering_id' = pg_temp.get('o4a') AND data->'params'->>'period' = 'pm'$$, '0');
-PERFORM pg_temp.eq('DF11 sur demande J+2 : fiches manquantes ET minimum → variante both',
+PERFORM pg_temp.eq('DF11 opt-in, sur demande J+2 : fiches manquantes ET minimum → variante both_auto',
   $$SELECT string_agg((data->>'variant') || '/' || (data->'params'->>'count') || '/' || (data->'params'->>'total') || '/' || (data->'params'->>'min'), ',') FROM public.notifications
-    WHERE user_id = pg_temp.id('df_pro4') AND type = 'booking_forms_missing' AND data->>'offering_id' = pg_temp.get('o4g')$$, 'both/1/1/3');
+    WHERE user_id = pg_temp.id('df_pro4') AND type = 'booking_forms_missing' AND data->>'offering_id' = pg_temp.get('o4g')$$, 'both_auto/1/1/3');
 
 -- ═════ DF12 — Pro suspendu (SESSIONS-6) ═════
 PERFORM pg_temp.as_('df_pro6');
@@ -861,11 +885,11 @@ PERFORM pg_temp.ok('DF12 l''admin suspend le pro6', format($$SELECT public.admin
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('DF12 résa future sur demande : cancelled_pro', $$SELECT pg_temp.df_bst('bk_k14_31')$$, 'cancelled_pro');
 PERFORM pg_temp.eq('DF12 inscription future à une date : cancelled_pro', $$SELECT pg_temp.df_bst('bk_k12_U1')$$, 'cancelled_pro');
-PERFORM pg_temp.eq('DF12 sa date à venir est annulée', $$SELECT pg_temp.df_sst('U1')$$, 'cancelled', 'SESSIONS-6');
-PERFORM pg_temp.eq('DF12 sa date en cours est annulée', $$SELECT pg_temp.df_sst('U2')$$, 'cancelled', 'SESSIONS-6');
+PERFORM pg_temp.eq('DF12 sa date à venir est annulée', $$SELECT pg_temp.df_sst('U1')$$, 'cancelled');
+PERFORM pg_temp.eq('DF12 sa date en cours est annulée', $$SELECT pg_temp.df_sst('U2')$$, 'cancelled');
 PERFORM pg_temp.eq('DF12 ses confirmations sont retirées',
-  $$SELECT count(*)::text FROM private.outing_confirmations WHERE pro_id = pg_temp.id('df_pro6')$$, '0', 'SESSIONS-6');
-PERFORM pg_temp.eq('DF12 une résa sur plusieurs jours commencée hier est annulée', $$SELECT pg_temp.df_bst('bk_k13_multi')$$, 'cancelled_pro', 'SESSIONS-6');
+  $$SELECT count(*)::text FROM private.outing_confirmations WHERE pro_id = pg_temp.id('df_pro6')$$, '0');
+PERFORM pg_temp.eq('DF12 une résa sur plusieurs jours commencée hier est annulée', $$SELECT pg_temp.df_bst('bk_k13_multi')$$, 'cancelled_pro');
 PERFORM pg_temp.as_('df_pro6');
 PERFORM pg_temp.denied('DF12 pro suspendu : création refusée', pg_temp.df_new('o6', 40, 'am', 40, 'am', 6), 'Operation not permitted');
 PERFORM pg_temp.denied('DF12 pro suspendu : modification refusée', pg_temp.df_upd('U1', 30, 'am', 30, 'am', 5), 'Operation not permitted');
@@ -877,6 +901,33 @@ PERFORM pg_temp.denied('DF12 pro suspendu : maintenir refusé', pg_temp.df_confi
 PERFORM pg_temp.as_('df_k15');
 PERFORM pg_temp.eq('DF12 les dates d''un pro suspendu ne sont plus listées', format($$SELECT count(*)::text FROM public.get_offering_sessions(%L)$$, pg_temp.id('o6')), '0');
 PERFORM pg_temp.denied('DF12 on ne s''inscrit pas chez un pro suspendu', pg_temp.df_join('U2', 1), 'Operation not permitted');
+
+-- ═════ DF11b — set_offering_auto_cancel (00578, SESSIONS-2b) ═════
+-- Chaîne : auth, assert_approved_pro (suspension incluse), valeur non nulle, offre du pro.
+PERFORM pg_temp.as_('anon');
+PERFORM pg_temp.denied('DF11b anon ne règle pas l''annulation auto', format($$SELECT public.set_offering_auto_cancel(%L, true)::text$$, pg_temp.id('o4e')));
+PERFORM pg_temp.as_('df_cA');
+PERFORM pg_temp.denied('DF11b un membre ne règle pas l''annulation auto', format($$SELECT public.set_offering_auto_cancel(%L, true)::text$$, pg_temp.id('o4e')), '^Operation not permitted$');
+PERFORM pg_temp.as_('df_cand');
+PERFORM pg_temp.denied('DF11b un candidat ne règle pas l''annulation auto', format($$SELECT public.set_offering_auto_cancel(%L, true)::text$$, pg_temp.id('o4e')), '^Operation not permitted$');
+PERFORM pg_temp.as_('df_pro5');
+PERFORM pg_temp.denied('DF11b l''offre d''un autre pro : refusé', format($$SELECT public.set_offering_auto_cancel(%L, true)::text$$, pg_temp.id('o4e')), '^Operation not permitted$');
+PERFORM pg_temp.as_('df_pro6');
+PERFORM pg_temp.denied('DF11b un pro suspendu : refusé', format($$SELECT public.set_offering_auto_cancel(%L, true)::text$$, pg_temp.id('o6')), '^Operation not permitted$');
+PERFORM pg_temp.as_('df_pro4');
+PERFORM pg_temp.denied('DF11b offre inexistante : même erreur', format($$SELECT public.set_offering_auto_cancel(%L, true)::text$$, gen_random_uuid()), '^Operation not permitted$');
+PERFORM pg_temp.denied('DF11b NULL refusé', format($$SELECT public.set_offering_auto_cancel(%L, NULL)::text$$, pg_temp.id('o4e')), '^Operation not permitted$');
+PERFORM pg_temp.denied('DF11b pas d''écriture directe de la colonne',
+  format($$UPDATE public.pro_offerings SET auto_cancel = true WHERE id = %L RETURNING 1$$, pg_temp.id('o4e')));
+PERFORM pg_temp.eq('DF11b par défaut : pas d''annulation auto', format($$SELECT auto_cancel::text FROM public.pro_offerings_with_coords WHERE id = %L$$, pg_temp.id('o4e')), 'false');
+PERFORM pg_temp.ok('DF11b le pro active l''annulation auto', format($$SELECT public.set_offering_auto_cancel(%L, true)::text$$, pg_temp.id('o4e')));
+PERFORM pg_temp.eq('DF11b le choix est relu (vue des offres)', format($$SELECT auto_cancel::text FROM public.pro_offerings_with_coords WHERE id = %L$$, pg_temp.id('o4e')), 'true');
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.ok('DF11b annulation auto relancée (copie sans porte horaire)', $$SELECT pg_temp.acs()::text$$);
+PERFORM pg_temp.eq('DF11b opt-in posé par la RPC : la sortie de demain sous le minimum est annulée', $$SELECT pg_temp.df_bst('bk_k9_e')$$, 'cancelled_pro');
+PERFORM pg_temp.as_('df_pro4');
+PERFORM pg_temp.ok('DF11b le pro désactive l''annulation auto', format($$SELECT public.set_offering_auto_cancel(%L, false)::text$$, pg_temp.id('o4e')));
+PERFORM pg_temp.eq('DF11b désactivée', format($$SELECT auto_cancel::text FROM public.pro_offerings WHERE id = %L$$, pg_temp.id('o4e')), 'false');
 
 -- ═════ DF14 — Plusieurs jours « sur demande » (00577) ═════
 -- set_offering_request_length.

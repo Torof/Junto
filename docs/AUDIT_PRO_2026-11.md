@@ -4,7 +4,9 @@ Audit de sécurité de la partie pro (migrations 00554-00577, fonctions serveur 
 
 Les identifiants sont ceux des tests (`known` dans `supabase/tests/*.test.sql`) : un test marqué `xfail` décrit le comportement voulu et échoue tant que le point n'est pas corrigé. Corrigé = le test passe → retirer l'identifiant du test et cocher ici.
 
-Recommandations validées par Scott le 2026-11-02 (points 1 à 4 du compte rendu) ; correctifs prévus dans la migration 00578.
+Recommandations validées par Scott le 2026-11-02. **Statut 2026-11-02 : tout est corrigé** (migrations 00578-00579, fonctions d'agenda redéployées, app en preview) sauf ce qui est marqué ci-dessous. Suite complète : 4 007 vérifications, 0 échec ; seule faille connue restante : CALENDAR-7-PLATFORM.
+
+**Restent ouverts** : CALENDAR-7 (schéma `net` propriété de Supabase — révocation sans effet de notre côté ; non exposé par l'API) ; VITRINE-2 (lot séparé, après B8) ; T-WORDING (libellé des notifications sur plusieurs jours) ; SESSIONS-3 / BOOKINGS-2 / BOOKINGS-3 / SESSIONS-5 corrigés dans le code mais non testables en un seul bloc (courses).
 
 ## Base de données
 

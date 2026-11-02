@@ -35,8 +35,7 @@ EXECUTE $p$CREATE FUNCTION pg_temp.d(p_days int) RETURNS date
 -- Un créneau JSON {day, period} à today + n jours.
 EXECUTE $p$CREATE FUNCTION pg_temp.ag_slot(p_days int, p_period text) RETURNS jsonb
   LANGUAGE sql AS $b$ SELECT jsonb_build_object('day', pg_temp.d(p_days)::text, 'period', p_period) $b$$p$;
--- CALENDAR-5 : calendar_import_apply avec l'adresse lue (4e paramètre). La
--- signature n'existe pas encore : l'appel échoue proprement (xfail). Rend le
+-- CALENDAR-5 (corrigé 00578) : calendar_import_apply(pro, créneaux, erreur, adresse lue). Rend le
 -- nombre de demi-journées occupées après l'appel.
 EXECUTE $p$CREATE FUNCTION pg_temp.ag_apply_read_url(p_label text, p_slots jsonb, p_url text) RETURNS text
   LANGUAGE plpgsql AS $b$
@@ -231,23 +230,31 @@ PERFORM pg_temp.as_('ag_url');
 PERFORM pg_temp.ok('AG5 7e changement accepté', $$SELECT public.set_calendar_import_url('https://calendar.google.com/calendar/ical/y/basic.ics')::text$$);
 PERFORM pg_temp.ok('AG5 8e changement accepté', $$SELECT public.set_calendar_import_url('https://calendar.google.com/calendar/ical/z/basic.ics')::text$$);
 PERFORM pg_temp.ok('AG5 9e changement accepté', $$SELECT public.set_calendar_import_url('https://calendar.google.com/calendar/ical/v/basic.ics')::text$$);
-PERFORM pg_temp.ok('AG5 10e changement (débranchement) accepté', $$SELECT public.set_calendar_import_url(NULL)::text$$);
-PERFORM pg_temp.denied('AG5 11e changement du jour refusé', $$SELECT public.set_calendar_import_url('https://calendar.google.com/calendar/ical/w/basic.ics')::text$$, 'junto.too_many_actions');
+-- 00578 (T-CAL-UNPLUG) : débrancher n'est jamais compté, seul poser une adresse l'est.
+PERFORM pg_temp.ok('AG5 débranchement accepté (non compté)', $$SELECT public.set_calendar_import_url(NULL)::text$$);
+PERFORM pg_temp.ok('AG5 10e changement accepté (le débranchement n''a pas compté)', $$SELECT public.set_calendar_import_url('https://calendar.google.com/calendar/ical/w/basic.ics')::text$$);
+PERFORM pg_temp.denied('AG5 11e changement du jour refusé', $$SELECT public.set_calendar_import_url('https://calendar.google.com/calendar/ical/u/basic.ics')::text$$, 'junto.too_many_actions');
+PERFORM pg_temp.ok('AG5 au plafond, débrancher reste possible', $$SELECT public.set_calendar_import_url(NULL)::text$$);
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('AG5 débranché au plafond : plus d''adresse',
+  format($$SELECT coalesce(import_url, 'null') FROM private.pro_calendar_links WHERE pro_id = %L$$, pg_temp.id('ag_url')), 'null');
 
 -- ═════ AG6 — Fonctions réservées aux fonctions Edge (service_role) ═════
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('AG6 aucune fonction edge exécutable par anon',
   $$SELECT count(*)::text FROM unnest(ARRAY['public.calendar_feed_bookings(text)', 'public.calendar_feed_valid(text)',
-      'public.calendar_import_targets()', 'public.calendar_import_apply(uuid,jsonb,text)']) f
+      'public.calendar_import_targets()', 'public.calendar_import_apply(uuid,jsonb,text,text)']) f
     WHERE has_function_privilege('anon', f::regprocedure, 'EXECUTE')$$, '0');
 PERFORM pg_temp.eq('AG6 aucune fonction edge exécutable par authenticated',
   $$SELECT count(*)::text FROM unnest(ARRAY['public.calendar_feed_bookings(text)', 'public.calendar_feed_valid(text)',
-      'public.calendar_import_targets()', 'public.calendar_import_apply(uuid,jsonb,text)']) f
+      'public.calendar_import_targets()', 'public.calendar_import_apply(uuid,jsonb,text,text)']) f
     WHERE has_function_privilege('authenticated', f::regprocedure, 'EXECUTE')$$, '0');
 PERFORM pg_temp.eq('AG6 les 4 fonctions edge restent exécutables par service_role',
   $$SELECT count(*)::text FROM unnest(ARRAY['public.calendar_feed_bookings(text)', 'public.calendar_feed_valid(text)',
-      'public.calendar_import_targets()', 'public.calendar_import_apply(uuid,jsonb,text)']) f
+      'public.calendar_import_targets()', 'public.calendar_import_apply(uuid,jsonb,text,text)']) f
     WHERE has_function_privilege('service_role', f::regprocedure, 'EXECUTE')$$, '4');
+PERFORM pg_temp.eq('AG6 CALENDAR-5 l''ancienne signature à 3 paramètres n''existe plus',
+  $$SELECT (to_regprocedure('public.calendar_import_apply(uuid,jsonb,text)') IS NULL)::text$$, 'true');
 PERFORM pg_temp.eq('AG6 fonctions internes (déclencheur d''import, création de lien, test d''hôte) fermées aux clients',
   $$SELECT count(*)::text FROM unnest(ARRAY['private.trigger_calendar_import()', 'private.ensure_calendar_link(uuid)', 'private.calendar_import_host_ok(text)']) f,
       unnest(ARRAY['anon', 'authenticated']) r
@@ -379,6 +386,9 @@ PERFORM pg_temp.eq('AG7 noms masqués : drapeau levé sur chaque ligne',
   format($$SELECT bool_and(hide_names)::text FROM public.calendar_feed_bookings(%L)$$, pg_temp.get('ag_tok')), 'true');
 PERFORM pg_temp.eq('AG7 noms masqués : même contenu qu''avant',
   format($$SELECT count(*)::text FROM public.calendar_feed_bookings(%L)$$, pg_temp.get('ag_tok')), '8');
+-- 00578 (T-CAL-NAMES) : masqués dès la base, pas seulement dans la fonction edge (clients et saisies manuelles).
+PERFORM pg_temp.eq('AG7 noms masqués : aucun nom de client rendu par le flux',
+  format($$SELECT count(*)::text FROM public.calendar_feed_bookings(%L) WHERE client_name IS NOT NULL$$, pg_temp.get('ag_tok')), '0');
 PERFORM pg_temp.as_('ag_pro');
 PERFORM pg_temp.ok('AG7 le pro réaffiche les noms', $$SELECT public.set_calendar_export_hide_names(false)::text$$);
 
@@ -435,6 +445,15 @@ PERFORM set_config('junto.bypass_lock', 'true', true);
 UPDATE public.users SET suspended_at = NULL WHERE id = pg_temp.id('ag_pro2');
 PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.eq('AG8 levée de suspension : de nouveau lu', format($$SELECT count(*)::text FROM public.calendar_import_targets() WHERE pro_id = %L$$, pg_temp.id('ag_pro2')), '1');
+-- 00578 (T-CAL-TIER) : comme le flux d'export, l'import exige le tier pro.
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.users SET tier = 'free' WHERE id = pg_temp.id('ag_pro2');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.eq('AG8 pro approuvé mais sans tier pro : son agenda n''est pas lu', format($$SELECT count(*)::text FROM public.calendar_import_targets() WHERE pro_id = %L$$, pg_temp.id('ag_pro2')), '0');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+UPDATE public.users SET tier = 'pro' WHERE id = pg_temp.id('ag_pro2');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.eq('AG8 tier pro rendu : de nouveau lu', format($$SELECT count(*)::text FROM public.calendar_import_targets() WHERE pro_id = %L$$, pg_temp.id('ag_pro2')), '1');
 
 -- ═════ AG9 — Import : écriture des demi-journées occupées (calendar_import_apply) ═════
 PERFORM pg_temp.ok('AG9 résultat d''import appliqué',
@@ -469,6 +488,15 @@ PERFORM pg_temp.eq('AG9 un lot remplace entièrement le précédent', $$SELECT p
 PERFORM pg_temp.eq('AG9 un succès efface l''erreur précédente', format($$SELECT coalesce(import_error, 'null') FROM private.pro_calendar_links WHERE pro_id = %L$$, pg_temp.id('ag_pro')), 'null');
 PERFORM pg_temp.ok('AG9 liste vide : plus rien d''occupé', format($$SELECT public.calendar_import_apply(%L, '[]'::jsonb, NULL)::text$$, pg_temp.id('ag_pro')));
 PERFORM pg_temp.eq('AG9 liste vide appliquée', $$SELECT pg_temp.ag_busy('ag_pro')$$, '0');
+-- 00578 (T-CAL-DATE) : une date impossible est sautée, le reste du lot est appliqué.
+PERFORM pg_temp.ok('AG9 une date impossible dans le lot ne fait pas échouer l''import',
+  format($$SELECT public.calendar_import_apply(%L, jsonb_build_array(pg_temp.ag_slot(3, 'am'),
+      jsonb_build_object('day', (extract(year FROM pg_temp.d(30))::int + 1)::text || '-02-30', 'period', 'am'),
+      jsonb_build_object('day', to_char(pg_temp.d(5), 'YYYY-MM') || '-32', 'period', 'pm'),
+      jsonb_build_object('day', to_char(pg_temp.d(5), 'YYYY') || '-13-01', 'period', 'pm')), NULL)::text$$, pg_temp.id('ag_pro')));
+PERFORM pg_temp.eq('AG9 date impossible : seule la date valide est gardée',
+  format($$SELECT string_agg((day - pg_temp.d(0))::text || period, ',') FROM private.pro_busy_slots WHERE pro_id = %L$$, pg_temp.id('ag_pro')), '3am');
+PERFORM pg_temp.ok('AG9 retour à une liste vide', format($$SELECT public.calendar_import_apply(%L, '[]'::jsonb, NULL)::text$$, pg_temp.id('ag_pro')));
 -- Pro sans import branché : rien n'est écrit.
 PERFORM pg_temp.ok('AG9 membre sans lien : appel sans effet', format($$SELECT public.calendar_import_apply(%L, jsonb_build_array(pg_temp.ag_slot(3, 'am')), NULL)::text$$, pg_temp.id('ag_cli')));
 PERFORM pg_temp.eq('AG9 membre sans lien : aucune ligne créée',
@@ -526,30 +554,43 @@ PERFORM pg_temp.eq('AG10 nouvelle adresse : synchro remise à zéro', $$SELECT c
 PERFORM pg_temp.as_('db');
 INSERT INTO public.rate_events (user_id, kind) SELECT pg_temp.id('ag_pro2'), 'calendar_import_set' FROM generate_series(1, 10);
 PERFORM pg_temp.as_('ag_pro2');
-PERFORM pg_temp.denied('AG10 plafond atteint : débrancher aussi est compté', $$SELECT public.set_calendar_import_url(NULL)::text$$, 'junto.too_many_actions');
+PERFORM pg_temp.denied('AG10 plafond atteint : changer d''adresse est refusé', $$SELECT public.set_calendar_import_url('https://outlook.office365.com/owa/calendar/p2/autre.ics')::text$$, 'junto.too_many_actions');
+-- (débrancher au plafond reste possible — testé après CALENDAR-5, qui a besoin de l'adresse branchée)
 
--- ═════ AG11 — Failles connues ═════
--- CALENDAR-5 : un import qui a lu l'ANCIENNE adresse ne doit pas écraser la nouvelle.
+-- ═════ AG11 — Failles de l'audit (CALENDAR-5 / CALENDAR-4 corrigés 00578 ; CALENDAR-7 plateforme) ═════
+-- CALENDAR-5 : un import qui a lu l'ANCIENNE adresse n'écrase pas la nouvelle.
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('AG11 CALENDAR-5 résultat lu sur l''ancienne adresse ignoré',
   $$SELECT pg_temp.ag_apply_read_url('ag_pro2', jsonb_build_array(pg_temp.ag_slot(6, 'am'), pg_temp.ag_slot(7, 'am')), 'https://outlook.live.com/owa/calendar/p2/calendar.ics')$$,
-  '1', 'CALENDAR-5');
+  '1');
 PERFORM pg_temp.eq('AG11 CALENDAR-5 résultat lu sur l''adresse courante appliqué',
   $$SELECT pg_temp.ag_apply_read_url('ag_pro2', jsonb_build_array(pg_temp.ag_slot(6, 'am'), pg_temp.ag_slot(7, 'am')), 'https://outlook.office365.com/owa/calendar/p2/nouveau.ics')$$,
-  '2', 'CALENDAR-5');
+  '2');
+-- 00578 (T-CAL-UNPLUG) : au plafond des changements d'adresse, débrancher reste possible.
+PERFORM pg_temp.as_('ag_pro2');
+PERFORM pg_temp.ok('AG10 plafond atteint : débrancher reste possible (non compté)', $$SELECT public.set_calendar_import_url(NULL)::text$$);
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('AG10 débranché au plafond : plus d''adresse, demi-journées effacées',
+  format($$SELECT coalesce(import_url, 'null') || '/' || pg_temp.ag_busy('ag_pro2') FROM private.pro_calendar_links WHERE pro_id = %L$$, pg_temp.id('ag_pro2')), 'null/0');
+PERFORM pg_temp.ok('AG11 CALENDAR-5 un résultat arrivé après le débranchement (adresse lue fournie) est ignoré',
+  $$SELECT pg_temp.ag_apply_read_url('ag_pro2', jsonb_build_array(pg_temp.ag_slot(6, 'am')), 'https://outlook.office365.com/owa/calendar/p2/nouveau.ics')$$);
+PERFORM pg_temp.eq('AG11 CALENDAR-5 rien n''est réécrit après le débranchement', $$SELECT pg_temp.ag_busy('ag_pro2')$$, '0');
 
--- CALENDAR-7 : pg_net (requêtes HTTP sortantes) fermé aux clients.
+-- CALENDAR-7 : pg_net (requêtes HTTP sortantes) fermé aux clients. Hors de notre portée : le schéma net
+-- appartient à supabase_admin, un REVOKE fait par postgres (00578) reste sans effet, et net n'est pas
+-- exposé par PostgREST (aucun appel client possible en pratique). Gardé en xfail sous l'identifiant
+-- CALENDAR-7-PLATFORM, à lever si la plateforme change ces droits.
 PERFORM pg_temp.eq('AG11 CALENDAR-7 net.http_get/post/delete non exécutables par anon',
   $$SELECT count(*)::text FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-    WHERE n.nspname = 'net' AND p.proname IN ('http_get', 'http_post', 'http_delete') AND has_function_privilege('anon', p.oid, 'EXECUTE')$$, '0', 'CALENDAR-7');
+    WHERE n.nspname = 'net' AND p.proname IN ('http_get', 'http_post', 'http_delete') AND has_function_privilege('anon', p.oid, 'EXECUTE')$$, '0', 'CALENDAR-7-PLATFORM');
 PERFORM pg_temp.eq('AG11 CALENDAR-7 net.http_get/post/delete non exécutables par authenticated',
   $$SELECT count(*)::text FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-    WHERE n.nspname = 'net' AND p.proname IN ('http_get', 'http_post', 'http_delete') AND has_function_privilege('authenticated', p.oid, 'EXECUTE')$$, '0', 'CALENDAR-7');
+    WHERE n.nspname = 'net' AND p.proname IN ('http_get', 'http_post', 'http_delete') AND has_function_privilege('authenticated', p.oid, 'EXECUTE')$$, '0', 'CALENDAR-7-PLATFORM');
 PERFORM pg_temp.eq('AG11 net.http_* existent bien (le contrôle ci-dessus n''est pas vide)',
   $$SELECT (count(*) >= 3)::text FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
     WHERE n.nspname = 'net' AND p.proname IN ('http_get', 'http_post', 'http_delete')$$, 'true');
 
--- CALENDAR-4 : se désinscrire comme pro coupe le flux et l'import pour de bon.
+-- CALENDAR-4 (corrigé 00578) : se désinscrire comme pro coupe le flux et l'import pour de bon.
 PERFORM pg_temp.as_('ag_pro3');
 PERFORM pg_temp.put('ag_tok3', pg_temp.ok('AG11 ag_pro3 lit son jeton', $$SELECT export_token FROM public.get_calendar_links()$$));
 PERFORM pg_temp.ok('AG11 ag_pro3 branche son agenda', $$SELECT public.set_calendar_import_url('https://calendar.google.com/calendar/ical/p3/basic.ics')::text$$);
@@ -562,15 +603,15 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('AG11 désinscrit : le jeton ne vaut plus rien', format($$SELECT public.calendar_feed_valid(%L)::text$$, pg_temp.get('ag_tok3')), 'false');
 PERFORM pg_temp.eq('AG11 désinscrit : plus lu par l''import', format($$SELECT count(*)::text FROM public.calendar_import_targets() WHERE pro_id = %L$$, pg_temp.id('ag_pro3')), '0');
 PERFORM pg_temp.eq('AG11 CALENDAR-4 désinscrit : le lien (jeton, adresse importée) est supprimé',
-  format($$SELECT count(*)::text FROM private.pro_calendar_links WHERE pro_id = %L$$, pg_temp.id('ag_pro3')), '0', 'CALENDAR-4');
-PERFORM pg_temp.eq('AG11 CALENDAR-4 désinscrit : les demi-journées occupées sont supprimées', $$SELECT pg_temp.ag_busy('ag_pro3')$$, '0', 'CALENDAR-4');
+  format($$SELECT count(*)::text FROM private.pro_calendar_links WHERE pro_id = %L$$, pg_temp.id('ag_pro3')), '0');
+PERFORM pg_temp.eq('AG11 CALENDAR-4 désinscrit : les demi-journées occupées sont supprimées', $$SELECT pg_temp.ag_busy('ag_pro3')$$, '0');
 PERFORM pg_temp.as_('ag_pro3');
 PERFORM pg_temp.ok('AG11 ag_pro3 se réinscrit', pg_temp.ag_register_sql('Agenda Trois bis'));
 PERFORM pg_temp.as_('ag_adm');
 PERFORM pg_temp.ok('AG11 ag_pro3 est de nouveau approuvé', format($$SELECT public.approve_pro(%L)::text$$, pg_temp.id('ag_pro3')));
 PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.as_('db');
-PERFORM pg_temp.eq('AG11 CALENDAR-4 réapprouvé : l''ancien jeton ne revit pas', format($$SELECT public.calendar_feed_valid(%L)::text$$, pg_temp.get('ag_tok3')), 'false', 'CALENDAR-4');
-PERFORM pg_temp.eq('AG11 CALENDAR-4 réapprouvé : l''ancienne adresse n''est pas relue', format($$SELECT count(*)::text FROM public.calendar_import_targets() WHERE pro_id = %L$$, pg_temp.id('ag_pro3')), '0', 'CALENDAR-4');
+PERFORM pg_temp.eq('AG11 CALENDAR-4 réapprouvé : l''ancien jeton ne revit pas', format($$SELECT public.calendar_feed_valid(%L)::text$$, pg_temp.get('ag_tok3')), 'false');
+PERFORM pg_temp.eq('AG11 CALENDAR-4 réapprouvé : l''ancienne adresse n''est pas relue', format($$SELECT count(*)::text FROM public.calendar_import_targets() WHERE pro_id = %L$$, pg_temp.id('ag_pro3')), '0');
 PERFORM pg_temp.as_('ag_pro3');
-PERFORM pg_temp.eq('AG11 CALENDAR-4 réapprouvé : un nouveau jeton est remis', format($$SELECT (export_token <> %L)::text FROM public.get_calendar_links()$$, pg_temp.get('ag_tok3')), 'true', 'CALENDAR-4');
+PERFORM pg_temp.eq('AG11 CALENDAR-4 réapprouvé : un nouveau jeton est remis', format($$SELECT (export_token <> %L)::text FROM public.get_calendar_links()$$, pg_temp.get('ag_tok3')), 'true');

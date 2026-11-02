@@ -348,55 +348,56 @@ PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('la trace de bob est intacte après ces refus',
   format($$SELECT (geojson ? 'waypoints')::text FROM public.gpx_traces WHERE id = %L$$, pg_temp.get('gpx')), 'false');
 PERFORM pg_temp.as_('bob');
-PERFORM pg_temp.ok('bob ajoute deux étapes à sa trace', format($$SELECT public.set_gpx_trace_waypoints(%L, %L::jsonb)::text$$, pg_temp.get('gpx'), pg_temp.get('wp_two')));
+PERFORM pg_temp.eq('bob ajoute deux étapes à sa trace', format($$SELECT public.set_gpx_trace_waypoints(%L, %L::jsonb)::text$$, pg_temp.get('gpx'), pg_temp.get('wp_two')), NULL);
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('les étapes sont enregistrées dans le GeoJSON',
   format($$SELECT jsonb_array_length(geojson->'waypoints') || '|' || (geojson->'waypoints'->0->>'name') FROM public.gpx_traces WHERE id = %L$$, pg_temp.get('gpx')), '2|Refuge des Bans');
 PERFORM pg_temp.eq('la ligne elle-même ne change pas',
   format($$SELECT (geojson->'coordinates' = (%L::jsonb)->'coordinates' AND geojson->>'type' = 'LineString')::text FROM public.gpx_traces WHERE id = %L$$, pg_temp.get('wp_line'), pg_temp.get('gpx')), 'true');
--- Validation (chaque refus = junto.trace_geojson_invalid).
+-- Validation. 00578 (DB-WP-1) : un refus de validation est RENDU (valeur 'junto.trace_geojson_invalid'),
+-- plus levé, pour que l'appel reste compté dans la fréquence ; un succès rend NULL.
 PERFORM pg_temp.as_('bob');
-PERFORM pg_temp.denied('étapes : un objet au lieu d''une liste est refusé',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, '{"lng":6.6,"lat":44.9,"kind":"water"}'::jsonb)::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.denied('étapes : un élément qui n''est pas un objet est refusé',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, '[1]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.denied('étapes : 31 étapes sont refusées',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, (SELECT jsonb_agg(jsonb_build_object('lng', 6.6, 'lat', 44.9, 'kind', 'other')) FROM generate_series(1, 31)))::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.ok('étapes : 30 étapes sont acceptées',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, (SELECT jsonb_agg(jsonb_build_object('lng', 6.6, 'lat', 44.9, 'kind', 'other')) FROM generate_series(1, 30)))::text$$, pg_temp.get('gpx')));
-PERFORM pg_temp.denied('étapes : un type inconnu est refusé',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":44.9,"kind":"bar"}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.denied('étapes : une étape sans type est refusée',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":44.9}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.denied('étapes : une longitude hors bornes est refusée',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":181,"lat":44.9,"kind":"water"}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.denied('étapes : une latitude hors bornes est refusée',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":-90.5,"kind":"water"}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.denied('étapes : une coordonnée en texte est refusée',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":"6.6","lat":44.9,"kind":"water"}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.denied('étapes : un champ en plus est refusé',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":44.9,"kind":"water","ele":1200}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.denied('étapes : un nom vide est refusé',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":44.9,"kind":"water","name":""}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.denied('étapes : un nom de 61 caractères est refusé',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, jsonb_build_array(jsonb_build_object('lng', 6.6, 'lat', 44.9, 'kind', 'water', 'name', repeat('é', 61))))::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.ok('étapes : un nom de 60 caractères est accepté',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, jsonb_build_array(jsonb_build_object('lng', 6.6, 'lat', 44.9, 'kind', 'water', 'name', repeat('é', 60))))::text$$, pg_temp.get('gpx')));
-PERFORM pg_temp.denied('étapes : un nom avec < > est refusé',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":44.9,"kind":"water","name":"<b>Source</b>"}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.denied('étapes : un nom avec un caractère de contrôle est refusé',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, jsonb_build_array(jsonb_build_object('lng', 6.6, 'lat', 44.9, 'kind', 'water', 'name', 'Sou' || chr(10) || 'rce')))::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
-PERFORM pg_temp.denied('étapes : un nom qui n''est pas du texte est refusé',
-  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":44.9,"kind":"water","name":5}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : un objet au lieu d''une liste est refusé',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, '{"lng":6.6,"lat":44.9,"kind":"water"}'::jsonb)::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : un élément qui n''est pas un objet est refusé',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, '[1]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : 31 étapes sont refusées',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, (SELECT jsonb_agg(jsonb_build_object('lng', 6.6, 'lat', 44.9, 'kind', 'other')) FROM generate_series(1, 31)))::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : 30 étapes sont acceptées',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, (SELECT jsonb_agg(jsonb_build_object('lng', 6.6, 'lat', 44.9, 'kind', 'other')) FROM generate_series(1, 30)))::text$$, pg_temp.get('gpx')), NULL);
+PERFORM pg_temp.eq('étapes : un type inconnu est refusé',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":44.9,"kind":"bar"}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : une étape sans type est refusée',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":44.9}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : une longitude hors bornes est refusée',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":181,"lat":44.9,"kind":"water"}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : une latitude hors bornes est refusée',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":-90.5,"kind":"water"}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : une coordonnée en texte est refusée',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":"6.6","lat":44.9,"kind":"water"}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : un champ en plus est refusé',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":44.9,"kind":"water","ele":1200}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : un nom vide est refusé',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":44.9,"kind":"water","name":""}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : un nom de 61 caractères est refusé',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, jsonb_build_array(jsonb_build_object('lng', 6.6, 'lat', 44.9, 'kind', 'water', 'name', repeat('é', 61))))::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : un nom de 60 caractères est accepté',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, jsonb_build_array(jsonb_build_object('lng', 6.6, 'lat', 44.9, 'kind', 'water', 'name', repeat('é', 60))))::text$$, pg_temp.get('gpx')), NULL);
+PERFORM pg_temp.eq('étapes : un nom avec < > est refusé',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":44.9,"kind":"water","name":"<b>Source</b>"}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : un nom avec un caractère de contrôle est refusé',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, jsonb_build_array(jsonb_build_object('lng', 6.6, 'lat', 44.9, 'kind', 'water', 'name', 'Sou' || chr(10) || 'rce')))::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
+PERFORM pg_temp.eq('étapes : un nom qui n''est pas du texte est refusé',
+  format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"lng":6.6,"lat":44.9,"kind":"water","name":5}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('après les refus, la dernière version acceptée reste en place (1 étape, nom de 60 car.)',
   format($$SELECT jsonb_array_length(geojson->'waypoints') || '|' || char_length(geojson->'waypoints'->0->>'name') FROM public.gpx_traces WHERE id = %L$$, pg_temp.get('gpx')), '1|60');
 PERFORM pg_temp.as_('bob');
-PERFORM pg_temp.ok('une liste vide retire les étapes', format($$SELECT public.set_gpx_trace_waypoints(%L, '[]'::jsonb)::text$$, pg_temp.get('gpx')));
+PERFORM pg_temp.eq('une liste vide retire les étapes', format($$SELECT public.set_gpx_trace_waypoints(%L, '[]'::jsonb)::text$$, pg_temp.get('gpx')), NULL);
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('plus de membre waypoints après une liste vide', format($$SELECT (geojson ? 'waypoints')::text FROM public.gpx_traces WHERE id = %L$$, pg_temp.get('gpx')), 'false');
 PERFORM pg_temp.as_('bob');
-PERFORM pg_temp.ok('NULL retire aussi les étapes', format($$SELECT public.set_gpx_trace_waypoints(%L, NULL)::text$$, pg_temp.get('gpx_wp')));
+PERFORM pg_temp.eq('NULL retire aussi les étapes', format($$SELECT public.set_gpx_trace_waypoints(%L, NULL)::text$$, pg_temp.get('gpx_wp')), NULL);
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('plus de membre waypoints après NULL', format($$SELECT (geojson ? 'waypoints')::text FROM public.gpx_traces WHERE id = %L$$, pg_temp.get('gpx_wp')), 'false');
 -- Fréquence : 60 modifications par heure.
@@ -406,17 +407,17 @@ PERFORM pg_temp.put('gpx_rate', pg_temp.ok('wp_rate enregistre une trace', forma
 PERFORM pg_temp.as_('db');
 INSERT INTO public.rate_events (user_id, kind) SELECT pg_temp.id('wp_rate'), 'gpx_waypoints' FROM generate_series(1, 59);
 PERFORM pg_temp.as_('wp_rate');
-PERFORM pg_temp.ok('la 60e modification de l''heure passe', format($$SELECT public.set_gpx_trace_waypoints(%L, %L::jsonb)::text$$, pg_temp.get('gpx_rate'), pg_temp.get('wp_two')));
+PERFORM pg_temp.eq('la 60e modification de l''heure passe', format($$SELECT public.set_gpx_trace_waypoints(%L, %L::jsonb)::text$$, pg_temp.get('gpx_rate'), pg_temp.get('wp_two')), NULL);
 PERFORM pg_temp.denied('la 61e modification de l''heure est refusée', format($$SELECT public.set_gpx_trace_waypoints(%L, %L::jsonb)::text$$, pg_temp.get('gpx_rate'), pg_temp.get('wp_two')), 'junto\.too_many_actions');
--- 00483 (même famille) : un appel refusé pour validation devrait compter dans la fréquence, sinon
--- le chemin en échec (validation de la trace stockée, jusqu'à 10 000 points) est gratuit et illimité.
+-- 00483 (même famille), DB-WP-1 corrigé 00578 : un appel refusé pour validation compte dans la fréquence,
+-- sinon le chemin en échec (validation de la trace stockée, jusqu'à 10 000 points) est gratuit et illimité.
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.put('wp_n0', (SELECT count(*)::text FROM public.rate_events WHERE user_id = pg_temp.id('bob') AND kind = 'gpx_waypoints'));
 PERFORM pg_temp.as_('bob');
-PERFORM pg_temp.denied('(fixture) bob envoie des étapes invalides', format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"kind":"bar"}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto\.trace_geojson_invalid');
+PERFORM pg_temp.eq('(fixture) bob envoie des étapes invalides', format($$SELECT public.set_gpx_trace_waypoints(%L, '[{"kind":"bar"}]'::jsonb)::text$$, pg_temp.get('gpx')), 'junto.trace_geojson_invalid');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('un appel refusé pour validation compte quand même dans la fréquence',
-  $$SELECT (count(*) = pg_temp.get('wp_n0')::int + 1)::text FROM public.rate_events WHERE user_id = pg_temp.id('bob') AND kind = 'gpx_waypoints'$$, 'true', 'DB-WP-1');
+  $$SELECT (count(*) = pg_temp.get('wp_n0')::int + 1)::text FROM public.rate_events WHERE user_id = pg_temp.id('bob') AND kind = 'gpx_waypoints'$$, 'true');
 
 -- Sortie : création avec étapes, mise à jour de la trace (étapes seules = pas de notification).
 PERFORM pg_temp.as_('org');

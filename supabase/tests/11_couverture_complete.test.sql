@@ -560,13 +560,20 @@ PERFORM pg_temp.ok('remove_pro_photo : le pro retire sa photo de vitrine', forma
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('remove_pro_photo : la photo est supprimée', format($$SELECT count(*)::text FROM public.pro_profile_photos WHERE id = %L$$, pg_temp.id('ph')), '0');
 
+-- 00578 (VITRINE-1) : une sortie terminée chez ce pro + un fichier sous community/<pro>/.
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+INSERT INTO public.bookings (offering_id, pro_id, client_id, day, period, party_size, status)
+VALUES (pg_temp.id('off'), pg_temp.id('pro'), pg_temp.id('cli'), current_date - 8, 'am', 1, 'accepted');
+PERFORM set_config('junto.bypass_lock', 'false', true);
+PERFORM pg_temp.put('cph_url', pg_temp.fc_url('pro-photos', 'cli', 'community/' || pg_temp.get('pro') || '/c1.jpg'));
 PERFORM pg_temp.as_('cli');
-PERFORM pg_temp.put('cph', pg_temp.ok('fixture : un membre ajoute une photo communautaire', format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pro'), pg_temp.fc_url('pro-photos', 'cli', 'c1.jpg'))));
+PERFORM pg_temp.put('cph', pg_temp.ok('fixture : un membre ajoute une photo communautaire', format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pro'), pg_temp.get('cph_url'))));
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.ok('pro_community_photos_whitelist_columns : réécriture de l''auteur et de l''URL sans déverrouillage',
   format($$UPDATE public.pro_community_photos SET contributor_id = %L, photo_url = 'https://evil.example/x.jpg' WHERE id = %L$$, pg_temp.id('mal'), pg_temp.id('cph')));
 PERFORM pg_temp.eq('pro_community_photos_whitelist_columns : auteur et URL gardés',
-  format($$SELECT (contributor_id = %L AND photo_url = %L)::text FROM public.pro_community_photos WHERE id = %L$$, pg_temp.id('cli'), pg_temp.fc_url('pro-photos', 'cli', 'c1.jpg'), pg_temp.id('cph')), 'true');
+  format($$SELECT (contributor_id = %L AND photo_url = %L)::text FROM public.pro_community_photos WHERE id = %L$$, pg_temp.id('cli'), pg_temp.get('cph_url'), pg_temp.id('cph')), 'true');
 PERFORM pg_temp.as_('pro');
 PERFORM pg_temp.ok('remove_pro_community_photo : le pro retire la photo communautaire', format($$SELECT public.remove_pro_community_photo(%L)::text$$, pg_temp.id('cph')));
 PERFORM pg_temp.as_('db');

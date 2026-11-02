@@ -500,7 +500,8 @@ PERFORM pg_temp.as_('rs_cli5');
 PERFORM pg_temp.denied('R7 le client n''annule pas une sortie passée', pg_temp.call('cancel_booking', 'bk_past_acc'), 'junto.booking_date');
 PERFORM pg_temp.as_('rs_pro');
 PERFORM pg_temp.denied('R7 le pro n''annule pas une sortie passée', pg_temp.call('cancel_booking_pro', 'bk_past_acc'), 'junto.booking_date');
--- BOOKINGS-4 : blocage après acceptation, puis annulation par le client.
+-- BOOKINGS-4 (corrigé 00578) : blocage après acceptation, puis annulation par le client — le pro est
+-- prévenu (variante client_gone), sans le nom, dans les deux sens du blocage.
 PERFORM pg_temp.as_('rs_cli4');
 PERFORM pg_temp.put('bk_b4a', pg_temp.ok('R7 demande (T+50 matin)', pg_temp.bk('off_h', 50, 'am', 1)));
 PERFORM pg_temp.as_('rs_cli2');
@@ -517,9 +518,12 @@ PERFORM pg_temp.as_('rs_cli2');
 PERFORM pg_temp.ok('R7 ayant bloqué le pro, le client annule quand même', pg_temp.call('cancel_booking', 'bk_b4b'));
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('R7 BOOKINGS-4 : le pro a bloqué le client, sa notification ne le nomme pas',
-  $$SELECT count(*)::text FROM pg_temp.nf('rs_pro', 'booking_cancelled', 'bk_b4a') WHERE title || body || data::text LIKE '%' || pg_temp.dn('rs_cli4') || '%'$$, '0', 'BOOKINGS-4');
+  $$SELECT count(*)::text FROM pg_temp.nf('rs_pro', 'booking_cancelled', 'bk_b4a') WHERE title || body || data::text LIKE '%' || pg_temp.dn('rs_cli4') || '%'$$, '0');
 PERFORM pg_temp.eq('R7 BOOKINGS-4 : le client a bloqué le pro, la notification ne le nomme pas',
-  $$SELECT count(*)::text FROM pg_temp.nf('rs_pro', 'booking_cancelled', 'bk_b4b') WHERE title || body || data::text LIKE '%' || pg_temp.dn('rs_cli2') || '%'$$, '0', 'BOOKINGS-4');
+  $$SELECT count(*)::text FROM pg_temp.nf('rs_pro', 'booking_cancelled', 'bk_b4b') WHERE title || body || data::text LIKE '%' || pg_temp.dn('rs_cli2') || '%'$$, '0');
+PERFORM pg_temp.eq('R7 BOOKINGS-4 : le pro est quand même prévenu, variante client_gone (les deux sens)',
+  $$SELECT string_agg(coalesce(data->>'variant', 'NULL'), ',') FROM (SELECT * FROM pg_temp.nf('rs_pro', 'booking_cancelled', 'bk_b4a')
+    UNION ALL SELECT * FROM pg_temp.nf('rs_pro', 'booking_cancelled', 'bk_b4b')) n$$, 'client_gone,client_gone');
 PERFORM pg_temp.blk('rs_pro', 'rs_cli4', false);
 PERFORM pg_temp.blk('rs_cli2', 'rs_pro', false);
 
@@ -605,15 +609,15 @@ PERFORM pg_temp.as_('rs_pro');
 PERFORM pg_temp.denied('R9 le client a bloqué le pro : refus', pg_temp.call('open_booking_conversation', 'bk_c3'), 'Operation not permitted');
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.blk('rs_cli3', 'rs_pro', false);
--- BOOKINGS-1 : pas de fil rouvert indéfiniment après la sortie.
+-- BOOKINGS-1 (corrigé 00578) : pas de fil rouvert plus de 7 jours après la fin de la sortie.
 PERFORM pg_temp.ins('bk_old', 'off_h', 'rs_cli3', -10, 'am', 1, 'accepted');
 PERFORM pg_temp.ins('bk_multi_old', 'off_m', 'rs_cli3', -12, 'am', 1, 'accepted', -10);
 PERFORM pg_temp.ins('bk_multi_recent', 'off_m', 'rs_cli5', -9, 'am', 1, 'accepted', -5);
 PERFORM pg_temp.ins('bk_pend_past', 'off_h', 'rs_cli4', -1, 'pm', 1, 'pending');
 PERFORM pg_temp.as_('rs_pro');
-PERFORM pg_temp.denied('R9 BOOKINGS-1 : sortie finie il y a 10 jours, pas de fil', pg_temp.call('open_booking_conversation', 'bk_old'), 'Operation not permitted|junto\.', 'BOOKINGS-1');
-PERFORM pg_temp.denied('R9 BOOKINGS-1 : plage finie il y a 10 jours, pas de fil', pg_temp.call('open_booking_conversation', 'bk_multi_old'), 'Operation not permitted|junto\.', 'BOOKINGS-1');
-PERFORM pg_temp.denied('R9 BOOKINGS-1 : demande en attente d''un jour passé, pas de fil', pg_temp.call('open_booking_conversation', 'bk_pend_past'), 'Operation not permitted|junto\.', 'BOOKINGS-1');
+PERFORM pg_temp.denied('R9 BOOKINGS-1 : sortie finie il y a 10 jours, pas de fil', pg_temp.call('open_booking_conversation', 'bk_old'), 'junto\.outing_closed');
+PERFORM pg_temp.denied('R9 BOOKINGS-1 : plage finie il y a 10 jours, pas de fil', pg_temp.call('open_booking_conversation', 'bk_multi_old'), 'junto\.outing_closed');
+PERFORM pg_temp.denied('R9 BOOKINGS-1 : demande en attente d''un jour passé, pas de fil', pg_temp.call('open_booking_conversation', 'bk_pend_past'), 'junto\.outing_closed');
 PERFORM pg_temp.ok('R9 sortie finie il y a 3 jours : le pro peut encore écrire', pg_temp.call('open_booking_conversation', 'bk_past_acc'));
 PERFORM pg_temp.ok('R9 plage partie il y a 9 jours mais finie il y a 5 : permis (compte la fin)', pg_temp.call('open_booking_conversation', 'bk_multi_recent'));
 
@@ -748,7 +752,7 @@ PERFORM pg_temp.eq('R13 client bloqué par le pro sauté', pg_temp.outmsg('off_m
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.blk('rs_pro', 'rs_cli4', false);
 PERFORM pg_temp.as_('rs_pro');
-PERFORM pg_temp.denied('R13 BOOKINGS-1 : sortie finie il y a 10 jours, plus d''envoi', pg_temp.outmsg('off_h', -10, 'am', 'Promo -20 % ce week-end'), 'junto.outing_closed', 'BOOKINGS-1');
+PERFORM pg_temp.denied('R13 BOOKINGS-1 : sortie finie il y a 10 jours, plus d''envoi', pg_temp.outmsg('off_h', -10, 'am', 'Promo -20 % ce week-end'), 'junto.outing_closed');
 PERFORM pg_temp.eq('R13 sortie finie il y a 3 jours : un merci passe encore', pg_temp.outmsg('off_h', -3, 'am', 'Merci pour la sortie'), '1');
 PERFORM pg_temp.as_('db');
 INSERT INTO public.rate_events (user_id, kind) SELECT pg_temp.id('rs_pro'), 'outing_broadcast' FROM generate_series(1, 20);
@@ -778,7 +782,9 @@ PERFORM pg_temp.denied('R14 un autre pro n''annule pas la sortie', pg_temp.cout(
 PERFORM pg_temp.as_('rs_pro3');
 PERFORM pg_temp.denied('R14 un pro suspendu n''annule pas de sortie', pg_temp.cout('off3', 5, 'am'), 'Operation not permitted');
 PERFORM pg_temp.as_('rs_pro4');
-PERFORM pg_temp.denied('R14 un pro non approuvé n''annule pas de sortie', pg_temp.cout('off4', 5, 'am'), 'Operation not permitted');
+-- 00578 (T-REVOKED-CANCEL) : comme cancel_pro_session / cancel_booking_pro, un pro dont la vitrine
+-- n'est plus approuvée annule encore (ses clients doivent être prévenus) ; seule la suspension bloque.
+PERFORM pg_temp.ok('R14 un pro non approuvé annule encore une sortie', pg_temp.cout('off4', 5, 'am'));
 PERFORM pg_temp.as_('rs_pro');
 PERFORM pg_temp.denied('R14 période inconnue refusée', pg_temp.cout('off_h', 40, 'night'), 'Operation not permitted');
 PERFORM pg_temp.denied('R14 offre inconnue refusée', format($$SELECT public.cancel_outing(%L, %L, 'am')::text$$, gen_random_uuid(), pg_temp.d(40)), 'Operation not permitted');
@@ -791,8 +797,9 @@ PERFORM pg_temp.eq('R14 acceptées → cancelled_pro, en attente → declined, m
     JOIN public.bookings b ON b.id = pg_temp.id(l)$$, 'cancelled_pro,declined,cancelled_pro,cancelled_pro');
 PERFORM pg_temp.eq('R14 le motif nettoyé va dans le DM du client accepté',
   $$SELECT count(*)::text FROM public.messages WHERE conversation_id = pg_temp.dm('rs_o1', 'rs_pro') AND sender_id = pg_temp.id('rs_pro') AND content = 'Météo REASON-XYZ'$$, '1');
-PERFORM pg_temp.eq('R14 et dans le DM du client en attente',
-  $$SELECT count(*)::text FROM public.messages WHERE conversation_id = pg_temp.dm('rs_o2', 'rs_pro') AND content = 'Météo REASON-XYZ'$$, '1');
+-- 00578 (T-OUTING-PENDING) : le motif ne va qu'aux clients ACCEPTÉS — une demande en attente n'ouvre jamais de fil.
+PERFORM pg_temp.eq('R14 mais pas dans le DM du client en attente',
+  $$SELECT count(*)::text FROM public.messages WHERE conversation_id = pg_temp.dm('rs_o2', 'rs_pro') AND content LIKE '%REASON-XYZ%'$$, '0');
 PERFORM pg_temp.eq('R14 pas de DM pour un client bloqué',
   $$SELECT count(*)::text FROM public.messages WHERE conversation_id = pg_temp.dm('rs_o3', 'rs_pro') AND content LIKE '%REASON-XYZ%'$$, '0');
 PERFORM pg_temp.eq('R14 notif client accepté : by_pro_message avec le fil',
@@ -844,7 +851,10 @@ PERFORM pg_temp.ok('R15 caractères de contrôle et balises retirés', pg_temp.p
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('R15 valeur stockée nettoyée', format($$SELECT participant_info->0->>'shoe_size' FROM public.bookings WHERE id = %L$$, pg_temp.id('bk_f')), '42');
 PERFORM pg_temp.as_('rs_form');
-PERFORM pg_temp.ok('R15 CLIENT-1 : un tableau vide est accepté (vide la fiche)', pg_temp.pinfo('bk_f', '[]'), 'CLIENT-1');
+PERFORM pg_temp.ok('R15 CLIENT-1 : un tableau vide est accepté (vide la fiche)', pg_temp.pinfo('bk_f', '[]'));
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('R15 CLIENT-1 : le tableau vide est stocké (fiche effacée)', format($$SELECT coalesce(participant_info::text, 'NULL') FROM public.bookings WHERE id = %L$$, pg_temp.id('bk_f')), 'NULL');
+PERFORM pg_temp.as_('rs_form');
 PERFORM pg_temp.denied('R15 le client ne remplit pas une réservation manuelle', pg_temp.pinfo('bk_man_cap', '[{"shoe_size":"40"}]'), 'Operation not permitted');
 PERFORM pg_temp.as_('rs_cli');
 PERFORM pg_temp.denied('R15 un tiers ne remplit pas la fiche', pg_temp.pinfo('bk_f', '[{"shoe_size":"40"}]'), 'Operation not permitted');
@@ -923,7 +933,7 @@ PERFORM pg_temp.eq('R16 J-3 : fiche vide → rappel', $$SELECT count(*)::text FR
 PERFORM pg_temp.eq('R16 J-3 : fiche complète → rien', $$SELECT count(*)::text FROM pg_temp.nf('rs_cr2', 'booking_forms_reminder', 'cr7')$$, '0');
 PERFORM pg_temp.eq('R16 J-3 : offre sans fiche → rien', $$SELECT count(*)::text FROM pg_temp.nf('rs_cr4', 'booking_forms_reminder', 'cr9')$$, '0');
 PERFORM pg_temp.eq('R16 CLIENT-1 : des fiches {} ne comptent pas comme remplies (rappel envoyé)',
-  $$SELECT count(*)::text FROM pg_temp.nf('rs_cr3', 'booking_forms_reminder', 'cr8')$$, '1', 'CLIENT-1');
+  $$SELECT count(*)::text FROM pg_temp.nf('rs_cr3', 'booking_forms_reminder', 'cr8')$$, '1');
 
 PERFORM pg_temp.ok('R16 rappel des demandes en attente lancé', $$SELECT pg_temp.notify_pending_booking_requests()::text$$);
 PERFORM pg_temp.eq('R16 pro2 : un seul push, 2 demandes de plus de 24 h à venir',
@@ -939,7 +949,8 @@ PERFORM pg_temp.eq('R16 J-2 : un push pour la sortie, 4 fiches manquantes sur 5 
 PERFORM pg_temp.eq('R16 J-2 : aucun nom de client dans le push pro',
   format($$SELECT count(*)::text FROM pg_temp.nf('rs_pro', 'booking_forms_missing') WHERE data->>'offering_id' = %L
     AND (title || body || data::text LIKE '%%Marcel%%' OR title || body || data::text LIKE '%%' || pg_temp.dn('rs_cr1') || '%%')$$, pg_temp.id('off_h')), '0');
-PERFORM pg_temp.eq('R16 J-2 : minimum de l''offre non atteint (2/4) → variante minimum',
+-- 00578 (SESSIONS-2) : off_m n'a pas choisi l'annulation automatique → variante « minimum », sans « annulée demain ».
+PERFORM pg_temp.eq('R16 J-2 : minimum de l''offre non atteint (2/4), sans annulation auto → variante minimum',
   format($$SELECT data->>'variant' || '/' || (body LIKE '%%2/4 inscrits%%') FROM pg_temp.nf('rs_pro', 'booking_forms_missing') WHERE data->>'offering_id' = %L$$, pg_temp.id('off_m')), 'minimum/true');
 PERFORM pg_temp.eq('R16 J-2 : sortie confirmée par le pro → rien malgré le minimum',
   format($$SELECT count(*)::text FROM pg_temp.nf('rs_pro', 'booking_forms_missing') WHERE data->>'offering_id' = %L$$, pg_temp.id('off_c')), '0');

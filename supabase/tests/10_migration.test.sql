@@ -82,8 +82,7 @@ PERFORM pg_temp.eq('M4 secret push non vide (≥ 32), poivre = 64 hexadécimaux,
 -- Global : fonctions sans PUBLIC. public : tables en lecture pour les clients, tout pour
 -- service_role ; fonctions pour service_role seulement ; séquences. (storage : plateforme.)
 -- Renvoie les écarts : « + » en trop, « - » manquant.
--- NB : l'état figé ici inclut les droits par défaut d'anon (tables, séquences) que GRANTS-3 (00_socle)
--- veut retirer ; le jour du correctif, enlever anon de « want » ci-dessous.
+-- 00578 (GRANTS-3, voir 00_socle) : plus aucun droit par défaut pour anon (tables, séquences).
 PERFORM pg_temp.eq('M5 droits par défaut de postgres (global + public) exactement ceux voulus',
   $$WITH got AS (
       SELECT coalesce(nullif(d.defaclnamespace, 0::oid)::regnamespace::text, '*') AS ns, d.defaclobjtype::text AS t,
@@ -93,10 +92,10 @@ PERFORM pg_temp.eq('M5 droits par défaut de postgres (global + public) exacteme
     want AS (
       SELECT '*' AS ns, 'f' AS t, 'postgres' AS g, 'EXECUTE' AS p
       UNION ALL SELECT 'public', 'f', g, 'EXECUTE' FROM unnest('{postgres,service_role}'::text[]) g
-      UNION ALL SELECT 'public', 'S', g, p FROM unnest('{postgres,anon,authenticated,service_role}'::text[]) g, unnest('{SELECT,UPDATE,USAGE}'::text[]) p
+      UNION ALL SELECT 'public', 'S', g, p FROM unnest('{postgres,authenticated,service_role}'::text[]) g, unnest('{SELECT,UPDATE,USAGE}'::text[]) p
       UNION ALL SELECT 'public', 'r', g, p FROM unnest('{postgres,service_role}'::text[]) g,
                        unnest('{INSERT,SELECT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN}'::text[]) p
-      UNION ALL SELECT 'public', 'r', g, 'SELECT' FROM unnest('{anon,authenticated}'::text[]) g)
+      UNION ALL SELECT 'public', 'r', g, 'SELECT' FROM unnest('{authenticated}'::text[]) g)
     SELECT coalesce(string_agg(x, ', ' ORDER BY x), '') FROM (
       SELECT '+' || ns || '/' || t || '/' || g || '/' || p AS x FROM (SELECT * FROM got EXCEPT SELECT * FROM want) a
       UNION ALL

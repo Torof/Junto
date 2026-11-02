@@ -758,9 +758,15 @@ PERFORM pg_temp.eq('D2 deux renommages le même jour : une seule notification à
 -- celle d'un contributeur suspendu est masquée (00518 L2).
 PERFORM pg_temp.user('pc_pro', 'tos'); PERFORM pg_temp.user('pc_pro2', 'tos'); PERFORM pg_temp.user('pc_c1', 'tos'); PERFORM pg_temp.user('pc_c2', 'tos');
 PERFORM pg_temp.gf_pro('pc_pro', 'pc_off'); PERFORM pg_temp.gf_pro('pc_pro2', 'pc_off2');
+-- 00578 (VITRINE-1) : une sortie terminée chez ce pro + un fichier sous community/<pro>/.
+PERFORM pg_temp.as_('db');
+PERFORM set_config('junto.bypass_lock', 'true', true);
+INSERT INTO public.bookings (offering_id, pro_id, client_id, day, period, party_size, status)
+VALUES (pg_temp.id('pc_off'), pg_temp.id('pc_pro'), pg_temp.id('pc_c1'), current_date - 7, 'am', 1, 'accepted');
+PERFORM set_config('junto.bypass_lock', 'false', true);
 PERFORM pg_temp.as_('pc_c1');
 PERFORM pg_temp.put('pc_ph', pg_temp.ok('D3 pc_c1 ajoute une photo communautaire', format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pc_pro'),
-  pg_temp.host() || '/storage/v1/object/public/pro-photos/' || pg_temp.get('pc_c1') || '/c.jpg')));
+  pg_temp.host() || '/storage/v1/object/public/pro-photos/' || pg_temp.get('pc_c1') || '/community/' || pg_temp.get('pc_pro') || '/c.jpg')));
 PERFORM pg_temp.as_('pc_c2');
 PERFORM pg_temp.eq('D3 la photo est visible des autres', format($$SELECT count(*)::text FROM public.pro_community_photos WHERE id = %L$$, pg_temp.id('pc_ph')), '1');
 PERFORM pg_temp.as_('db'); PERFORM pg_temp.gf_suspend('pc_c1');
@@ -769,7 +775,7 @@ PERFORM pg_temp.eq('D3 contributeur suspendu : sa photo est masquée (00518 L2)'
 PERFORM pg_temp.as_('db'); PERFORM pg_temp.gf_suspend('pc_pro2');
 PERFORM pg_temp.as_('pc_c2');
 PERFORM pg_temp.denied('D3 pas de photo communautaire chez un pro suspendu (00520 authz 8)', format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pc_pro2'),
-  pg_temp.host() || '/storage/v1/object/public/pro-photos/' || pg_temp.get('pc_c2') || '/c.jpg'), '^Operation not permitted$');
+  pg_temp.host() || '/storage/v1/object/public/pro-photos/' || pg_temp.get('pc_c2') || '/community/' || pg_temp.get('pc_pro2') || '/c.jpg'), '^Operation not permitted$');
 
 -- D4 — Bloqué par le pro : on ne réécrit pas un ancien avis (00501 PO-4).
 PERFORM pg_temp.as_('db');  -- 00554 : avis réservé à qui a réservé

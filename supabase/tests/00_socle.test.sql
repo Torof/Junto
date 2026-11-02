@@ -308,9 +308,9 @@ BEGIN
   PERFORM pg_temp.denied('quota : le 21e envoi du jour est refusé', format($q$INSERT INTO storage.objects (bucket_id, name, owner) VALUES ('avatars', %L || '/q21.jpg', %L)$q$, pg_temp.get('quota_u'), pg_temp.get('quota_u')), 'junto\.storage_quota');
   -- ───── 9. Droits : durcissements attendus (audit grants, 2026-11-02) ─────
   PERFORM pg_temp.as_('db');
-  -- GRANTS-2 : la règle CLAUDE.md veut « SET search_path = public, extensions » partout. Rien ne casse
-  -- aujourd'hui (S9 couvre les fonctions PostGIS), mais une fonction qui se met à utiliser PostGIS sans
-  -- extensions ne casserait qu'à l'exécution. Renvoie le nombre puis les premiers noms.
+  -- GRANTS-2 (corrigé 00578) : la règle CLAUDE.md veut « SET search_path = public, extensions » partout
+  -- (une fonction qui se met à utiliser PostGIS sans extensions ne casserait qu'à l'exécution).
+  -- Renvoie le nombre puis les premiers noms.
   PERFORM pg_temp.eq('GRANTS-2 aucune fonction (public, private) dont le search_path omet extensions',
     $$SELECT CASE WHEN count(*) = 0 THEN '' ELSE count(*) || ' : ' || string_agg(s, ', ' ORDER BY s) FILTER (WHERE rn <= 8) END
       FROM (SELECT n.nspname || '.' || p.proname AS s, row_number() OVER (ORDER BY n.nspname, p.proname) AS rn
@@ -318,27 +318,32 @@ BEGIN
             WHERE n.nspname IN ('public', 'private')
               AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = p.oid AND d.deptype = 'e')
               AND EXISTS (SELECT 1 FROM unnest(p.proconfig) x WHERE x LIKE 'search_path=%' AND x NOT LIKE '%extensions%')) z$$,
-    '', 'GRANTS-2');
-  -- GRANTS-3 : une table créée demain dans public ne doit rien donner aux visiteurs sans compte
-  -- (aujourd'hui les droits par défaut de postgres accordent SELECT aux tables et SELECT/UPDATE/USAGE
-  -- aux séquences pour anon ; 00547 a dû retirer ces droits à la main). Voir aussi 10 M5.
+    '');
+  -- GRANTS-3 (corrigé 00578) : une table créée demain dans public ne donne rien aux visiteurs sans compte
+  -- (les droits par défaut de postgres accordaient SELECT aux tables et SELECT/UPDATE/USAGE aux
+  -- séquences pour anon ; 00547 avait dû les retirer à la main). Voir aussi 10 M5.
   PERFORM pg_temp.eq('GRANTS-3 les droits par défaut de postgres dans public n''accordent rien à anon (tables, séquences)',
     $$SELECT coalesce(string_agg(DISTINCT d.defaclobjtype::text || '/' || a.privilege_type, ', '), '')
       FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) a
       WHERE d.defaclrole = 'postgres'::regrole AND d.defaclnamespace IN (0::oid, 'public'::regnamespace)
-        AND d.defaclobjtype IN ('r', 'S') AND a.grantee = 'anon'::regrole$$, '', 'GRANTS-3');
+        AND d.defaclobjtype IN ('r', 'S') AND a.grantee = 'anon'::regrole$$, '');
   -- (passe aujourd'hui) 00547 : anon ne lit que ces 4 objets publics de public.
   PERFORM pg_temp.eq('GRANTS-3 anon ne lit dans public que activities_with_coords, gear_catalog, pro_offerings_with_coords, sports',
     $$SELECT string_agg(c.relname, ',' ORDER BY c.relname) FROM pg_class c
       WHERE c.relnamespace = 'public'::regnamespace AND c.relkind IN ('r', 'v', 'm', 'f', 'p')
         AND has_table_privilege('anon', c.oid, 'SELECT')$$,
     'activities_with_coords,gear_catalog,pro_offerings_with_coords,sports');
-  -- GRANTS-4 : le schéma private n'a rien à offrir à un visiteur (les vues lisibles par anon sont
-  -- exécutées par leur propriétaire). Aujourd'hui : USAGE + 3 fonctions (user_is_suspended,
-  -- is_conversation_member, message_author_visible).
-  PERFORM pg_temp.eq('GRANTS-4 anon n''a pas USAGE sur le schéma private',
-    $$SELECT has_schema_privilege('anon', 'private', 'USAGE')::text$$, 'false', 'GRANTS-4');
-  PERFORM pg_temp.eq('GRANTS-4 anon n''exécute aucune fonction de private',
+  -- GRANTS-4 (corrigé 00578 + 00579) : le schéma private n'a presque rien à offrir à un visiteur (les vues
+  -- lisibles par anon sont exécutées par leur propriétaire). Seule exception : la vue carte visiteur
+  -- (activities_with_coords) appelle private.user_is_suspended, et une fonction dans une vue s'exécute
+  -- avec le droit EXECUTE de l'appelant — anon garde donc USAGE sur private et cette seule fonction.
+  PERFORM pg_temp.eq('GRANTS-4 anon a USAGE sur private (pour la seule fonction de la vue carte visiteur)',
+    $$SELECT has_schema_privilege('anon', 'private', 'USAGE')::text$$, 'true');
+  PERFORM pg_temp.eq('GRANTS-4 la seule fonction de private qu''anon exécute est user_is_suspended',
     $$SELECT coalesce(string_agg(p.proname, ',' ORDER BY p.proname), '') FROM pg_proc p
-      WHERE p.pronamespace = 'private'::regnamespace AND has_function_privilege('anon', p.oid, 'EXECUTE')$$, '', 'GRANTS-4');
+      WHERE p.pronamespace = 'private'::regnamespace AND has_function_privilege('anon', p.oid, 'EXECUTE')$$, 'user_is_suspended');
+  PERFORM pg_temp.as_('anon');
+  PERFORM pg_temp.ok('GRANTS-4 un visiteur lit toujours la carte (activities_with_coords appelle private.user_is_suspended)',
+    $$SELECT count(*) FROM public.activities_with_coords$$);
+  PERFORM pg_temp.as_('db');
 END;

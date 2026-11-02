@@ -7,8 +7,9 @@
 --   PV5 couvertures choisies par le pro (00562 set_pro_cover / set_offering_cover)
 --   PV6 durée des demandes sur plusieurs jours (00577 set_offering_request_length)
 --   PV7 pro_offerings_with_coords : ce que voient un visiteur et un membre
---   PV8 photos communautaires (chaîne actuelle + VITRINE-1)
---   PV9 avis pendant une sortie pas encore finie (VITRINE-3)
+--   PV8 photos communautaires (VITRINE-1 corrigé 00578 : sortie finie, dossier community/<pro>/,
+--       jamais sur sa propre page, signalement + retrait admin, fichiers non réécrivables)
+--   PV9 avis pendant une sortie pas encore finie (VITRINE-3 corrigé 00578)
 --
 -- Déjà couvert ailleurs, pas répété ici : métier unique, sortie mise en avant,
 -- avis réservés à qui a réservé (16), photos de vitrine/d'offre, avis, réponses (06).
@@ -21,6 +22,9 @@
 -- ───── Helpers locaux ─────
 EXECUTE $p$CREATE FUNCTION pg_temp.pv_url(p_label text, p_file text) RETURNS text
   LANGUAGE sql AS $b$ SELECT pg_temp.host() || '/storage/v1/object/public/pro-photos/' || pg_temp.id(p_label)::text || '/' || p_file $b$$p$;
+-- 00578 (VITRINE-1) : une photo communautaire vit dans <contributeur>/community/<pro>/.
+EXECUTE $p$CREATE FUNCTION pg_temp.pv_cm(p_label text, p_file text) RETURNS text
+  LANGUAGE sql AS $b$ SELECT pg_temp.pv_url(p_label, 'community/' || pg_temp.id('pv_pro')::text || '/' || p_file) $b$$p$;
 EXECUTE $p$CREATE FUNCTION pg_temp.pv_register_sql(p_name text) RETURNS text
   LANGUAGE sql AS $b$ SELECT format($s$SELECT public.register_as_pro(p_display_name := %L, p_company_name := 'SARL Vitrine', p_real_name := 'Jean Test',
       p_primary_lng := 6.6, p_primary_lat := 44.9, p_primary_location_name := 'Briançon')::text$s$, p_name) $b$$p$;
@@ -276,8 +280,14 @@ PERFORM pg_temp.denied('PV5 couverture : remontée encodée %2e%2e refusée',
 PERFORM pg_temp.denied('PV5 pas d''écriture directe de la couverture',
   format($$UPDATE public.pro_profiles SET cover_url = 'https://evil.example/x.jpg' WHERE user_id = %L RETURNING 1$$, pg_temp.id('pv_pro')));
 PERFORM pg_temp.denied('PV5 VITRINE-4 une image hors galerie (même dans son dossier) refusée en couverture',
-  format($$SELECT public.set_pro_cover(%L)::text$$, pg_temp.pv_url('pv_pro', 'hors-galerie.jpg')), 'Operation not permitted', 'VITRINE-4');
--- (tant que VITRINE-4 est ouvert, l'appel ci-dessus a changé la couverture : on la remet)
+  format($$SELECT public.set_pro_cover(%L)::text$$, pg_temp.pv_url('pv_pro', 'hors-galerie.jpg')), 'Operation not permitted');
+-- 00578 (VITRINE-4) : ou un fichier de son propre dossier cover/ (couverture prise du téléphone).
+PERFORM pg_temp.ok('PV5 VITRINE-4 un fichier de son dossier cover/ accepté en couverture',
+  format($$SELECT public.set_pro_cover(%L)::text$$, pg_temp.pv_url('pv_pro', 'cover/tel.jpg')));
+PERFORM pg_temp.eq('PV5 la couverture est le fichier du dossier cover/',
+  format($$SELECT cover_url FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pv_pro')), pg_temp.pv_url('pv_pro', 'cover/tel.jpg'));
+PERFORM pg_temp.denied('PV5 VITRINE-4 le dossier cover/ d''un autre pro refusé',
+  format($$SELECT public.set_pro_cover(%L)::text$$, pg_temp.pv_url('pv_pro2', 'cover/tel.jpg')), 'Operation not permitted');
 PERFORM pg_temp.ok('PV5 la couverture A est remise', format($$SELECT public.set_pro_cover(%L)::text$$, pg_temp.pv_url('pv_pro', 'a.jpg')));
 PERFORM pg_temp.as_('pv_cand');
 PERFORM pg_temp.denied('PV5 une candidature en attente n''a pas de couverture', format($$SELECT public.set_pro_cover(%L)::text$$, pg_temp.pv_url('pv_cand', 'a.jpg')), 'Operation not permitted');
@@ -308,9 +318,16 @@ PERFORM pg_temp.denied('PV5 couverture sur une offre inexistante refusée (même
 PERFORM pg_temp.denied('PV5 pas d''écriture directe de la couverture d''offre',
   format($$UPDATE public.pro_offerings SET cover_url = 'https://evil.example/x.jpg' WHERE id = %L RETURNING 1$$, pg_temp.id('pv_off')));
 PERFORM pg_temp.denied('PV5 VITRINE-4 la photo d''une AUTRE offre refusée en couverture',
-  format($$SELECT public.set_offering_cover(%L, %L)::text$$, pg_temp.id('pv_off'), pg_temp.pv_url('pv_pro', 'ob.jpg')), 'Operation not permitted', 'VITRINE-4');
+  format($$SELECT public.set_offering_cover(%L, %L)::text$$, pg_temp.id('pv_off'), pg_temp.pv_url('pv_pro', 'ob.jpg')), 'Operation not permitted');
 PERFORM pg_temp.denied('PV5 VITRINE-4 une image hors galerie refusée en couverture d''offre',
-  format($$SELECT public.set_offering_cover(%L, %L)::text$$, pg_temp.id('pv_off'), pg_temp.pv_url('pv_pro', 'hors-galerie.jpg')), 'Operation not permitted', 'VITRINE-4');
+  format($$SELECT public.set_offering_cover(%L, %L)::text$$, pg_temp.id('pv_off'), pg_temp.pv_url('pv_pro', 'hors-galerie.jpg')), 'Operation not permitted');
+-- 00578 (VITRINE-4) : ou un fichier de offering/<cette offre>/cover/.
+PERFORM pg_temp.ok('PV5 VITRINE-4 un fichier de offering/<offre>/cover/ accepté en couverture d''offre',
+  format($$SELECT public.set_offering_cover(%L, %L)::text$$, pg_temp.id('pv_off'), pg_temp.pv_url('pv_pro', 'offering/' || pg_temp.get('pv_off') || '/cover/tel.jpg')));
+PERFORM pg_temp.eq('PV5 la couverture d''offre est le fichier du dossier cover/',
+  format($$SELECT cover_url FROM public.pro_offerings WHERE id = %L$$, pg_temp.id('pv_off')), pg_temp.pv_url('pv_pro', 'offering/' || pg_temp.get('pv_off') || '/cover/tel.jpg'));
+PERFORM pg_temp.denied('PV5 VITRINE-4 le dossier cover/ d''une AUTRE offre refusé',
+  format($$SELECT public.set_offering_cover(%L, %L)::text$$, pg_temp.id('pv_off'), pg_temp.pv_url('pv_pro', 'offering/' || pg_temp.get('pv_offb') || '/cover/tel.jpg')), 'Operation not permitted');
 PERFORM pg_temp.ok('PV5 remise de la bonne couverture d''offre', format($$SELECT public.set_offering_cover(%L, %L)::text$$, pg_temp.id('pv_off'), pg_temp.pv_url('pv_pro', 'o1.jpg')));
 PERFORM pg_temp.as_('anon');
 PERFORM pg_temp.eq('PV5 l''image de l''offre (visiteur) = la couverture choisie',
@@ -387,7 +404,7 @@ PERFORM pg_temp.as_('pv_cli');
 PERFORM pg_temp.eq('PV7 membre : une offre démo est cachée', format($$SELECT count(*)::text FROM public.pro_offerings_with_coords WHERE id = %L$$, pg_temp.id('pv_off2')), '0');
 PERFORM pg_temp.as_('pv_cli2');
 PERFORM pg_temp.denied('PV7 pas de photo communautaire sur une vitrine démo',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro2'), pg_temp.pv_url('pv_cli2', 'demo.jpg')), 'Operation not permitted');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro2'), pg_temp.pv_url('pv_cli2', 'community/' || pg_temp.get('pv_pro2') || '/demo.jpg')), 'Operation not permitted');
 PERFORM pg_temp.as_('db');
 PERFORM set_config('junto.bypass_lock', 'true', true);
 UPDATE public.pro_profiles SET is_demo = false WHERE user_id = pg_temp.id('pv_pro2');
@@ -415,78 +432,100 @@ INSERT INTO public.bookings (offering_id, pro_id, client_id, day, period, end_da
   (pg_temp.id('pv_off'), pg_temp.id('pv_pro'), pg_temp.id('pv_cli6'), pg_temp.d(-4), 'am', pg_temp.d(-1), 2, 'accepted', NULL),
   (pg_temp.id('pv_off'), pg_temp.id('pv_pro'), pg_temp.id('pv_cli7'), pg_temp.d(-4), 'am', NULL,         1, 'accepted', pg_temp.id('pv_sess_done'));
 
--- Chaîne actuelle.
+-- Chaîne (00578, VITRINE-1) : auth, suspension, pro non suspendu, pas sa propre page, pas bloqué par le
+-- pro, pro approuvé non démo, fichier dans <moi>/community/<pro>/, réservation acceptée et sortie finie
+-- (avec cette offre si précisée), avis à soi, offre de ce pro, plafond 5.
 PERFORM pg_temp.as_('anon');
 PERFORM pg_temp.denied('PV8 anon : pas de photo communautaire', format($$SELECT public.add_pro_community_photo(%L, 'https://x/y.jpg')::text$$, pg_temp.id('pv_pro')));
 PERFORM pg_temp.as_('pv_sam');
 PERFORM pg_temp.denied('PV8 un suspendu : pas de photo communautaire',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_sam', 's.jpg')), 'Operation not permitted');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_sam', 's.jpg')), 'Operation not permitted');
 PERFORM pg_temp.as_('pv_cli2');
 PERFORM pg_temp.put('pv_cp1', pg_temp.ok('PV8 sortie faite : photo communautaire acceptée',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli2', 'p1.jpg'))));
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli2', 'p1.jpg'))));
 PERFORM pg_temp.put('pv_cp2', pg_temp.ok('PV8 sortie faite : photo rattachée à l''offre réservée',
-  format($$SELECT public.add_pro_community_photo(%L, %L, NULL, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli2', 'p2.jpg'), pg_temp.id('pv_off'))));
+  format($$SELECT public.add_pro_community_photo(%L, %L, NULL, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli2', 'p2.jpg'), pg_temp.id('pv_off'))));
 PERFORM pg_temp.put('pv_rv2', pg_temp.ok('PV8 sortie faite : avis sur le pro', format($$SELECT public.create_pro_review(%L, 5::smallint, 'Super sortie')::text$$, pg_temp.id('pv_pro'))));
 PERFORM pg_temp.ok('PV8 photo rattachée à son propre avis',
-  format($$SELECT public.add_pro_community_photo(%L, %L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli2', 'p3.jpg'), pg_temp.id('pv_rv2')));
+  format($$SELECT public.add_pro_community_photo(%L, %L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli2', 'p3.jpg'), pg_temp.id('pv_rv2')));
 PERFORM pg_temp.denied('PV8 photo hors de son propre dossier refusée',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli3', 'p.jpg')), 'Operation not permitted');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli3', 'p.jpg')), 'Operation not permitted');
+PERFORM pg_temp.denied('PV8 photo de son dossier mais hors community/<pro>/ refusée',
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli2', 'p5.jpg')), 'Operation not permitted');
+PERFORM pg_temp.denied('PV8 photo sous community/<un autre pro>/ refusée',
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli2', 'community/' || pg_temp.get('pv_pro2') || '/p6.jpg')), 'Operation not permitted');
 PERFORM pg_temp.as_('pv_cli6');
 PERFORM pg_temp.denied('PV8 photo rattachée à l''avis d''un autre refusée',
-  format($$SELECT public.add_pro_community_photo(%L, %L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli6', 'p.jpg'), pg_temp.id('pv_rv2')), 'Operation not permitted');
+  format($$SELECT public.add_pro_community_photo(%L, %L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli6', 'p.jpg'), pg_temp.id('pv_rv2')), 'Operation not permitted');
 PERFORM pg_temp.denied('PV8 un tiers ne retire pas la photo d''un autre', format($$SELECT public.remove_pro_community_photo(%L)::text$$, pg_temp.id('pv_cp1')), 'Operation not permitted');
 PERFORM pg_temp.as_('pv_pro');
 PERFORM pg_temp.denied('PV8 VITRINE-1 le pro ne poste pas de photo communautaire sur sa propre vitrine',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_pro', 'self.jpg')), 'Operation not permitted|junto\.', 'VITRINE-1');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_pro', 'self.jpg')), '^Operation not permitted$');
 
--- VITRINE-1 : il faut une sortie FAITE avec ce pro (et avec cette offre si elle est précisée).
+-- VITRINE-1 (corrigé 00578) : il faut une sortie FAITE avec ce pro (et avec cette offre si elle est précisée).
 PERFORM pg_temp.as_('pv_cli');
 PERFORM pg_temp.denied('PV8 VITRINE-1 sans réservation : pas de photo communautaire',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli', 'p.jpg')), 'Operation not permitted|junto\.', 'VITRINE-1');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli', 'p.jpg')), 'junto\.review_requires_booking');
 PERFORM pg_temp.as_('pv_cli3');
 PERFORM pg_temp.denied('PV8 VITRINE-1 réservation acceptée à venir : pas de photo',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli3', 'p.jpg')), 'Operation not permitted|junto\.', 'VITRINE-1');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli3', 'p.jpg')), 'junto\.review_requires_booking');
 PERFORM pg_temp.as_('pv_cli4');
 PERFORM pg_temp.denied('PV8 VITRINE-1 demande sur plusieurs jours en cours : pas de photo',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli4', 'p.jpg')), 'Operation not permitted|junto\.', 'VITRINE-1');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli4', 'p.jpg')), 'junto\.review_requires_booking');
 PERFORM pg_temp.as_('pv_cli5');
 PERFORM pg_temp.denied('PV8 VITRINE-1 date fixe en cours : pas de photo',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli5', 'p.jpg')), 'Operation not permitted|junto\.', 'VITRINE-1');
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli5', 'p.jpg')), 'junto\.review_requires_booking');
 PERFORM pg_temp.as_('pv_cli2');
 PERFORM pg_temp.denied('PV8 VITRINE-1 photo rattachée à une offre jamais réservée refusée',
-  format($$SELECT public.add_pro_community_photo(%L, %L, NULL, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli2', 'p4.jpg'), pg_temp.id('pv_offb')), 'Operation not permitted|junto\.', 'VITRINE-1');
+  format($$SELECT public.add_pro_community_photo(%L, %L, NULL, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli2', 'p4.jpg'), pg_temp.id('pv_offb')), 'junto\.review_requires_booking');
 PERFORM pg_temp.as_('pv_cli7');
 PERFORM pg_temp.ok('PV8 date fixe finie : photo acceptée',
-  format($$SELECT public.add_pro_community_photo(%L, %L, NULL, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli7', 'p.jpg'), pg_temp.id('pv_off')));
+  format($$SELECT public.add_pro_community_photo(%L, %L, NULL, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli7', 'p.jpg'), pg_temp.id('pv_off')));
 PERFORM pg_temp.as_('pv_cli6');
 PERFORM pg_temp.ok('PV8 plusieurs jours finis hier : photo acceptée',
-  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_url('pv_cli6', 'p.jpg')));
+  format($$SELECT public.add_pro_community_photo(%L, %L)::text$$, pg_temp.id('pv_pro'), pg_temp.pv_cm('pv_cli6', 'p.jpg')));
 -- Signalement et retrait par un admin.
 PERFORM pg_temp.as_('pv_cli');
 PERFORM pg_temp.ok('PV8 VITRINE-1 une photo communautaire se signale',
-  format($$SELECT public.create_report('pro_community_photo', %L, 'Photo sans rapport avec la sortie')::text$$, pg_temp.id('pv_cp1')), 'VITRINE-1');
+  format($$SELECT public.create_report('pro_community_photo', %L, 'Photo sans rapport avec la sortie')::text$$, pg_temp.id('pv_cp1')));
 PERFORM pg_temp.as_('pv_adm');
 PERFORM pg_temp.ok('PV8 VITRINE-1 l''admin retire une photo communautaire',
-  format($$SELECT public.admin_remove_content('pro_community_photo', %L, 'Contenu inapproprié')::text$$, pg_temp.id('pv_cp1')), 'VITRINE-1');
+  format($$SELECT public.admin_remove_content('pro_community_photo', %L, 'Contenu inapproprié')::text$$, pg_temp.id('pv_cp1')));
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('PV8 VITRINE-1 la photo retirée par l''admin a disparu',
-  format($$SELECT count(*)::text FROM public.pro_community_photos WHERE id = %L$$, pg_temp.id('pv_cp1')), '0', 'VITRINE-1');
+  format($$SELECT count(*)::text FROM public.pro_community_photos WHERE id = %L$$, pg_temp.id('pv_cp1')), '0');
 PERFORM pg_temp.as_('pv_cli2');
 PERFORM pg_temp.ok('PV8 le contributeur retire sa propre photo', format($$SELECT public.remove_pro_community_photo(%L)::text$$, pg_temp.id('pv_cp2')));
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('PV8 photo retirée', format($$SELECT count(*)::text FROM public.pro_community_photos WHERE id = %L$$, pg_temp.id('pv_cp2')), '0');
+PERFORM pg_temp.as_('pv_cli');
+PERFORM pg_temp.denied('PV8 signaler une photo communautaire inexistante : refusé',
+  format($$SELECT public.create_report('pro_community_photo', %L, 'Photo sans rapport avec la sortie')::text$$, gen_random_uuid()), '^Operation not permitted$');
+-- 00578 (VITRINE-1) : stockage — un contributeur ne réécrit ni ne supprime-et-remplace un fichier de
+-- son sous-dossier community/ (les politiques UPDATE / DELETE du bucket l'excluent).
+PERFORM pg_temp.as_('db');
+PERFORM pg_temp.eq('PV8 stockage : pro_photos_update_own exclut le sous-dossier community/',
+  $$SELECT (qual ~ 'foldername\(name\)\)\[2\] IS DISTINCT FROM ''community''')::text FROM pg_policies
+    WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'pro_photos_update_own' AND cmd = 'UPDATE'$$, 'true');
+PERFORM pg_temp.eq('PV8 stockage : pro_photos_delete_own exclut le sous-dossier community/',
+  $$SELECT (qual ~ 'foldername\(name\)\)\[2\] IS DISTINCT FROM ''community''')::text FROM pg_policies
+    WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'pro_photos_delete_own' AND cmd = 'DELETE'$$, 'true');
+PERFORM pg_temp.eq('PV8 stockage : aucune autre politique UPDATE / DELETE sur pro-photos',
+  $$SELECT string_agg(policyname, ',' ORDER BY policyname) FROM pg_policies
+    WHERE schemaname = 'storage' AND tablename = 'objects' AND cmd IN ('UPDATE', 'DELETE', 'ALL')
+      AND (qual ~ 'pro-photos' OR with_check ~ 'pro-photos')$$, 'pro_photos_delete_own,pro_photos_update_own');
 
 -- ═════ PV9 — Avis : la sortie doit être FINIE (VITRINE-3) ═════
 PERFORM pg_temp.as_('pv_cli4');
 PERFORM pg_temp.denied('PV9 VITRINE-3 plusieurs jours en cours : pas d''avis sur le pro',
-  format($$SELECT public.create_pro_review(%L, 5::smallint)::text$$, pg_temp.id('pv_pro')), 'junto.review_requires_booking', 'VITRINE-3');
+  format($$SELECT public.create_pro_review(%L, 5::smallint)::text$$, pg_temp.id('pv_pro')), 'junto.review_requires_booking');
 PERFORM pg_temp.denied('PV9 VITRINE-3 plusieurs jours en cours : pas d''avis sur l''offre',
-  format($$SELECT public.create_offering_review(%L, 5::smallint)::text$$, pg_temp.id('pv_off')), 'junto.review_requires_booking', 'VITRINE-3');
+  format($$SELECT public.create_offering_review(%L, 5::smallint)::text$$, pg_temp.id('pv_off')), 'junto.review_requires_booking');
 PERFORM pg_temp.as_('pv_cli5');
 PERFORM pg_temp.denied('PV9 VITRINE-3 date fixe en cours : pas d''avis sur le pro',
-  format($$SELECT public.create_pro_review(%L, 5::smallint)::text$$, pg_temp.id('pv_pro')), 'junto.review_requires_booking', 'VITRINE-3');
+  format($$SELECT public.create_pro_review(%L, 5::smallint)::text$$, pg_temp.id('pv_pro')), 'junto.review_requires_booking');
 PERFORM pg_temp.denied('PV9 VITRINE-3 date fixe en cours : pas d''avis sur l''offre',
-  format($$SELECT public.create_offering_review(%L, 5::smallint)::text$$, pg_temp.id('pv_off')), 'junto.review_requires_booking', 'VITRINE-3');
+  format($$SELECT public.create_offering_review(%L, 5::smallint)::text$$, pg_temp.id('pv_off')), 'junto.review_requires_booking');
 PERFORM pg_temp.as_('pv_cli3');
 PERFORM pg_temp.denied('PV9 réservation à venir : pas d''avis', format($$SELECT public.create_pro_review(%L, 5::smallint)::text$$, pg_temp.id('pv_pro')), 'junto.review_requires_booking');
 PERFORM pg_temp.as_('pv_cli6');

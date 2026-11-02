@@ -258,25 +258,26 @@ PERFORM pg_temp.put('sw_auth', $ref$ARRAY[
   'public.get_my_sessions(p_from date, p_to date)',
   'public.get_session_conflicts(p_start_day date, p_start_period text, p_end_day date, p_end_period text)',
   'public.set_offering_request_length(p_offering_id uuid, p_days integer)',
-  'public.confirm_outing(p_offering_id uuid, p_day date, p_period text)']$ref$);
--- Appelables par un compte mais PAS encore documentées comme RPC client dans SECURITY.md
--- (« Chaîne d'autorisation » + table de classification) : tenues hors de la liste ci-dessus,
--- signalées en xfail jusqu'à ce que la doc existe — alors les déplacer dans sw_auth.
--- set_gpx_trace_waypoints (00571) : chaîne testée dans 21_divers_recents (auth, suspension,
--- propriétaire, validation) ; seule la documentation manque.
-PERFORM pg_temp.put('sw_auth_undoc', $ref$ARRAY[
+  'public.confirm_outing(p_offering_id uuid, p_day date, p_period text)',
+  -- 00578 (SESSIONS-2b) : chaîne auth, assert_approved_pro (suspension incluse), valeur non nulle, propriétaire.
+  'public.set_offering_auto_cancel(p_offering_id uuid, p_on boolean)',
+  -- 00571 (chaîne documentée 2026-11-02, DOC-WAYPOINTS fermé) : auth, suspension, fréquence,
+  -- propriétaire, validation renvoyée (00578) — testée dans 21_divers_recents.
   'public.set_gpx_trace_waypoints(p_id uuid, p_waypoints jsonb)']$ref$);
+-- Appelables par un compte mais PAS encore documentées comme RPC client dans SECURITY.md
+-- (« Chaîne d'autorisation » + table de classification) : à tenir ici, signalées en échec
+-- jusqu'à ce que la doc existe — alors les déplacer dans sw_auth. Vide aujourd'hui.
+PERFORM pg_temp.put('sw_auth_undoc', $ref$ARRAY[]::text[]$ref$);
+-- 00578 / 00579 (GRANTS-4) : de private, anon n'exécute plus que user_is_suspended (vue carte visiteur).
 PERFORM pg_temp.put('sw_anon', $ref$ARRAY[
-  'private.message_author_visible(p_conversation_id uuid, p_sender_id uuid, p_viewer_id uuid)',
   'public.demo_content_visible()',
-  'private.user_is_suspended(p_user_id uuid)',
-  'private.is_conversation_member(p_conversation_id uuid, p_user_id uuid)']$ref$);
+  'private.user_is_suspended(p_user_id uuid)']$ref$);
 PERFORM pg_temp.eq('S2 aucune fonction appelable par un compte en dehors de la liste',
   format($q$SELECT coalesce(string_agg(s, ', '), '') FROM (SELECT n.nspname || '.' || p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' AS s FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname IN ('public', 'private') AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = p.oid AND d.deptype = 'e')
     AND has_function_privilege('authenticated', p.oid, 'EXECUTE') EXCEPT SELECT unnest(%s) EXCEPT SELECT unnest(%s)) x$q$, pg_temp.get('sw_auth'), pg_temp.get('sw_auth_undoc')), '');
 PERFORM pg_temp.eq('S2 aucune fonction appelable par un compte sans chaîne documentée dans SECURITY.md',
   format($q$SELECT coalesce(string_agg(s, ', '), '') FROM (SELECT n.nspname || '.' || p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' AS s FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname IN ('public', 'private')
-    AND has_function_privilege('authenticated', p.oid, 'EXECUTE') INTERSECT SELECT unnest(%s)) x$q$, pg_temp.get('sw_auth_undoc')), '', 'DOC-WAYPOINTS');
+    AND has_function_privilege('authenticated', p.oid, 'EXECUTE') INTERSECT SELECT unnest(%s)) x$q$, pg_temp.get('sw_auth_undoc')), '');
 PERFORM pg_temp.eq('S2 toutes les fonctions de la liste restent appelables par un compte',
   format($q$SELECT coalesce(string_agg(s, ', '), '') FROM (SELECT unnest(%s) AS s EXCEPT SELECT n.nspname || '.' || p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname IN ('public', 'private') AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = p.oid AND d.deptype = 'e')
     AND has_function_privilege('authenticated', p.oid, 'EXECUTE')) x$q$, pg_temp.get('sw_auth')), '');
@@ -418,7 +419,7 @@ PERFORM pg_temp.eq('S10 activities_with_coords (lisible sans compte) : colonnes 
   'created_at,creator_avatar,creator_id,creator_name,deleted_at,description,distance_km,duration,elevation_gain_m,end_lat,end_lng,id,lat,level,level_max,lng,max_participants,meeting_lat,meeting_lng,meeting_locality,meeting_name,objective_lat,objective_lng,objective_name,participant_count,requires_presence,sport_category,sport_icon,sport_id,sport_key,starts_at,status,title,trace_geojson,updated_at,visibility');
 PERFORM pg_temp.eq('S10 pro_offerings_with_coords : colonnes exactes',
   $q$SELECT string_agg(column_name, ',' ORDER BY column_name) FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'pro_offerings_with_coords'$q$,
-  'created_at,description,distance_km,duration,elevation_gain_m,equipment_provided,equipment_required,id,image_url,lat,level,lng,location_name,max_participants,min_participants,participant_fields,price_eur,price_unit,pro_id,pro_name,request_days,schedule_text,sport_category,sport_icon,sport_id,sport_key,title,updated_at');
+  'auto_cancel,created_at,description,distance_km,duration,elevation_gain_m,equipment_provided,equipment_required,id,image_url,lat,level,lng,location_name,max_participants,min_participants,participant_fields,price_eur,price_unit,pro_id,pro_name,request_days,schedule_text,sport_category,sport_icon,sport_id,sport_key,title,updated_at');
 
 -- ═════ S11 — Stockage : on ne renomme pas le fichier d'un autre ═════
 PERFORM pg_temp.as_('db');
