@@ -134,13 +134,13 @@ Every public table has FORCE RLS. A client write needs a table/column grant AND 
 - `gpx_traces` — `create/rename/delete_gpx_trace`
 - `favorites` — `add_favorite`/`remove_favorite`
 - `pro_profiles` — `register_as_pro`/`update_pro_profile`/`resubmit_pro_application`/`unregister_as_pro`, pin setters, admin `approve_pro`/`reject_pro`
-- `pro_offerings` — `create/update/delete_pro_offering`, `set_offering_details`
+- `pro_offerings` — `create/update/delete_pro_offering`, `set_offering_details`, `set_offering_request_length`
 - `pro_profile_photos` / `pro_offering_photos` / `pro_community_photos` — `add/remove/reorder_*` RPCs
 - `pro_reviews` / `offering_reviews` — `create/update/delete/reply_to_*_review`
 - `pro_availabilities` — `set_pro_availability(_bulk)`
-- `bookings` — `create_booking`, `create_manual_booking`, accept/decline/cancel RPCs, `cancel_outing`, `set_booking_participant_info`, `join_pro_session`, `cancel_pro_session`
+- `bookings` — `create_booking`, `create_manual_booking`, accept/decline/cancel RPCs, `cancel_outing`, `set_booking_participant_info`, `join_pro_session`, `cancel_pro_session`, `auto_cancel_short_outings` (cron)
 - `pro_sessions` (fixed dates; SELECT revoked too — `get_offering_sessions` / `get_my_sessions`) — `create/update/cancel_pro_session`
 - `users` (INSERT) — `handle_new_user` trigger + `ensure_user_row`; `notifications` (INSERT, DELETE) — `create_notification` + `notify_*`; `reports` (INSERT) — `create_report`, DELETE never; `activity_alerts` (INSERT/UPDATE) — `create_alert`
-- Internal tables, no client grant: `rate_events`, `late_cancels`, `invite_grants`, `invitation_declines`, `conversation_departures`, `message_original_content`, `contact_qr_tokens`, `contact_qr_scans`, `contact_removal_archive`, `map_broadcasts`, `snap_trail_calls`, `trace_elevation_calls`, `admin_actions`, `banned_email_hashes`. No write policy: `app_config` (only `admin_set_demo_mode`), `gear_catalog` (migrations only)
+- Internal tables, no client grant: `outing_confirmations` (`confirm_outing` + minimum reached), `rate_events`, `late_cancels`, `invite_grants`, `invitation_declines`, `conversation_departures`, `message_original_content`, `contact_qr_tokens`, `contact_qr_scans`, `contact_removal_archive`, `map_broadcasts`, `snap_trail_calls`, `trace_elevation_calls`, `admin_actions`, `banned_email_hashes`. No write policy: `app_config` (only `admin_set_demo_mode`), `gear_catalog` (migrations only)
 
 **Deliberate direct client writes** (grant + RLS policy): `users` UPDATE own row (`handle_user_update` pins privileged columns: client can change `display_name`, `avatar_url`, `bio`, `sports`, `notification_preferences`, `language`) · `blocked_users` INSERT/DELETE where `blocker_id = auth.uid()` · `notifications` UPDATE own (`handle_notification_update` keeps only `read_at`) · `activity_alerts` DELETE own · `sports` INSERT/UPDATE/DELETE by active (non-suspended) admins. `reports` has no UPDATE policy since 00527 — moderation goes through `moderate_report` only.
