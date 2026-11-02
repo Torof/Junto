@@ -60,6 +60,7 @@ Comportement : la demande ne **bloque jamais** le « Rejoindre » (on rejoint, p
 | T+duration/2 | `presence_validate_warning` | Participants non confirmés, créateur exclu — **dès 2 participants** (00432, était 3+), avec une copy QR-seule à 2 | Oui |
 | Validation succès | `presence_confirmed` | User validé | Conditionnel — le DEFAULT de `notify_presence_confirmed` est **FALSE** ; ce sont les RPC géo/QR qui passent `skip_push = TRUE` (le replay offline poste sa propre notif locale). `peer_validate_presence` appelle en 2 args → le push part. |
 | End+15min | `rate_participants` | Participants | Non (in-app) — émis au premier balayage une fois la fenêtre de vote ouverte (00427) |
+| End - 1h (sortie ≥ 12 h) | `presence_end_reminder` | Sorties longues / plusieurs jours (00572, Scott 2026-11-02) : participants non validés (créateur exclu) + l'organisateur (variant `creator`, « affiche ton QR », s'il reste quelqu'un à valider). Le QR reste valable de T-15 min à fin + 3 h : on peut scanner au départ, pendant (refuge avec réseau) ou après | Oui |
 | End + 1h | `presence_validate_overdue` | Participants non confirmés (≥3 acceptés, créateur exclu) — la copy ne prétend plus « tu es enregistré comme absent » (faux à ce moment : le marquage est à end+24h) et nomme le QR, encore valable 2h (00429) | Oui |
 | ~~End + 22h~~ | ~~`peer_review_closing`~~, ~~`presence_validate_final`~~ | **Supprimées (00508)** avec le témoignage entre pairs | — |
 | Rejet définitif d'un replay | « Présence non enregistrée » (notif locale) | Participant concerné (00429) | Local |

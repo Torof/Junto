@@ -52,6 +52,7 @@
     "presence_pre_warning": { "title": "{{title}}", "body": "Start in 2 h — bereite dich darauf vor, deine Anwesenheit vor Ort zu bestätigen" },
     "presence_pre_warning_10min": { "title": "{{title}}", "body": "Start in 10 min — denk daran, deine Anwesenheit vor Ort zu bestätigen" },
     "presence_validate_warning": { "title": "Bestätige deine Anwesenheit", "body": "Scanne den QR-Code der Organisation — gültig bis 3 h nach Ende von „{{title}}“." },
+    "presence_end_reminder": {"title": "Tourende: bestätige deine Anwesenheit", "body": "Scanne den QR des Organisators — gültig bis 3 Std. nach dem Ende von „{{title}}“.", "creator": {"title": "Tourende: zeig deinen QR", "body_one": "1 Teilnehmer hat seine Anwesenheit bei „{{title}}“ noch nicht bestätigt.", "body_other": "{{count}} Teilnehmer haben ihre Anwesenheit bei „{{title}}“ noch nicht bestätigt."}},
     "presence_validate_overdue": {
       "title": "Anwesenheit nicht bestätigt", "body": "Scanne den QR-Code der Organisation bis 3 h nach Ende von „{{title}}“, sonst zählt es als Abwesenheit.",
       "duo": { "title": "Anwesenheit nicht bestätigt", "body": "Scanne den QR-Code der Organisation bis 3 h nach Ende von „{{title}}“, sonst zählt die Tour nicht." }
@@ -1142,6 +1143,7 @@
       "presence_pre_warning": "Die Aktivität startet bald",
       "presence_pre_warning_10min": "Start in 10 Min.",
       "presence_validate_warning": "Achtung — bestätige deine Anwesenheit",
+      "presence_end_reminder": "Ende einer langen Tour — Anwesenheit bestätigen",
       "presence_validate_overdue": "Du hast deine Anwesenheit nicht bestätigt",
       "presence_validate_final": "Letzte Chance: Anwesenheit nicht bestätigt",
       "presence_confirmed": "Anwesenheit bestätigt",
@@ -2590,5 +2592,16 @@
       "danger": "Heikle Stelle",
       "other": "Sonstiges"
     }
+  },
+  "multiDay": {
+    "toggle": "Über mehrere Tage (Biwak, Hütte…)",
+    "endLabel": "Ende",
+    "pickStartFirst": "Wähle zuerst den Start",
+    "tooShort": "Das Ende muss mindestens 12 Std. nach dem Start liegen.",
+    "tooLong": "Höchstens {{count}} Tage."
+  },
+  "durationFmt": {
+    "days_one": "{{count}} T.",
+    "days_other": "{{count}} T."
   }
 }

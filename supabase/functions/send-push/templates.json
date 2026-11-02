@@ -181,6 +181,15 @@
      "title": "Valide ta présence",
      "body": "Scanne le QR de l’organisateur — valable jusqu’à 3 h après la fin de « {{title}} »."
     },
+    "presence_end_reminder": {
+     "title": "Fin de sortie : valide ta présence",
+     "body": "Scanne le QR de l’organisateur — valable jusqu’à 3 h après la fin de « {{title}} ».",
+     "creator": {
+      "title": "Fin de sortie : affiche ton QR",
+      "body_one": "1 participant n’a pas encore validé sa présence sur « {{title}} ».",
+      "body_other": "{{count}} participants n’ont pas encore validé leur présence sur « {{title}} »."
+     }
+    },
     "presence_validate_overdue": {
      "title": "Présence non validée",
      "body": "Scanne le QR de l’organisateur avant 3 h après la fin de « {{title}} », sinon ce sera une absence.",
@@ -430,6 +439,15 @@
     "presence_validate_warning": {
      "title": "Validate your presence",
      "body": "Scan the organiser's QR — valid until 3 h after the end of “{{title}}”."
+    },
+    "presence_end_reminder": {
+     "title": "Outing ending: confirm your presence",
+     "body": "Scan the organiser’s QR — valid until 3 h after “{{title}}” ends.",
+     "creator": {
+      "title": "Outing ending: show your QR",
+      "body_one": "1 participant hasn’t confirmed their presence on “{{title}}” yet.",
+      "body_other": "{{count}} participants haven’t confirmed their presence on “{{title}}” yet."
+     }
     },
     "presence_validate_overdue": {
      "title": "Presence not validated",
@@ -681,6 +699,15 @@
      "title": "Convalida la tua presenza",
      "body": "Scansiona il QR dell'organizzatore — valido fino a 3 h dopo la fine di « {{title}} »."
     },
+    "presence_end_reminder": {
+     "title": "Fine uscita: conferma la tua presenza",
+     "body": "Scansiona il QR dell’organizzatore — valido fino a 3 h dopo la fine di « {{title}} ».",
+     "creator": {
+      "title": "Fine uscita: mostra il tuo QR",
+      "body_one": "1 partecipante non ha ancora confermato la presenza a « {{title}} ».",
+      "body_other": "{{count}} partecipanti non hanno ancora confermato la presenza a « {{title}} »."
+     }
+    },
     "presence_validate_overdue": {
      "title": "Presenza non convalidata",
      "body": "Scansiona il QR dell'organizzatore entro 3 h dalla fine di « {{title}} », altrimenti conterà come assenza.",
@@ -931,6 +958,15 @@
      "title": "Valida tu presencia",
      "body": "Escanea el QR del organizador: válido hasta 3 h después del final de «{{title}}»."
     },
+    "presence_end_reminder": {
+     "title": "Fin de la salida: confirma tu presencia",
+     "body": "Escanea el QR del organizador — válido hasta 3 h después del final de «{{title}}».",
+     "creator": {
+      "title": "Fin de la salida: muestra tu QR",
+      "body_one": "1 participante aún no ha confirmado su presencia en «{{title}}».",
+      "body_other": "{{count}} participantes aún no han confirmado su presencia en «{{title}}»."
+     }
+    },
     "presence_validate_overdue": {
      "title": "Presencia sin validar",
      "body": "Escanea el QR del organizador antes de 3 h tras el final de «{{title}}», o contará como ausencia.",
@@ -1180,6 +1216,15 @@
     "presence_validate_warning": {
      "title": "Bestätige deine Anwesenheit",
      "body": "Scanne den QR-Code der Organisation — gültig bis 3 h nach Ende von „{{title}}“."
+    },
+    "presence_end_reminder": {
+     "title": "Tourende: bestätige deine Anwesenheit",
+     "body": "Scanne den QR des Organisators — gültig bis 3 Std. nach dem Ende von „{{title}}“.",
+     "creator": {
+      "title": "Tourende: zeig deinen QR",
+      "body_one": "1 Teilnehmer hat seine Anwesenheit bei „{{title}}“ noch nicht bestätigt.",
+      "body_other": "{{count}} Teilnehmer haben ihre Anwesenheit bei „{{title}}“ noch nicht bestätigt."
+     }
     },
     "presence_validate_overdue": {
      "title": "Anwesenheit nicht bestätigt",
@@ -1494,6 +1539,15 @@
      "title": "Openstaande aanvragen",
      "body_one": "1 aanvraag wacht al meer dan 24 uur op je antwoord.",
      "body_other": "{{count}} aanvragen wachten al meer dan 24 uur op je antwoord."
+    },
+    "presence_end_reminder": {
+     "title": "Einde activiteit: bevestig je aanwezigheid",
+     "body": "Scan de QR van de organisator — geldig tot 3 uur na het einde van „{{title}}”.",
+     "creator": {
+      "title": "Einde activiteit: toon je QR",
+      "body_one": "1 deelnemer heeft zijn aanwezigheid bij „{{title}}” nog niet bevestigd.",
+      "body_other": "{{count}} deelnemers hebben hun aanwezigheid bij „{{title}}” nog niet bevestigd."
+     }
     }
    },
    "period": {
@@ -1744,6 +1798,15 @@
      "title": "Pedidos pendentes",
      "body_one": "1 pedido aguarda a tua resposta há mais de 24 h.",
      "body_other": "{{count}} pedidos aguardam a tua resposta há mais de 24 h."
+    },
+    "presence_end_reminder": {
+     "title": "Fim da atividade: confirma a tua presença",
+     "body": "Lê o QR do organizador — válido até 3 h após o fim de «{{title}}».",
+     "creator": {
+      "title": "Fim da atividade: mostra o teu QR",
+      "body_one": "1 participante ainda não confirmou a presença em «{{title}}».",
+      "body_other": "{{count}} participantes ainda não confirmaram a presença em «{{title}}»."
+     }
     }
    },
    "period": {

@@ -52,6 +52,7 @@
     "presence_pre_warning": { "title": "{{title}}", "body": "Démarre dans 2 h — prépare-toi à valider ta présence sur place" },
     "presence_pre_warning_10min": { "title": "{{title}}", "body": "Démarre dans 10 min — pense à valider ta présence sur place" },
     "presence_validate_warning": { "title": "Valide ta présence", "body": "Scanne le QR de l’organisateur — valable jusqu’à 3 h après la fin de « {{title}} »." },
+    "presence_end_reminder": {"title": "Fin de sortie : valide ta présence", "body": "Scanne le QR de l’organisateur — valable jusqu’à 3 h après la fin de « {{title}} ».", "creator": {"title": "Fin de sortie : affiche ton QR", "body_one": "1 participant n’a pas encore validé sa présence sur « {{title}} ».", "body_other": "{{count}} participants n’ont pas encore validé leur présence sur « {{title}} »."}},
     "presence_validate_overdue": {
       "title": "Présence non validée", "body": "Scanne le QR de l’organisateur avant 3 h après la fin de « {{title}} », sinon ce sera une absence.",
       "duo": { "title": "Présence non validée", "body": "Scanne le QR de l’organisateur avant 3 h après la fin de « {{title}} », sinon la sortie ne sera pas comptée." }
@@ -1142,6 +1143,7 @@
       "presence_pre_warning": "Bientôt l'heure de l'activité",
       "presence_pre_warning_10min": "Démarre dans 10 min",
       "presence_validate_warning": "Attention — valide ta présence",
+      "presence_end_reminder": "Fin d’une sortie longue — présence à valider",
       "presence_validate_overdue": "Tu n'as pas validé ta présence",
       "presence_validate_final": "Dernière chance : présence non validée",
       "presence_confirmed": "Présence confirmée",
@@ -2590,5 +2592,16 @@
       "danger": "Passage délicat",
       "other": "Autre"
     }
+  },
+  "multiDay": {
+    "toggle": "Sur plusieurs jours (bivouac, refuge…)",
+    "endLabel": "Fin",
+    "pickStartFirst": "Choisis d’abord le départ",
+    "tooShort": "La fin doit être au moins 12 h après le départ.",
+    "tooLong": "{{count}} jours maximum."
+  },
+  "durationFmt": {
+    "days_one": "{{count}} j",
+    "days_other": "{{count}} j"
   }
 }

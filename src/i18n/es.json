@@ -52,6 +52,7 @@
     "presence_pre_warning": { "title": "{{title}}", "body": "Empieza en 2 h: prepárate para validar tu presencia in situ" },
     "presence_pre_warning_10min": { "title": "{{title}}", "body": "Empieza en 10 min: recuerda validar tu presencia in situ" },
     "presence_validate_warning": { "title": "Valida tu presencia", "body": "Escanea el QR del organizador: válido hasta 3 h después del final de «{{title}}»." },
+    "presence_end_reminder": {"title": "Fin de la salida: confirma tu presencia", "body": "Escanea el QR del organizador — válido hasta 3 h después del final de «{{title}}».", "creator": {"title": "Fin de la salida: muestra tu QR", "body_one": "1 participante aún no ha confirmado su presencia en «{{title}}».", "body_other": "{{count}} participantes aún no han confirmado su presencia en «{{title}}»."}},
     "presence_validate_overdue": {
       "title": "Presencia sin validar", "body": "Escanea el QR del organizador antes de 3 h tras el final de «{{title}}», o contará como ausencia.",
       "duo": { "title": "Presencia sin validar", "body": "Escanea el QR del organizador antes de 3 h tras el final de «{{title}}», o la salida no contará." }
@@ -1142,6 +1143,7 @@
       "presence_pre_warning": "Pronto empieza la actividad",
       "presence_pre_warning_10min": "Empieza en 10 min",
       "presence_validate_warning": "Atención — valida tu presencia",
+      "presence_end_reminder": "Final de una salida larga — presencia por confirmar",
       "presence_validate_overdue": "No has validado tu presencia",
       "presence_validate_final": "Última oportunidad: presencia sin validar",
       "presence_confirmed": "Presencia confirmada",
@@ -2590,5 +2592,16 @@
       "danger": "Paso delicado",
       "other": "Otro"
     }
+  },
+  "multiDay": {
+    "toggle": "Varios días (vivac, refugio…)",
+    "endLabel": "Fin",
+    "pickStartFirst": "Elige primero la salida",
+    "tooShort": "El final debe ser al menos 12 h después de la salida.",
+    "tooLong": "Máximo {{count}} días."
+  },
+  "durationFmt": {
+    "days_one": "{{count}} d",
+    "days_other": "{{count}} d"
   }
 }

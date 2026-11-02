@@ -241,6 +241,15 @@
       "title": "Pedidos pendentes",
       "body_one": "1 pedido aguarda a tua resposta há mais de 24 h.",
       "body_other": "{{count}} pedidos aguardam a tua resposta há mais de 24 h."
+    },
+    "presence_end_reminder": {
+      "title": "Fim da atividade: confirma a tua presença",
+      "body": "Lê o QR do organizador — válido até 3 h após o fim de «{{title}}».",
+      "creator": {
+        "title": "Fim da atividade: mostra o teu QR",
+        "body_one": "1 participante ainda não confirmou a presença em «{{title}}».",
+        "body_other": "{{count}} participantes ainda não confirmaram a presença em «{{title}}»."
+      }
     }
   },
   "format": {
@@ -1327,7 +1336,8 @@
       "booking_declined": "Reserva recusada",
       "booking_cancelled": "Reserva cancelada",
       "booking_reminder": "Lembrete na véspera de uma atividade reservada",
-      "booking_requests_waiting": "Pedidos de reserva pendentes (pro)"
+      "booking_requests_waiting": "Pedidos de reserva pendentes (pro)",
+      "presence_end_reminder": "Fim de uma atividade longa — presença por confirmar"
     },
     "editPhoto": "Alterar a foto",
     "sportsSeeAll": "Ver tudo ({{count}})",
@@ -2756,5 +2766,16 @@
     },
     "modeStops": "Etapas",
     "drawHint": "Toca no trajeto para pôr uma etapa · {{count}} etapas"
+  },
+  "multiDay": {
+    "toggle": "Em vários dias (bivaque, refúgio…)",
+    "endLabel": "Fim",
+    "pickStartFirst": "Escolhe primeiro a partida",
+    "tooShort": "O fim deve ser pelo menos 12 h após a partida.",
+    "tooLong": "Máximo de {{count}} dias."
+  },
+  "durationFmt": {
+    "days_one": "{{count}} d",
+    "days_other": "{{count}} d"
   }
 }

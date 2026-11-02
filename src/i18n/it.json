@@ -52,6 +52,7 @@
     "presence_pre_warning": { "title": "{{title}}", "body": "Inizia tra 2 h — preparati a convalidare la presenza sul posto" },
     "presence_pre_warning_10min": { "title": "{{title}}", "body": "Inizia tra 10 min — ricordati di convalidare la presenza sul posto" },
     "presence_validate_warning": { "title": "Convalida la tua presenza", "body": "Scansiona il QR dell'organizzatore — valido fino a 3 h dopo la fine di « {{title}} »." },
+    "presence_end_reminder": {"title": "Fine uscita: conferma la tua presenza", "body": "Scansiona il QR dell’organizzatore — valido fino a 3 h dopo la fine di « {{title}} ».", "creator": {"title": "Fine uscita: mostra il tuo QR", "body_one": "1 partecipante non ha ancora confermato la presenza a « {{title}} ».", "body_other": "{{count}} partecipanti non hanno ancora confermato la presenza a « {{title}} »."}},
     "presence_validate_overdue": {
       "title": "Presenza non convalidata", "body": "Scansiona il QR dell'organizzatore entro 3 h dalla fine di « {{title}} », altrimenti conterà come assenza.",
       "duo": { "title": "Presenza non convalidata", "body": "Scansiona il QR dell'organizzatore entro 3 h dalla fine di « {{title}} », altrimenti l'uscita non verrà contata." }
@@ -1142,6 +1143,7 @@
       "presence_pre_warning": "L'attività sta per iniziare",
       "presence_pre_warning_10min": "Inizia tra 10 min",
       "presence_validate_warning": "Attenzione — convalida la tua presenza",
+      "presence_end_reminder": "Fine di un’uscita lunga — presenza da confermare",
       "presence_validate_overdue": "Non hai convalidato la tua presenza",
       "presence_validate_final": "Ultima possibilità: presenza non convalidata",
       "presence_confirmed": "Presenza confermata",
@@ -2590,5 +2592,16 @@
       "danger": "Passaggio delicato",
       "other": "Altro"
     }
+  },
+  "multiDay": {
+    "toggle": "Su più giorni (bivacco, rifugio…)",
+    "endLabel": "Fine",
+    "pickStartFirst": "Scegli prima la partenza",
+    "tooShort": "La fine deve essere almeno 12 h dopo la partenza.",
+    "tooLong": "Massimo {{count}} giorni."
+  },
+  "durationFmt": {
+    "days_one": "{{count}} g",
+    "days_other": "{{count}} g"
   }
 }

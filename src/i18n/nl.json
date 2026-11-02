@@ -241,6 +241,15 @@
       "title": "Openstaande aanvragen",
       "body_one": "1 aanvraag wacht al meer dan 24 uur op je antwoord.",
       "body_other": "{{count}} aanvragen wachten al meer dan 24 uur op je antwoord."
+    },
+    "presence_end_reminder": {
+      "title": "Einde activiteit: bevestig je aanwezigheid",
+      "body": "Scan de QR van de organisator — geldig tot 3 uur na het einde van „{{title}}”.",
+      "creator": {
+        "title": "Einde activiteit: toon je QR",
+        "body_one": "1 deelnemer heeft zijn aanwezigheid bij „{{title}}” nog niet bevestigd.",
+        "body_other": "{{count}} deelnemers hebben hun aanwezigheid bij „{{title}}” nog niet bevestigd."
+      }
     }
   },
   "format": {
@@ -1327,7 +1336,8 @@
       "booking_declined": "Boeking geweigerd",
       "booking_cancelled": "Boeking geannuleerd",
       "booking_reminder": "Herinnering de dag voor een geboekte activiteit",
-      "booking_requests_waiting": "Openstaande boekingsaanvragen (pro)"
+      "booking_requests_waiting": "Openstaande boekingsaanvragen (pro)",
+      "presence_end_reminder": "Einde van een lange activiteit — aanwezigheid bevestigen"
     },
     "editPhoto": "Foto wijzigen",
     "sportsSeeAll": "Alles bekijken ({{count}})",
@@ -2756,5 +2766,16 @@
     },
     "modeStops": "Etappes",
     "drawHint": "Tik op je route om een etappe te plaatsen · {{count}} etappes"
+  },
+  "multiDay": {
+    "toggle": "Over meerdere dagen (bivak, berghut…)",
+    "endLabel": "Einde",
+    "pickStartFirst": "Kies eerst het vertrek",
+    "tooShort": "Het einde moet minstens 12 uur na het vertrek liggen.",
+    "tooLong": "Maximaal {{count}} dagen."
+  },
+  "durationFmt": {
+    "days_one": "{{count}} d",
+    "days_other": "{{count}} d"
   }
 }
