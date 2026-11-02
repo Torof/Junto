@@ -2558,5 +2558,35 @@
       "too_large": "Dein Kalender ist zu groß zum Lesen (über 2 MB).",
       "internal": "Fehler auf unserer Seite, wir versuchen es alle 15 Min. erneut."
     }
+  },
+  "waypoint": {
+    "title": "Etappen der Route",
+    "menu": "Etappen der Route",
+    "hintAdd": "Tippe auf den Track, um eine Etappe hinzuzufügen. Tippe auf eine Etappe, um sie zu ändern.",
+    "hintMove": "Tippe auf die Karte, um die Etappe auf dem Track zu verschieben.",
+    "newTitle": "Neue Etappe",
+    "editTitle": "Etappe bearbeiten",
+    "namePlaceholder": "Name (optional) — z. B. Franz-Senn-Hütte",
+    "remove": "Etappe löschen",
+    "add": "Hinzufügen",
+    "done": "Etappen speichern",
+    "count_one": "1 Etappe",
+    "count_other": "{{count}} Etappen",
+    "countEdit_one": "1 Etappe · Bearbeiten",
+    "countEdit_other": "{{count}} Etappen · Bearbeiten",
+    "addCta": "Etappen hinzufügen (Hütte, Wasser…)",
+    "max": "Höchstens {{count}} Etappen",
+    "saved": "Etappen gespeichert",
+    "kind": {
+      "refuge": "Hütte",
+      "camp": "Biwak",
+      "water": "Wasserstelle",
+      "viewpoint": "Aussichtspunkt",
+      "food": "Picknick",
+      "parking": "Parkplatz",
+      "summit": "Gipfel",
+      "danger": "Heikle Stelle",
+      "other": "Sonstiges"
+    }
   }
 }

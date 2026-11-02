@@ -2724,5 +2724,35 @@
       "too_large": "Je agenda is te groot om te lezen (meer dan 2 MB).",
       "internal": "Fout aan onze kant, we proberen het elke 15 min opnieuw."
     }
+  },
+  "waypoint": {
+    "title": "Etappes van de route",
+    "menu": "Etappes van de route",
+    "hintAdd": "Tik op de route om een etappe toe te voegen. Tik op een etappe om ze te wijzigen.",
+    "hintMove": "Tik op de kaart om de etappe langs de route te verplaatsen.",
+    "newTitle": "Nieuwe etappe",
+    "editTitle": "Etappe wijzigen",
+    "namePlaceholder": "Naam (optioneel) — bijv. Refuge des Bans",
+    "remove": "Etappe verwijderen",
+    "add": "Toevoegen",
+    "done": "Etappes bevestigen",
+    "count_one": "1 etappe",
+    "count_other": "{{count}} etappes",
+    "countEdit_one": "1 etappe · Wijzigen",
+    "countEdit_other": "{{count}} etappes · Wijzigen",
+    "addCta": "Etappes toevoegen (hut, water…)",
+    "max": "Maximaal {{count}} etappes",
+    "saved": "Etappes opgeslagen",
+    "kind": {
+      "refuge": "Berghut",
+      "camp": "Bivak",
+      "water": "Waterpunt",
+      "viewpoint": "Uitzichtpunt",
+      "food": "Picknick",
+      "parking": "Parkeerplaats",
+      "summit": "Top",
+      "danger": "Lastige passage",
+      "other": "Overig"
+    }
   }
 }

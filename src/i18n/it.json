@@ -2558,5 +2558,35 @@
       "too_large": "Il tuo calendario è troppo grande da leggere (oltre 2 MB).",
       "internal": "Errore da parte nostra, riproviamo ogni 15 min."
     }
+  },
+  "waypoint": {
+    "title": "Tappe del percorso",
+    "menu": "Tappe del percorso",
+    "hintAdd": "Tocca la traccia per aggiungere una tappa. Tocca una tappa per modificarla.",
+    "hintMove": "Tocca la mappa per spostare la tappa sulla traccia.",
+    "newTitle": "Nuova tappa",
+    "editTitle": "Modifica tappa",
+    "namePlaceholder": "Nome (facoltativo) — es. Rifugio Elisabetta",
+    "remove": "Elimina la tappa",
+    "add": "Aggiungi",
+    "done": "Conferma le tappe",
+    "count_one": "1 tappa",
+    "count_other": "{{count}} tappe",
+    "countEdit_one": "1 tappa · Modifica",
+    "countEdit_other": "{{count}} tappe · Modifica",
+    "addCta": "Aggiungi tappe (rifugio, acqua…)",
+    "max": "Massimo {{count}} tappe",
+    "saved": "Tappe salvate",
+    "kind": {
+      "refuge": "Rifugio",
+      "camp": "Bivacco",
+      "water": "Acqua",
+      "viewpoint": "Punto panoramico",
+      "food": "Picnic",
+      "parking": "Parcheggio",
+      "summit": "Cima",
+      "danger": "Passaggio delicato",
+      "other": "Altro"
+    }
   }
 }

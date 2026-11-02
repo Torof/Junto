@@ -32,6 +32,8 @@ import { enrichTraceElevation } from '@/utils/trace-elevation';
 import { activityService, type GeoJsonLineString } from '@/services/activity-service';
 import { TracePickerModal } from '@/components/trace-picker-modal';
 import { TraceDrawModal } from '@/components/trace-draw-modal';
+import { WaypointEditorModal } from '@/components/waypoint-editor-modal';
+import { withWaypoints } from '@/utils/trace-waypoints';
 
 export default function CreateStep2() {
   const colors = useColors();
@@ -59,6 +61,7 @@ export default function CreateStep2() {
   const [isLoadingTrace, setIsLoadingTrace] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [drawOpen, setDrawOpen] = useState(false);
+  const [waypointsOpen, setWaypointsOpen] = useState(false);
   // Distance / D+ the server reads off the trace (mig 00452) — shown under the
   // trace row and written into the two fields just below it (Scott 2026-10-16:
   // setting a trace FILLS the fields, typed or not; the organiser corrects
@@ -320,6 +323,17 @@ export default function CreateStep2() {
               <AppText style={styles.traceClearText}>{t('create.traceRemove')}</AppText>
             </Pressable>
           </View>
+        ) : null}
+        {/* Waypoints on the trace (00570) — refuge, water, viewpoint… */}
+        {form.trace_geojson ? (
+          <Pressable style={[styles.traceButton, styles.waypointsBtn]} onPress={() => setWaypointsOpen(true)}>
+            <MapPin size={16} color={colors.cta} strokeWidth={2.2} />
+            <AppText style={styles.traceButtonText}>
+              {form.trace_geojson.waypoints?.length
+                ? t('waypoint.countEdit', { defaultValue: 'Étapes : {{count}} · Modifier', count: form.trace_geojson.waypoints.length })
+                : t('waypoint.addCta', { defaultValue: 'Ajouter des étapes (refuge, point d’eau…)' })}
+            </AppText>
+          </Pressable>
         ) : (
           <View style={styles.traceOptions}>
             <Pressable
@@ -355,6 +369,19 @@ export default function CreateStep2() {
           onSelect={(geojson) => {
             void applyTrace(geojson);
             setPickerOpen(false);
+          }}
+        />
+
+        <WaypointEditorModal
+          visible={waypointsOpen}
+          trace={form.trace_geojson ?? null}
+          onClose={() => setWaypointsOpen(false)}
+          onSave={(wps) => {
+            // Latest trace from the store: the altitude enrichment may have
+            // replaced it while the editor was open.
+            const current = useCreateStore.getState().form.trace_geojson;
+            if (current) updateForm({ trace_geojson: withWaypoints(current, wps) });
+            setWaypointsOpen(false);
           }}
         />
 
@@ -670,6 +697,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.sm + 2, marginBottom: spacing.md,
   },
   traceButtonText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },
+  waypointsBtn: { marginTop: -spacing.sm },
   traceSetRow: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     backgroundColor: colors.cta + '15',

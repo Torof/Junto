@@ -2558,5 +2558,35 @@
       "too_large": "Your calendar is too large to read (over 2 MB).",
       "internal": "Error on our side, we retry every 15 min."
     }
+  },
+  "waypoint": {
+    "title": "Route stops",
+    "menu": "Route stops",
+    "hintAdd": "Tap the trace to add a stop. Tap a stop to edit it.",
+    "hintMove": "Tap the map to move the stop along the trace.",
+    "newTitle": "New stop",
+    "editTitle": "Edit stop",
+    "namePlaceholder": "Name (optional) — e.g. Refuge des Bans",
+    "remove": "Delete stop",
+    "add": "Add",
+    "done": "Save stops",
+    "count_one": "1 stop",
+    "count_other": "{{count}} stops",
+    "countEdit_one": "1 stop · Edit",
+    "countEdit_other": "{{count}} stops · Edit",
+    "addCta": "Add stops (hut, water…)",
+    "max": "{{count}} stops maximum",
+    "saved": "Stops saved",
+    "kind": {
+      "refuge": "Hut",
+      "camp": "Bivouac",
+      "water": "Water",
+      "viewpoint": "Viewpoint",
+      "food": "Picnic",
+      "parking": "Parking",
+      "summit": "Summit",
+      "danger": "Tricky section",
+      "other": "Other"
+    }
   }
 }

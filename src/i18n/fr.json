@@ -2558,5 +2558,35 @@
       "too_large": "Ton agenda est trop volumineux pour être lu (plus de 2 Mo).",
       "internal": "Erreur de notre côté, on réessaie toutes les 15 min."
     }
+  },
+  "waypoint": {
+    "title": "Étapes du parcours",
+    "menu": "Étapes du parcours",
+    "hintAdd": "Touche la trace pour ajouter une étape. Touche une étape pour la modifier.",
+    "hintMove": "Touche la carte pour déplacer l’étape sur la trace.",
+    "newTitle": "Nouvelle étape",
+    "editTitle": "Modifier l’étape",
+    "namePlaceholder": "Nom (facultatif) — ex. Refuge des Bans",
+    "remove": "Supprimer l’étape",
+    "add": "Ajouter",
+    "done": "Valider les étapes",
+    "count_one": "1 étape",
+    "count_other": "{{count}} étapes",
+    "countEdit_one": "1 étape · Modifier",
+    "countEdit_other": "{{count}} étapes · Modifier",
+    "addCta": "Ajouter des étapes (refuge, point d’eau…)",
+    "max": "{{count}} étapes maximum",
+    "saved": "Étapes enregistrées",
+    "kind": {
+      "refuge": "Refuge",
+      "camp": "Bivouac",
+      "water": "Point d’eau",
+      "viewpoint": "Point de vue",
+      "food": "Pique-nique",
+      "parking": "Parking",
+      "summit": "Sommet",
+      "danger": "Passage délicat",
+      "other": "Autre"
+    }
   }
 }

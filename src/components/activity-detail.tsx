@@ -14,7 +14,7 @@ import { File } from 'expo-file-system';
 import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { enrichTraceElevation } from '@/utils/trace-elevation';
 import { haptic } from '@/lib/haptics';
-import { Globe, Hand, Lock, MoreHorizontal, List, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation, Car, Maximize2 } from 'lucide-react-native';
+import { Globe, Hand, Lock, MoreHorizontal, List, Pencil, Share2, Trash2, MapPinCheck, BarChart3, Calendar, Clock, Users, Route, Mountain, MapPin as MapPinIcon, Flag, X as XIcon, Navigation, Car, Maximize2, MapPinned } from 'lucide-react-native';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { reliabilityService } from '@/services/reliability-service';
 import { PresenceQrModal } from './presence-qr-modal';
@@ -39,6 +39,8 @@ import { JuntoMapView, type MapPin } from './map-view';
 import { MapStyleButton } from './map-style-button';
 import { MapLegend } from './map-legend';
 import { TraceDrawModal } from './trace-draw-modal';
+import { WaypointEditorModal } from './waypoint-editor-modal';
+import { withWaypoints } from '@/utils/trace-waypoints';
 import { TracePickerModal } from './trace-picker-modal';
 import { ParticipantList } from './participant-list';
 import { OrganizerCard } from './organizer-card';
@@ -764,6 +766,25 @@ export function ActivityDetail({
     }
   };
 
+  // Waypoints on the existing trace (00570): same save path as the trace —
+  // participants are not notified for a waypoint-only change.
+  const [waypointsOpen, setWaypointsOpen] = useState(false);
+  const [waypointsSaving, setWaypointsSaving] = useState(false);
+  const handleWaypointsSave = async (wps: import('@/services/activity-service').TraceWaypoint[]) => {
+    if (!activity.trace_geojson || waypointsSaving) return;
+    setWaypointsSaving(true);
+    try {
+      await activityService.updateTrace(activity.id, withWaypoints(activity.trace_geojson, wps));
+      await invalidateAfterTrace();
+      setWaypointsOpen(false);
+      Burnt.toast({ title: t('waypoint.saved', { defaultValue: 'Étapes enregistrées' }), preset: 'done' });
+    } catch (err) {
+      Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
+    } finally {
+      setWaypointsSaving(false);
+    }
+  };
+
   const [activeTab, setActiveTab] = useState<ActivityTab>(initialTab ?? 'info');
   const [showMapMenu, setShowMapMenu] = useState(false);
   const [showTracePicker, setShowTracePicker] = useState(false);
@@ -897,11 +918,11 @@ export function ActivityDetail({
             <View style={styles.mapHero}>
               {showTabs ? (
                 <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowFullMap(true)}>
-                  <JuntoMapView center={heroCenter} zoom={heroZoom} pins={heroPins} routeLine={heroRoute} compassEnabled={false} />
+                  <JuntoMapView center={heroCenter} zoom={heroZoom} pins={heroPins} routeLine={heroRoute} waypoints={heroRoute ? activity.trace_geojson?.waypoints : undefined} compassEnabled={false} />
                 </Pressable>
               ) : (
                 <View style={StyleSheet.absoluteFill} pointerEvents="none">
-                  <JuntoMapView center={heroCenter} zoom={heroZoom} pins={heroPins} routeLine={heroRoute} compassEnabled={false} />
+                  <JuntoMapView center={heroCenter} zoom={heroZoom} pins={heroPins} routeLine={heroRoute} waypoints={heroRoute ? activity.trace_geojson?.waypoints : undefined} compassEnabled={false} />
                 </View>
               )}
               {/* Poster grammar: sport flag alone top-left; scrim + meta line +
@@ -995,6 +1016,12 @@ export function ActivityDetail({
                         <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); setDrawTraceOpen(true); }}>
                           <Pencil size={15} color={colors.cta} strokeWidth={2.2} />
                           <AppText style={styles.mapMenuItemText}>{t('activity.traceDraw', { defaultValue: 'Dessiner une trace' })}</AppText>
+                        </Pressable>
+                      )}
+                      {isCreator && activity.trace_geojson && (
+                        <Pressable style={styles.mapMenuItem} onPress={() => { setShowMapMenu(false); setWaypointsOpen(true); }}>
+                          <MapPinned size={15} color={colors.cta} strokeWidth={2.2} />
+                          <AppText style={styles.mapMenuItemText}>{t('waypoint.menu', { defaultValue: 'Étapes du parcours' })}</AppText>
                         </Pressable>
                       )}
                       {isCreator && activity.trace_geojson && (
@@ -1521,6 +1548,14 @@ export function ActivityDetail({
         onSave={(_name, geojson) => handleDrawTraceSave(geojson)}
       />
 
+      <WaypointEditorModal
+        visible={waypointsOpen}
+        trace={activity.trace_geojson ?? null}
+        saving={waypointsSaving}
+        onClose={() => setWaypointsOpen(false)}
+        onSave={(wps) => void handleWaypointsSave(wps)}
+      />
+
       <TracePickerModal
         visible={showTracePicker}
         onClose={() => setShowTracePicker(false)}
@@ -1534,6 +1569,7 @@ export function ActivityDetail({
             zoom={mapZoom}
             pins={mapPins}
             routeLine={mapRouteLine}
+            waypoints={activity.trace_geojson?.waypoints}
             flyTo={fullMapFly}
             onPinPress={(pin) => setFullMapFly({ coordinate: pin.coordinate, key: Date.now(), zoom: 16 })}
           />

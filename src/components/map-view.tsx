@@ -4,7 +4,8 @@ import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
 import Mapbox from '@rnmapbox/maps';
 import Supercluster from 'supercluster';
-import { type NearbyActivity } from '@/services/activity-service';
+import { type NearbyActivity, type TraceWaypoint } from '@/services/activity-service';
+import { TraceWaypointMarkers } from './trace-waypoint-markers';
 import { type NearbyPro } from '@/services/pro-service';
 import { type ProOffering } from '@/services/pro-offering-service';
 import { ActivityPin, ACTIVITY_PIN_ANCHOR } from './activity-pin';
@@ -98,6 +99,9 @@ interface MapViewProps {
   pros?: NearbyPro[];
   proOfferings?: ProOffering[];
   routeLine?: [number, number][];
+  // Named stops of the trace (00570), drawn on top of the route line.
+  waypoints?: TraceWaypoint[];
+  onWaypointPress?: (index: number) => void;
   pins?: MapPin[];
   userLocation?: [number, number] | null;
   selectedActivity?: NearbyActivity | null;
@@ -226,6 +230,8 @@ export function JuntoMapView({
   pros = [],
   proOfferings = [],
   routeLine,
+  waypoints,
+  onWaypointPress,
   pins = [],
   userLocation,
   selectedActivity,
@@ -785,6 +791,10 @@ export function JuntoMapView({
               : { lineColor: '#FFFFFF', lineWidth: 2, lineDasharray: [4, 3], lineOpacity: 0.7 }}
           />
         </Mapbox.ShapeSource>
+      )}
+
+      {waypoints && waypoints.length > 0 && (
+        <TraceWaypointMarkers waypoints={waypoints} onPress={onWaypointPress} onTouch={stampMarkerTouch} />
       )}
 
       {/* Inline label icons (registered once): calendar (when / schedule) and

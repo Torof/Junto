@@ -2558,5 +2558,35 @@
       "too_large": "Tu calendario es demasiado grande para leerlo (más de 2 MB).",
       "internal": "Error por nuestra parte, lo reintentamos cada 15 min."
     }
+  },
+  "waypoint": {
+    "title": "Etapas del recorrido",
+    "menu": "Etapas del recorrido",
+    "hintAdd": "Toca el track para añadir una etapa. Toca una etapa para modificarla.",
+    "hintMove": "Toca el mapa para mover la etapa sobre el track.",
+    "newTitle": "Nueva etapa",
+    "editTitle": "Modificar la etapa",
+    "namePlaceholder": "Nombre (opcional) — ej. Refugio de Góriz",
+    "remove": "Eliminar la etapa",
+    "add": "Añadir",
+    "done": "Confirmar las etapas",
+    "count_one": "1 etapa",
+    "count_other": "{{count}} etapas",
+    "countEdit_one": "1 etapa · Modificar",
+    "countEdit_other": "{{count}} etapas · Modificar",
+    "addCta": "Añadir etapas (refugio, fuente…)",
+    "max": "Máximo {{count}} etapas",
+    "saved": "Etapas guardadas",
+    "kind": {
+      "refuge": "Refugio",
+      "camp": "Vivac",
+      "water": "Fuente",
+      "viewpoint": "Mirador",
+      "food": "Picnic",
+      "parking": "Aparcamiento",
+      "summit": "Cumbre",
+      "danger": "Paso delicado",
+      "other": "Otro"
+    }
   }
 }

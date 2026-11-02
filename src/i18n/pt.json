@@ -2724,5 +2724,35 @@
       "too_large": "A tua agenda é demasiado grande para ser lida (mais de 2 MB).",
       "internal": "Erro do nosso lado, tentamos de novo a cada 15 min."
     }
+  },
+  "waypoint": {
+    "title": "Etapas do percurso",
+    "menu": "Etapas do percurso",
+    "hintAdd": "Toca no trajeto para adicionar uma etapa. Toca numa etapa para a alterar.",
+    "hintMove": "Toca no mapa para mover a etapa ao longo do trajeto.",
+    "newTitle": "Nova etapa",
+    "editTitle": "Alterar a etapa",
+    "namePlaceholder": "Nome (opcional) — ex. Refúgio des Bans",
+    "remove": "Eliminar a etapa",
+    "add": "Adicionar",
+    "done": "Confirmar as etapas",
+    "count_one": "1 etapa",
+    "count_other": "{{count}} etapas",
+    "countEdit_one": "1 etapa · Alterar",
+    "countEdit_other": "{{count}} etapas · Alterar",
+    "addCta": "Adicionar etapas (refúgio, água…)",
+    "max": "Máximo de {{count}} etapas",
+    "saved": "Etapas guardadas",
+    "kind": {
+      "refuge": "Refúgio",
+      "camp": "Bivaque",
+      "water": "Ponto de água",
+      "viewpoint": "Miradouro",
+      "food": "Piquenique",
+      "parking": "Estacionamento",
+      "summit": "Cume",
+      "danger": "Passagem delicada",
+      "other": "Outro"
+    }
   }
 }
