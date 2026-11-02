@@ -19,7 +19,9 @@ import { useAuth } from '@/hooks/use-auth';
 import { bookingService, type AgendaItem, type BookingPeriod } from '@/services/booking-service';
 import { proService } from '@/services/pro-service';
 import { UserAvatar } from '@/components/user-avatar';
-import { AgendaBookingCard, ClientAvatar, wouldOverflow } from '@/components/agenda-booking';
+import { AgendaBookingCard, ClientAvatar, itemHalves, wouldOverflow } from '@/components/agenda-booking';
+import { sessionService } from '@/services/session-service';
+import { sessionHalfDays } from '@/utils/session-time';
 import { PressableScale } from '@/components/pressable-scale';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { sportCategoryColor } from '@/utils/sport-category-color';
@@ -56,8 +58,10 @@ export default function ProSpaceScreen() {
   // error and a dashboard pretending « Aucune sortie aujourd'hui ».
   const isApproved = proProfile?.status === 'approved';
 
-  // Fenêtre courte pour le dashboard (aujourd'hui + compteurs 7 j + demandes du mois).
-  const from = dayjs().format('YYYY-MM-DD');
+  // Fenêtre courte pour le dashboard (aujourd'hui + compteurs 7 j + demandes du
+  // mois), ouverte 14 jours en arrière : une sortie sur plusieurs jours
+  // commencée avant aujourd'hui fait partie d'aujourd'hui.
+  const from = dayjs().subtract(14, 'day').format('YYYY-MM-DD');
   const to = dayjs().add(1, 'month').format('YYYY-MM-DD');
   const { data: agenda, refetch: refetchAgenda } = useQuery({
     queryKey: ['pro-agenda', from, to],
@@ -65,7 +69,19 @@ export default function ProSpaceScreen() {
     enabled: isApproved,
   });
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['pro-agenda'] });
+  // Fixed dates (00575): a sign-up's span lives on its date.
+  const { data: sessions } = useQuery({
+    queryKey: ['my-sessions', from, to],
+    queryFn: () => sessionService.getMine(from, to),
+    enabled: isApproved,
+  });
+
+  const invalidate = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['pro-agenda'] }),
+    queryClient.invalidateQueries({ queryKey: ['my-sessions'] }),
+    queryClient.invalidateQueries({ queryKey: ['offering-sessions'] }),
+    queryClient.invalidateQueries({ queryKey: ['pro-availability'] }),
+  ]);
 
   // Catalogue size for the « Mes sorties » tile (same key as the pro page).
   const { data: offerings } = useQuery({
@@ -98,13 +114,19 @@ export default function ProSpaceScreen() {
   }, [refetchAgenda, queryClient, userId]);
 
   const todayIso = dayjs().format('YYYY-MM-DD');
+  // Days a booking covers: its date's span, or its own range (00577).
+  const daysOf = (a: AgendaItem): string[] => {
+    const se = a.session_id ? (sessions ?? []).find((x) => x.id === a.session_id) : undefined;
+    return (se ? sessionHalfDays(se) : itemHalves(a)).map(([d]) => d);
+  };
   const todayBookings = (agenda ?? [])
-    .filter((a) => a.kind === 'booking' && a.status === 'accepted' && a.day === todayIso)
+    .filter((a) => a.kind === 'booking' && a.status === 'accepted' && daysOf(a).includes(todayIso))
     .sort((a, b) => a.period.localeCompare(b.period));
   const pendings = (agenda ?? []).filter((a) => a.kind === 'booking' && a.status === 'pending');
   const week = dayjs().add(7, 'day').format('YYYY-MM-DD');
   const weekBookings = (agenda ?? []).filter(
-    (a) => a.kind === 'booking' && a.status === 'accepted' && a.day <= week,
+    (a) => a.kind === 'booking' && a.status === 'accepted' && a.day <= week
+      && daysOf(a).some((d) => d >= todayIso),
   );
   const weekPeople = weekBookings.reduce((s, b) => s + (b.party_size ?? 0), 0);
   const firstPending = pendings[0];
@@ -112,12 +134,17 @@ export default function ProSpaceScreen() {
   const periodTag = (p: BookingPeriod) =>
     p === 'am' ? t('booking.amShort', { defaultValue: 'MATIN' }) : t('booking.pmShort', { defaultValue: 'A-MIDI' });
 
+  // One accept at a time: a double tap fired it twice (success, then an error toast).
+  const [accepting, setAccepting] = useState(false);
   const handleAccept = async (b: AgendaItem) => {
+    if (accepting) return;
+    setAccepting(true);
     try {
       await bookingService.accept(b.id);
       Burnt.toast({ title: t('booking.acceptedToast', { defaultValue: 'Réservation confirmée' }), preset: 'done' });
       await invalidate();
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+    finally { setAccepting(false); }
   };
   const handleDecline = (b: AgendaItem) => {
     Alert.alert(

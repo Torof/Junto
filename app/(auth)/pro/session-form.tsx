@@ -63,6 +63,9 @@ export default function SessionFormScreen() {
   const [minimum, setMinimum] = useState(0); // 0 = none
   const [picker, setPicker] = useState<'start' | 'end' | null>(null);
   const [saving, setSaving] = useState(false);
+  // Held from the first tap to the end (conflict check included): a double tap
+  // could otherwise publish the date twice.
+  const busy = useRef(false);
 
   // Prefill once from the edited / copied date.
   const prefilled = useRef(false);
@@ -120,7 +123,7 @@ export default function SessionFormScreen() {
   const provided = offering?.equipment_provided ?? [];
 
   const save = async () => {
-    if (!offeringId || saving) {
+    if (!offeringId || saving || busy.current) {
       if (!offeringId) Burnt.toast({ title: t('session.pickOffering', { defaultValue: 'Choisis une sortie' }) });
       return;
     }
@@ -139,6 +142,7 @@ export default function SessionFormScreen() {
       || src.end_day !== input.end_day || src.end_period !== input.end_period;
 
     const run = async () => {
+      busy.current = true;
       setSaving(true);
       try {
         if (editId) await sessionService.update(editId, input);
@@ -151,13 +155,16 @@ export default function SessionFormScreen() {
       } catch (e) {
         Burnt.toast({ title: getFriendlyError(e, 'generic') });
       } finally {
+        busy.current = false;
         setSaving(false);
       }
     };
+    const release = () => { busy.current = false; };
 
     // Pending requests on these half-days will be declined: the pro sees who
     // first (option A, Scott 2026-11-02).
     if (moved) {
+      busy.current = true;
       try {
         const conflicts = await sessionService.getConflicts(win);
         if (conflicts.length > 0) {
@@ -168,13 +175,15 @@ export default function SessionFormScreen() {
             t('session.conflictTitle', { defaultValue: '{{count}} demandes en attente sur ces jours', count: conflicts.length }),
             `${t('session.conflictBody', { defaultValue: 'Elles seront refusées et les clients prévenus. Tu peux d’abord leur répondre depuis l’agenda.' })}\n\n${list}`,
             [
-              { text: t('common.cancel', { defaultValue: 'Annuler' }), style: 'cancel' },
+              { text: t('common.cancel', { defaultValue: 'Annuler' }), style: 'cancel', onPress: release },
               { text: t('session.conflictConfirm', { defaultValue: 'Publier quand même' }), style: 'destructive', onPress: () => void run() },
             ],
+            { cancelable: true, onDismiss: release },
           );
           return;
         }
       } catch (e) {
+        release();
         Burnt.toast({ title: getFriendlyError(e, 'generic') });
         return;
       }

@@ -82,6 +82,9 @@ export default function MyBookingsScreen() {
             try {
               await bookingService.cancelAsClient(b.id);
               await queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
+              // The outing page shows places and « Inscrit » from these.
+              await queryClient.invalidateQueries({ queryKey: ['offering-sessions'] });
+              await queryClient.invalidateQueries({ queryKey: ['pro-availability'] });
               Burnt.toast({ title: t('booking.cancelledToast', { defaultValue: 'Réservation annulée' }) });
             } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
           },

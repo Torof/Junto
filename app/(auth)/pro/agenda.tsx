@@ -108,6 +108,9 @@ export default function ProAgendaScreen() {
   const invalidate = () => Promise.all([
     queryClient.invalidateQueries({ queryKey: ['pro-agenda'] }),
     queryClient.invalidateQueries({ queryKey: ['my-sessions'] }),
+    // The pro's own outing pages show places from these.
+    queryClient.invalidateQueries({ queryKey: ['offering-sessions'] }),
+    queryClient.invalidateQueries({ queryKey: ['pro-availability'] }),
   ]);
 
   // Consulter ≠ éditer (maquette 2026-09-28) : lecture par défaut, édition explicite.
@@ -294,12 +297,17 @@ export default function ProAgendaScreen() {
       .slice(0, 10);
   }, [agenda]);
 
+  // One accept at a time: a double tap fired it twice (success, then an error toast).
+  const [accepting, setAccepting] = useState(false);
   const handleAccept = async (b: AgendaItem) => {
+    if (accepting) return;
+    setAccepting(true);
     try {
       await bookingService.accept(b.id);
       Burnt.toast({ title: t('booking.acceptedToast', { defaultValue: 'Réservation confirmée' }), preset: 'done' });
       await invalidate();
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+    finally { setAccepting(false); }
   };
   const handleDecline = (b: AgendaItem) => {
     Alert.alert(
@@ -773,7 +781,8 @@ export default function ProAgendaScreen() {
                           {om ? (
                             <AppText style={[styles.hint, { fontWeight: '700', color: om.ok ? colors.cta : colors.warning }]}>{om.text}</AppText>
                           ) : null}
-                          {!sheetIsPast && (
+                          {/* Actions follow the outing's start: on day 2 of a range already begun, cancelling or maintaining is closed. */}
+                          {head.day >= today && (
                             <View style={styles.outActs}>
                               {om?.short && head.offering_id ? (
                                 <Pressable style={({ pressed }) => [styles.outActBtn, pressed && styles.pressed]} onPress={() => handleMaintain(head.offering_id as string, head.day, head.period, taken)} accessibilityRole="button">
@@ -1019,6 +1028,10 @@ export default function ProAgendaScreen() {
                                   </PressableScale>
                                 ) : null}
                               </View>
+                              {/* The client's note from the sign-up screen (« Un mot pour … »). */}
+                              {b.message ? (
+                                <AppText style={[styles.dFormText, { marginTop: 4 }]} numberOfLines={4}>« {b.message} »</AppText>
+                              ) : null}
                               {forms ? Array.from({ length: forms.total }, (_, i) => {
                                 const e = b.participant_info?.[i];
                                 return e ? (
