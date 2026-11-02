@@ -63,7 +63,7 @@ export function usePushNotifications(enabled: boolean) {
         router.push(`/(auth)/booking-form/${data.booking_id}`);
         return;
       }
-      if (data?.type === 'booking_request' || data?.type === 'booking_requests_waiting' || data?.type === 'booking_forms_missing') {
+      if (data?.type === 'booking_request' || data?.type === 'booking_requests_waiting' || data?.type === 'booking_forms_missing' || data?.type === 'session_joined') {
         router.push('/(auth)/pro/agenda');
         return;
       }

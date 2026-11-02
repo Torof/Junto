@@ -26,6 +26,9 @@ export interface SlotState {
   // not bookable whatever the dispo says.
   busy?: boolean;
   sportCategory?: string | null;
+  // Pro agenda only: a fixed date covers the half-day (00575) — its label is
+  // the places on the first half-day (« 3/6 »), « → » after, « fin » at the end.
+  fixed?: string | null;
 }
 
 interface Props {
@@ -42,6 +45,8 @@ interface Props {
   selectedDay?: string | null;
   // Legend entry for half-days busy in the pro's own calendar.
   showBusyLegend?: boolean;
+  // Legend entry for fixed dates (00575).
+  showFixedLegend?: boolean;
   // Month navigation is internal; parent learns the visible month to fetch data.
   onMonthChange?: (monthStartIso: string) => void;
   maxMonthsAhead?: number; // default 6 (DB bound)
@@ -50,7 +55,7 @@ interface Props {
 const PERIODS: BookingPeriod[] = ['am', 'pm'];
 
 export function AvailabilityCalendar({
-  mode, slotState, onToggle, onPick, onDayPress, selected, selectedDay, onMonthChange, maxMonthsAhead = 6, showBusyLegend = false,
+  mode, slotState, onToggle, onPick, onDayPress, selected, selectedDay, onMonthChange, maxMonthsAhead = 6, showBusyLegend = false, showFixedLegend = false,
 }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -101,7 +106,9 @@ export function AvailabilityCalendar({
     else if (st.busy) bg = colors.textMuted + '33';
     else if (st.available) bg = colors.cta + '2E';
 
-    const hasBooking = bookedCount > 0 || pendingCount > 0;
+    const fixed = st.fixed != null && mode !== 'pick';
+    if (fixed && !isSelected) bg = sportColor;
+    const hasBooking = bookedCount > 0 || pendingCount > 0 || fixed;
     // view → the whole day is the target; edit → booked slots untouchable;
     // pick → only open slots.
     const disabled =
@@ -131,10 +138,13 @@ export function AvailabilityCalendar({
           styles.half,
           { backgroundColor: bg },
           dashed && { borderWidth: 1.5, borderStyle: 'dashed', borderColor: sportColor + 'BB' },
+          fixed && styles.fixedHalf,
         ]}
         accessibilityLabel={`${periodWord} ${day.format('D MMMM')}`}
       >
-        {st.sportKey && hasBooking && mode !== 'pick' ? (
+        {fixed ? (
+          <AppText style={[styles.slotLabel, { color: colors.onCta, fontSize: fontSizes.xs - 1 }]} numberOfLines={1}>{st.fixed}</AppText>
+        ) : st.sportKey && hasBooking && mode !== 'pick' ? (
           <>
             <SportIcon sportKey={st.sportKey} size={18} color={labelColor} />
             {st.places ? (
@@ -201,6 +211,9 @@ export function AvailabilityCalendar({
             <View style={styles.legendItem}><View style={[styles.legendDot, styles.legendDashed, { backgroundColor: colors.cta + '2E', borderColor: colors.cta }]} /><AppText style={styles.legendText}>{t('booking.legendPending', { defaultValue: 'Demande' })}</AppText></View>
           </>
         )}
+        {showFixedLegend && (
+          <View style={styles.legendItem}><View style={[styles.legendDot, styles.fixedHalf, { backgroundColor: colors.cta }]} /><AppText style={styles.legendText}>{t('session.legend', { defaultValue: 'Date fixe' })}</AppText></View>
+        )}
         {showBusyLegend && (
           <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: colors.textMuted + '33' }]} /><AppText style={styles.legendText}>{t('booking.legendBusy', { defaultValue: 'Occupé (ton agenda)' })}</AppText></View>
         )}
@@ -238,6 +251,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm + 2, marginTop: spacing.sm + 2 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendDot: { width: 12, height: 12, borderRadius: 4 },
+  fixedHalf: { borderWidth: 2, borderColor: colors.textPrimary },
   legendDashed: { borderWidth: 1.5, borderStyle: 'dashed' },
   legendText: { color: colors.textSecondary, fontSize: fontSizes.xs },
 });

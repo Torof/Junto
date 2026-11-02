@@ -15,17 +15,11 @@ import { bookingService, type ParticipantEntry } from '@/services/booking-servic
 import { PressableScale } from '@/components/pressable-scale';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { getFriendlyError } from '@/utils/friendly-error';
+import { STD_LABELS } from '@/utils/participant-fields';
 
 // Fiche du groupe (chantier B) — le client remplit, APRÈS confirmation, les
 // infos par participant demandées par l'offre (pointure/taille/poids/âge/
 // niveau + questions libres). Visible du pro concerné uniquement.
-const STD_LABELS: Record<string, { key: string; fallback: string; keyboard?: 'number-pad' }> = {
-  shoe_size: { key: 'booking.fShoe', fallback: 'Pointure', keyboard: 'number-pad' },
-  height: { key: 'booking.fHeight', fallback: 'Taille (cm)', keyboard: 'number-pad' },
-  weight: { key: 'booking.fWeight', fallback: 'Poids (kg)', keyboard: 'number-pad' },
-  age: { key: 'booking.fAge', fallback: 'Âge', keyboard: 'number-pad' },
-  level: { key: 'booking.fLevel', fallback: 'Niveau' },
-};
 
 export default function BookingFormScreen() {
   const colors = useColors();

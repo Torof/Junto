@@ -176,7 +176,20 @@
     "booking_forms_missing": {
      "title": "Il manque des infos",
      "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante sur {{total}}.",
-     "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes sur {{total}}."
+     "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes sur {{total}}.",
+     "minimum": {
+      "title": "Minimum pas atteint",
+      "body": "« {{title}} » ({{date}}) : {{total}} pers. inscrites, minimum {{min}} pour partir."
+     },
+     "both": {
+      "title": "Il manque des infos",
+      "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante, et {{total}} pers. inscrites sur {{min}} minimum.",
+      "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes, et {{total}} pers. inscrites sur {{min}} minimum."
+     }
+    },
+    "session_joined": {
+     "title": "Nouvelle inscription",
+     "body": "{{name}} · « {{title}} » · {{date}} · {{count}} pers."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -444,7 +457,20 @@
     "booking_forms_missing": {
      "title": "Details missing",
      "body_one": "“{{title}}” ({{date}}): 1 participant form missing out of {{total}}.",
-     "body_other": "“{{title}}” ({{date}}): {{count}} participant forms missing out of {{total}}."
+     "body_other": "“{{title}}” ({{date}}): {{count}} participant forms missing out of {{total}}.",
+     "minimum": {
+      "title": "Minimum not reached",
+      "body": "“{{title}}” ({{date}}): {{total}} signed up, {{min}} needed to go."
+     },
+     "both": {
+      "title": "Details missing",
+      "body_one": "“{{title}}” ({{date}}): 1 participant form missing, and {{total}} signed up of {{min}} minimum.",
+      "body_other": "“{{title}}” ({{date}}): {{count}} participant forms missing, and {{total}} signed up of {{min}} minimum."
+     }
+    },
+    "session_joined": {
+     "title": "New sign-up",
+     "body": "{{name}} · “{{title}}” · {{date}} · {{count}} people"
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -712,7 +738,20 @@
     "booking_forms_missing": {
      "title": "Mancano delle informazioni",
      "body_one": "« {{title}} » ({{date}}): manca 1 scheda partecipante su {{total}}.",
-     "body_other": "« {{title}} » ({{date}}): mancano {{count}} schede partecipanti su {{total}}."
+     "body_other": "« {{title}} » ({{date}}): mancano {{count}} schede partecipanti su {{total}}.",
+     "minimum": {
+      "title": "Minimo non raggiunto",
+      "body": "« {{title}} » ({{date}}): {{total}} iscritti, minimo {{min}} per partire."
+     },
+     "both": {
+      "title": "Mancano delle informazioni",
+      "body_one": "« {{title}} » ({{date}}): manca 1 scheda partecipante, e {{total}} iscritti su {{min}} minimo.",
+      "body_other": "« {{title}} » ({{date}}): mancano {{count}} schede partecipanti, e {{total}} iscritti su {{min}} minimo."
+     }
+    },
+    "session_joined": {
+     "title": "Nuova iscrizione",
+     "body": "{{name}} · « {{title}} » · {{date}} · {{count}} pers."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -980,7 +1019,20 @@
     "booking_forms_missing": {
      "title": "Faltan datos",
      "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante de {{total}}.",
-     "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes de {{total}}."
+     "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes de {{total}}.",
+     "minimum": {
+      "title": "Mínimo no alcanzado",
+      "body": "«{{title}}» ({{date}}): {{total}} inscritos, mínimo {{min}} para salir."
+     },
+     "both": {
+      "title": "Faltan datos",
+      "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, y {{total}} inscritos de {{min}} mínimo.",
+      "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes, y {{total}} inscritos de {{min}} mínimo."
+     }
+    },
+    "session_joined": {
+     "title": "Nueva inscripción",
+     "body": "{{name}} · «{{title}}» · {{date}} · {{count}} pers."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -1248,7 +1300,20 @@
     "booking_forms_missing": {
      "title": "Angaben fehlen",
      "body_one": "„{{title}}“ ({{date}}): 1 von {{total}} Teilnehmerbögen fehlt.",
-     "body_other": "„{{title}}“ ({{date}}): {{count}} von {{total}} Teilnehmerbögen fehlen."
+     "body_other": "„{{title}}“ ({{date}}): {{count}} von {{total}} Teilnehmerbögen fehlen.",
+     "minimum": {
+      "title": "Mindestanzahl nicht erreicht",
+      "body": "„{{title}}“ ({{date}}): {{total}} angemeldet, mindestens {{min}} nötig."
+     },
+     "both": {
+      "title": "Angaben fehlen",
+      "body_one": "„{{title}}“ ({{date}}): 1 Teilnehmerbogen fehlt, und {{total}} von mindestens {{min}} angemeldet.",
+      "body_other": "„{{title}}“ ({{date}}): {{count}} Teilnehmerbögen fehlen, und {{total}} von mindestens {{min}} angemeldet."
+     }
+    },
+    "session_joined": {
+     "title": "Neue Anmeldung",
+     "body": "{{name}} · „{{title}}“ · {{date}} · {{count}} Pers."
     },
     "presence_pre_warning": {
      "title": "{{title}}",
@@ -1601,7 +1666,20 @@
     "booking_forms_missing": {
      "title": "Er ontbreken gegevens",
      "body_one": "„{{title}}” ({{date}}): 1 van de {{total}} deelnemersformulieren ontbreekt.",
-     "body_other": "„{{title}}” ({{date}}): {{count}} van de {{total}} deelnemersformulieren ontbreken."
+     "body_other": "„{{title}}” ({{date}}): {{count}} van de {{total}} deelnemersformulieren ontbreken.",
+     "minimum": {
+      "title": "Minimum niet gehaald",
+      "body": "„{{title}}” ({{date}}): {{total}} ingeschreven, minimum {{min}} om te vertrekken."
+     },
+     "both": {
+      "title": "Er ontbreken gegevens",
+      "body_one": "„{{title}}” ({{date}}): 1 deelnemersformulier ontbreekt, en {{total}} ingeschreven van minimum {{min}}.",
+      "body_other": "„{{title}}” ({{date}}): {{count}} deelnemersformulieren ontbreken, en {{total}} ingeschreven van minimum {{min}}."
+     }
+    },
+    "session_joined": {
+     "title": "Nieuwe inschrijving",
+     "body": "{{name}} · „{{title}}” · {{date}} · {{count}} pers."
     }
    },
    "period": {
@@ -1869,7 +1947,20 @@
     "booking_forms_missing": {
      "title": "Faltam dados",
      "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante de {{total}}.",
-     "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes de {{total}}."
+     "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes de {{total}}.",
+     "minimum": {
+      "title": "Mínimo não atingido",
+      "body": "«{{title}}» ({{date}}): {{total}} inscritos, mínimo {{min}} para sair."
+     },
+     "both": {
+      "title": "Faltam dados",
+      "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, e {{total}} inscritos de {{min}} mínimo.",
+      "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes, e {{total}} inscritos de {{min}} mínimo."
+     }
+    },
+    "session_joined": {
+     "title": "Nova inscrição",
+     "body": "{{name}} · «{{title}}» · {{date}} · {{count}} pess."
     }
    },
    "period": {

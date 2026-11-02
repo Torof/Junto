@@ -15,6 +15,7 @@ import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { bookingService, type MyBooking, type BookingStatus } from '@/services/booking-service';
 import { PressableScale } from '@/components/pressable-scale';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { sessionRange } from '@/utils/session-time';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 
@@ -50,7 +51,8 @@ export default function MyBookingsScreen() {
     const up: MyBooking[] = [];
     const pa: MyBooking[] = [];
     for (const b of bookings ?? []) {
-      if ((b.status === 'pending' || b.status === 'accepted') && b.day >= todayIso) up.push(b);
+      // A fixed date over several days stays « à venir » until its last day.
+      if ((b.status === 'pending' || b.status === 'accepted') && (b.end_day ?? b.day) >= todayIso) up.push(b);
       else pa.push(b);
     }
     up.sort((a, b) => (a.day + a.period).localeCompare(b.day + b.period));
@@ -100,10 +102,14 @@ export default function MyBookingsScreen() {
     const c = statusColor(item.status);
     const sc = sportCategoryColor(item.sport_category, colors.cta);
     const cancellable = item.status === 'pending' || (item.status === 'accepted' && item.day >= todayIso);
+    // Fixed date (00575): « Ven. 13 → dim. 15 nov. » instead of the half-day.
+    const sessionWhen = item.session_id && item.end_day && item.end_period
+      ? sessionRange({ start_day: item.day, start_period: item.period, end_day: item.end_day, end_period: item.end_period })
+      : null;
     const price = item.price_eur != null
       ? item.price_unit === 'group' ? item.price_eur : item.price_eur * item.party_size
       : null;
-    const showTicket = item.status === 'accepted' && item.day >= todayIso;
+    const showTicket = item.status === 'accepted' && (item.end_day ?? item.day) >= todayIso;
     return (
       <View style={styles.card}>
         <View style={styles.topRow}>
@@ -115,9 +121,14 @@ export default function MyBookingsScreen() {
             <AppText style={styles.title} numberOfLines={1}>{item.offering_title}</AppText>
             <AppText style={styles.sub} numberOfLines={1}>
               {item.pro_name ?? '—'} ·{' '}
-              {item.period === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' })}
+              {sessionWhen ?? (item.period === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' }))}
               {' · '}{item.party_size} {t('booking.people', { defaultValue: 'pers.' })}
             </AppText>
+            {showTicket && item.meeting_point ? (
+              <AppText style={styles.sub} numberOfLines={2}>
+                {t('session.meetingShort', { defaultValue: 'RDV : {{text}}', text: item.meeting_point })}
+              </AppText>
+            ) : null}
           </View>
           <View style={[styles.statusPill, { backgroundColor: c + '1A' }]}>
             <AppText style={[styles.statusText, { color: c }]}>

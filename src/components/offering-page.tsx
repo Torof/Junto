@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { View, Pressable, ScrollView, StyleSheet, Share } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import dayjs from 'dayjs';
-import { X, Share2, Pencil, Star, ChevronRight, Clock, BarChart3, MapPin, Users, Camera } from 'lucide-react-native';
+import { X, Share2, Pencil, Star, ChevronRight, Clock, BarChart3, MapPin, Users, Camera, Check } from 'lucide-react-native';
 import { GearPills } from '@/components/gear-pills';
 import { AppText } from '@/components/app-text';
 import { UserAvatar } from '@/components/user-avatar';
@@ -21,6 +21,8 @@ import type { ProOffering } from '@/services/pro-offering-service';
 import { proService } from '@/services/pro-service';
 import { proOfferingPhotoService, proCommunityPhotoService } from '@/services/pro-photo-service';
 import { reviewService } from '@/services/review-service';
+import { sessionService, type OfferingSession } from '@/services/session-service';
+import { sessionBlockSub, sessionRange } from '@/utils/session-time';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 
@@ -85,6 +87,13 @@ export function OfferingPage({ offering, isOwner }: Props) {
     queryKey: ['review-stats', 'offering', offering.id],
     queryFn: () => reviewService.getOfferingStats(offering.id),
   });
+  // Fixed dates posted by the pro (00575) — « Prochaines dates ».
+  const { data: sessions = [] } = useQuery({
+    queryKey: ['offering-sessions', offering.id],
+    queryFn: () => sessionService.getForOffering(offering.id),
+  });
+  const scrollRef = useRef<ScrollView>(null);
+  const [datesY, setDatesY] = useState(0);
 
   const allPhotos = [...photos.map((p) => p.photo_url), ...communityPhotos.map((c) => c.photo_url)];
   // The cover the pro chose (00562: image_url = cover_url), else the sport tint.
@@ -105,6 +114,21 @@ export function OfferingPage({ offering, isOwner }: Props) {
   const openPhotos = () => router.push(`/(auth)/pro/offering/${offering.id}?tab=photos`);
   const openReviews = () => router.push(`/(auth)/pro/offering/${offering.id}?tab=reviews`);
   const book = () => router.push(`/(auth)/pro/book/${offering.id}`);
+  const openSession = (s: OfferingSession) => (s.my_booking_id
+    ? router.push('/(auth)/my-bookings')
+    : router.push(`/(auth)/pro/session/${s.id}?offering=${offering.id}`));
+  const placesLine = (s: OfferingSession): { text: string; tone: 'ok' | 'warn' | 'muted' } => {
+    const left = s.max_participants - s.taken;
+    if (left <= 0) return { text: t('booking.full', { defaultValue: 'Complet' }), tone: 'muted' };
+    const leftText = t('session.placesLeft', { defaultValue: '{{count}} places restantes', count: left });
+    if (s.min_participants == null || s.taken >= s.min_participants) {
+      return {
+        text: s.min_participants != null ? `${leftText} · ${t('session.sure', { defaultValue: 'départ assuré' })}` : leftText,
+        tone: 'ok',
+      };
+    }
+    return { text: `${leftText} · ${t('session.sureAt', { defaultValue: 'départ assuré à {{count}}', count: s.min_participants })}`, tone: 'warn' };
+  };
 
   const facts: { key: string; icon: React.ReactNode; label: string; value: string }[] = [
     ...(duration ? [{ key: 'duration', icon: <Clock size={16} color={accent} strokeWidth={2.4} />, label: t('proOffering.page.duration', { defaultValue: 'Durée' }), value: duration }] : []),
@@ -115,7 +139,7 @@ export function OfferingPage({ offering, isOwner }: Props) {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + (isOwner ? spacing.xl : 110) }} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={scrollRef} contentContainerStyle={{ paddingBottom: insets.bottom + (isOwner ? spacing.xl : 110) }} showsVerticalScrollIndicator={false}>
         {/* ===== Cover — the title and the price, nothing else ===== */}
         <View style={[styles.cover, { backgroundColor: accent }]}>
           {coverUrl ? (
@@ -194,6 +218,58 @@ export function OfferingPage({ offering, isOwner }: Props) {
             </View>
           ))}
         </View>
+
+        {/* ===== Fixed dates (00575) ===== */}
+        {sessions.length > 0 ? (
+          <View onLayout={(e) => setDatesY(e.nativeEvent.layout.y)}>
+            <View style={styles.head}><AppText style={styles.sec}>{t('session.nextDates', { defaultValue: 'Prochaines dates' })}</AppText></View>
+            <View style={[styles.inset, { gap: spacing.sm }]}>
+              {sessions.map((s) => {
+                const line = placesLine(s);
+                const full = s.max_participants - s.taken <= 0 && !s.my_booking_id;
+                return (
+                  <Pressable
+                    key={s.id}
+                    style={({ pressed }) => [styles.dateCard, full && { opacity: 0.55 }, pressed && { opacity: 0.85 }]}
+                    onPress={() => !full && !isOwner && openSession(s)}
+                    disabled={full || isOwner}
+                    accessibilityRole="button"
+                  >
+                    <View style={[styles.dateBlock, { backgroundColor: accent + '1F' }]}>
+                      <AppText style={[styles.dateDow, { color: accent }]}>{dayjs(s.start_day).locale(i18n.language).format('ddd').toUpperCase()}</AppText>
+                      <AppText style={[styles.dateNum, { color: accent }]}>{dayjs(s.start_day).date()}</AppText>
+                      <AppText style={[styles.dateSub, { color: accent }]}>{sessionBlockSub(s)}</AppText>
+                    </View>
+                    <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                      <AppText style={styles.dateRange} numberOfLines={1}>{sessionRange(s)}</AppText>
+                      {s.meeting_point ? <AppText style={styles.sub} numberOfLines={1}>{s.meeting_point}</AppText> : null}
+                      <AppText style={[styles.datePlaces, { color: line.tone === 'ok' ? colors.cta : line.tone === 'warn' ? colors.warning : colors.textSecondary }]} numberOfLines={1}>
+                        {line.text}
+                      </AppText>
+                    </View>
+                    {s.my_booking_id ? (
+                      <View style={styles.joinedPill}>
+                        <Check size={13} color={colors.cta} strokeWidth={2.8} />
+                        <AppText style={styles.joinedText}>{t('session.joined', { defaultValue: 'Inscrit' })}</AppText>
+                      </View>
+                    ) : !full && !isOwner ? (
+                      <View style={styles.chooseBtn}><AppText style={styles.chooseText}>{t('session.choose', { defaultValue: 'Choisir' })}</AppText></View>
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+              {!isOwner ? (
+                <Pressable style={({ pressed }) => [styles.proposeCard, pressed && { opacity: 0.85 }]} onPress={book} accessibilityRole="button">
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <AppText style={styles.dateRange}>{t('session.noneFits', { defaultValue: 'Aucune date ne te va ?' })}</AppText>
+                    <AppText style={styles.sub}>{t('session.proposeSub', { defaultValue: 'Propose la tienne, le pro te répond' })}</AppText>
+                  </View>
+                  <AppText style={styles.link}>{t('session.propose', { defaultValue: 'Proposer ›' })}</AppText>
+                </Pressable>
+              ) : null}
+            </View>
+          </View>
+        ) : null}
 
         {/* ===== About ===== */}
         {description ? (
@@ -298,9 +374,15 @@ export function OfferingPage({ offering, isOwner }: Props) {
             ) : null}
             <AppText style={styles.sub}>{t('booking.paySite', { defaultValue: 'Paiement sur place' })}</AppText>
           </View>
-          <PressableScale style={[styles.book, glow(colors.brand)]} onPress={book} accessibilityRole="button">
-            <AppText style={styles.bookText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</AppText>
-          </PressableScale>
+          {sessions.length > 0 ? (
+            <PressableScale style={[styles.book, glow(colors.brand)]} onPress={() => scrollRef.current?.scrollTo({ y: Math.max(0, datesY - 8), animated: true })} accessibilityRole="button">
+              <AppText style={styles.bookText}>{t('session.seeDates', { defaultValue: 'Voir les dates' })}</AppText>
+            </PressableScale>
+          ) : (
+            <PressableScale style={[styles.book, glow(colors.brand)]} onPress={book} accessibilityRole="button">
+              <AppText style={styles.bookText}>{t('booking.bookCta', { defaultValue: 'Réserver' })}</AppText>
+            </PressableScale>
+          )}
         </View>
       ) : null}
     </View>
@@ -357,6 +439,24 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   stickyPrice: { color: colors.textPrimary, fontSize: fontSizes.lg + 2, fontWeight: '800', letterSpacing: -0.3 },
   stickyUnit: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '600' },
+  dateCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.surface,
+    borderWidth: 1, borderColor: colors.lineStrong, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 10, ...shadows.card,
+  },
+  dateBlock: { width: 56, borderRadius: radius.lg, alignItems: 'center', paddingVertical: 6 },
+  dateDow: { fontSize: fontSizes.xs - 2, fontWeight: '800' },
+  dateNum: { fontSize: fontSizes.lg + 2, lineHeight: 24, fontWeight: '800' },
+  dateSub: { fontSize: fontSizes.xs - 2, fontWeight: '700' },
+  dateRange: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '800' },
+  datePlaces: { fontSize: fontSizes.xs, fontWeight: '700' },
+  chooseBtn: { backgroundColor: colors.brand, borderRadius: radius.full, paddingHorizontal: 14, paddingVertical: 8 },
+  chooseText: { color: colors.onCta, fontSize: fontSizes.sm - 1, fontWeight: '800' },
+  joinedPill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.cta + '1A', borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 6 },
+  joinedText: { color: colors.cta, fontSize: fontSizes.xs, fontWeight: '800' },
+  proposeCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderStyle: 'dashed',
+    borderColor: colors.textMuted, borderRadius: 16, padding: 14,
+  },
   book: { backgroundColor: colors.brand, borderRadius: radius.full, paddingVertical: spacing.sm + 5, paddingHorizontal: spacing.lg + 4 },
   bookText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '800' },
 });

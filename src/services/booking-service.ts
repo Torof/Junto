@@ -37,6 +37,8 @@ export interface AgendaItem {
   participant_info: ParticipantEntry[] | null;
   client_avatar_url: string | null;
   max_participants: number | null;
+  // Sign-up to a fixed date (00575).
+  session_id: string | null;
 }
 
 export interface MyBooking {
@@ -59,6 +61,11 @@ export interface MyBooking {
   equipment_required: string[] | null;
   participant_fields: ParticipantFields | null;
   participant_info: ParticipantEntry[] | null;
+  // Sign-up to a fixed date (00575): its end and meeting point.
+  session_id: string | null;
+  end_day: string | null;
+  end_period: BookingPeriod | null;
+  meeting_point: string | null;
 }
 
 export const bookingService = {

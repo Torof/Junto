@@ -10,7 +10,7 @@ import * as Burnt from 'burnt';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Plus, Phone, MessageCircle, CalendarDays, ChevronRight, MessagesSquare, CalendarX2, RefreshCw } from 'lucide-react-native';
+import { Plus, Phone, MessageCircle, CalendarDays, ChevronRight, MessagesSquare, CalendarX2, RefreshCw, Copy, Pencil, MapPin } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
@@ -25,6 +25,8 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { SportIcon } from '@/components/sport-icon';
 import { AgendaBookingCard, ClientAvatar, DateBlock, SportTile, bookingWhen, formsState } from '@/components/agenda-booking';
+import { sessionService, type MySession } from '@/services/session-service';
+import { sessionBlockSub, sessionHalfDays, sessionRange } from '@/utils/session-time';
 
 type TFn = (key: string, options?: { defaultValue?: string }) => string;
 const periodLabel = (p: BookingPeriod, t: TFn) =>
@@ -84,7 +86,28 @@ export default function ProAgendaScreen() {
     enabled: !!userId,
   });
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['pro-agenda'] });
+  // Fixed dates (00575) of the same window.
+  const { data: sessions } = useQuery({
+    queryKey: ['my-sessions', from, to],
+    queryFn: () => sessionService.getMine(from, to),
+  });
+  // (day|period) → the fixed date covering it, and its label on the calendar.
+  const fixedIndex = useMemo(() => {
+    const map = new Map<string, { session: MySession; label: string }>();
+    for (const se of sessions ?? []) {
+      const halves = sessionHalfDays(se);
+      halves.forEach(([day, period], i) => {
+        const label = i === 0 ? `${se.taken}/${se.max_participants}` : i === halves.length - 1 ? t('session.calEnd', { defaultValue: 'fin' }) : '→';
+        map.set(`${day}|${period}`, { session: se, label });
+      });
+    }
+    return map;
+  }, [sessions, t]);
+
+  const invalidate = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['pro-agenda'] }),
+    queryClient.invalidateQueries({ queryKey: ['my-sessions'] }),
+  ]);
 
   // Consulter ≠ éditer (maquette 2026-09-28) : lecture par défaut, édition explicite.
   const [editMode, setEditMode] = useState(false);
@@ -134,8 +157,11 @@ export default function ProAgendaScreen() {
     router.push(`/(auth)/profile/${b.client_id}`);
   };
 
-  const slotState = (day: string, period: BookingPeriod) =>
-    slotIndex.get(`${day}|${period}`) ?? { available: false };
+  const slotState = (day: string, period: BookingPeriod) => {
+    const st = slotIndex.get(`${day}|${period}`) ?? { available: false };
+    const fx = fixedIndex.get(`${day}|${period}`);
+    return fx ? { ...st, fixed: fx.label, sportKey: fx.session.sport_key, sportCategory: fx.session.sport_category } : st;
+  };
 
   // Optimistic: the half-day flips under the finger, the RPC follows; on error
   // the previous window is restored (lot 2 pro, Scott 2026-10-15 — « le tap
@@ -259,7 +285,8 @@ export default function ProAgendaScreen() {
   // clients together — several clients often share one outing (Scott 2026-11-01).
   const upcoming = useMemo(() => {
     const today = dayjs().format('YYYY-MM-DD');
-    const accepted = (agenda ?? []).filter((a) => a.kind === 'booking' && a.status === 'accepted' && a.day >= today);
+    // Sign-ups of a fixed date live under « Mes dates fixes ».
+    const accepted = (agenda ?? []).filter((a) => a.kind === 'booking' && a.status === 'accepted' && a.day >= today && !a.session_id);
     return groupBy(accepted, (a) => `${a.day}|${a.period}|${a.offering_id}`)
       .sort((x, y) => (x.head.day + x.head.period).localeCompare(y.head.day + y.head.period))
       .slice(0, 10);
@@ -332,13 +359,14 @@ export default function ProAgendaScreen() {
   const openDetail = (b: AgendaItem) => { setSheetDay(null); setDetailId(b.id); };
 
   // ----- Une sortie entière : écrire à tous / annuler (00567) -----
-  const [outing, setOuting] = useState<{ kind: 'write' | 'cancel'; head: AgendaItem } | null>(null);
+  const [outing, setOuting] = useState<{ kind: 'write' | 'cancel'; head: AgendaItem; sessionId?: string; when?: string } | null>(null);
   const [outingText, setOutingText] = useState('');
   const [outingBusy, setOutingBusy] = useState(false);
-  const openOuting = (kind: 'write' | 'cancel', head: AgendaItem) => {
+  const openOuting = (kind: 'write' | 'cancel', head: AgendaItem, sessionId?: string, when?: string) => {
     setOutingText('');
     setSheetDay(null);
-    setOuting({ kind, head });
+    setSessionOpenId(null);
+    setOuting({ kind, head, sessionId, when });
   };
   const submitOuting = async () => {
     if (!outing || !outing.head.offering_id || outingBusy) return;
@@ -359,7 +387,8 @@ export default function ProAgendaScreen() {
             preset: n > 0 ? 'done' : 'none',
           });
         } else {
-          await bookingService.cancelOuting(offeringId, head.day, head.period, text || undefined);
+          if (outing.sessionId) await sessionService.cancel(outing.sessionId, text || undefined);
+          else await bookingService.cancelOuting(offeringId, head.day, head.period, text || undefined);
           Burnt.toast({ title: t('booking.outingCancelled', { defaultValue: 'Sortie annulée, clients prévenus' }), preset: 'done' });
           await invalidate();
         }
@@ -377,6 +406,26 @@ export default function ProAgendaScreen() {
       ],
     );
   };
+
+  // ----- Fixed dates (00575): the date's sheet -----
+  const [sessionOpenId, setSessionOpenId] = useState<string | null>(null);
+  const openSession = (sessions ?? []).find((se) => se.id === sessionOpenId) ?? null;
+  const sessionHead = (se: MySession): AgendaItem => ({
+    kind: 'booking', id: se.id, day: se.start_day, period: se.start_period, status: 'accepted',
+    offering_id: se.offering_id, offering_title: se.offering_title, party_size: se.taken,
+    client_id: null, client_name: null, manual_phone: null, message: null, is_manual: null,
+    sport_key: se.sport_key, sport_category: se.sport_category, participant_fields: null, participant_info: null,
+    client_avatar_url: null, max_participants: se.max_participants, session_id: se.id,
+  });
+  const signUpsOf = (id: string) => (agenda ?? []).filter((a) => a.kind === 'booking' && a.status === 'accepted' && a.session_id === id);
+  const minLine = (se: MySession): { text: string; ok: boolean } | null => {
+    if (se.min_participants == null) return null;
+    return se.taken >= se.min_participants
+      ? { text: t('session.sureMin', { defaultValue: 'Départ assuré (min. {{count}})', count: se.min_participants }), ok: true }
+      : { text: t('session.missingForMin', { defaultValue: 'Il manque {{count}} pers. pour partir', count: se.min_participants - se.taken }), ok: false };
+  };
+  const today = dayjs().format('YYYY-MM-DD');
+  const upcomingSessions = (sessions ?? []).filter((se) => se.end_day >= today);
 
   // ----- Manual booking sheet -----
   const [manualOpen, setManualOpen] = useState(false);
@@ -430,10 +479,16 @@ export default function ProAgendaScreen() {
           // Manual booking lives in the header (was a floating button that sat
           // on the calendar's last row and the legend — lot 2 pro).
           headerRight: () => (
-            <PressableScale onPress={() => openManualSheet()} hitSlop={8} style={styles.headerBtn} accessibilityLabel={t('booking.addManual', { defaultValue: 'Ajouter une résa' })}>
-              <Plus size={14} color={colors.textPrimary} strokeWidth={2.6} />
-              <AppText style={styles.headerBtnText}>{t('booking.addManualShort', { defaultValue: 'Résa' })}</AppText>
-            </PressableScale>
+            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+              <PressableScale onPress={() => router.push('/(auth)/pro/session-form')} hitSlop={8} style={[styles.headerBtn, { backgroundColor: colors.brand }]} accessibilityLabel={t('session.newTitle', { defaultValue: 'Poser une date' })}>
+                <Plus size={14} color={colors.onCta} strokeWidth={2.6} />
+                <AppText style={[styles.headerBtnText, { color: colors.onCta }]}>{t('session.addShort', { defaultValue: 'Date' })}</AppText>
+              </PressableScale>
+              <PressableScale onPress={() => openManualSheet()} hitSlop={8} style={styles.headerBtn} accessibilityLabel={t('booking.addManual', { defaultValue: 'Ajouter une résa' })}>
+                <Plus size={14} color={colors.textPrimary} strokeWidth={2.6} />
+                <AppText style={styles.headerBtnText}>{t('booking.addManualShort', { defaultValue: 'Résa' })}</AppText>
+              </PressableScale>
+            </View>
           ),
         }}
       />
@@ -472,6 +527,7 @@ export default function ProAgendaScreen() {
           onMonthChange={setMonthStart}
           selectedDay={sheetDay}
           showBusyLegend={(agenda ?? []).some((a) => a.kind === 'busy')}
+          showFixedLegend={(sessions ?? []).length > 0}
         />
 
         {!editMode && (
@@ -507,6 +563,38 @@ export default function ProAgendaScreen() {
                     onAccept={() => handleAccept(b)}
                   />
                 ))}
+              </>
+            )}
+
+            {upcomingSessions.length > 0 && (
+              <>
+                <AppText style={styles.sectionLabel}>{t('session.mine', { defaultValue: 'Mes dates fixes' })}</AppText>
+                {upcomingSessions.map((se) => {
+                  const c = sportCategoryColor(se.sport_category, colors.cta);
+                  const ml = minLine(se);
+                  return (
+                    <Pressable
+                      key={se.id}
+                      style={({ pressed }) => [styles.bkRow, { borderColor: c, borderWidth: 1.5 }, pressed && styles.pressed]}
+                      onPress={() => setSessionOpenId(se.id)}
+                      accessibilityRole="button"
+                    >
+                      <View style={{ width: 56, borderRadius: radius.lg, backgroundColor: c, alignItems: 'center', paddingVertical: 6 }}>
+                        <AppText style={{ color: colors.onCta, fontSize: fontSizes.xs - 2, fontWeight: '800' }}>{dayjs(se.start_day).format('ddd').toUpperCase()}</AppText>
+                        <AppText style={{ color: colors.onCta, fontSize: fontSizes.lg + 2, lineHeight: 24, fontWeight: '800' }}>{dayjs(se.start_day).date()}</AppText>
+                        <AppText style={{ color: colors.onCta, fontSize: fontSizes.xs - 2, fontWeight: '700' }}>{sessionBlockSub(se)}</AppText>
+                      </View>
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <AppText style={styles.bkName} numberOfLines={1}>{se.offering_title}</AppText>
+                        <AppText style={styles.bkWho} numberOfLines={1}>{sessionRange(se)}</AppText>
+                        <AppText style={[styles.bkWho, { fontWeight: '700', color: ml && !ml.ok ? colors.warning : colors.cta }]} numberOfLines={1}>
+                          {placesLabel(se.taken, se.max_participants)}{ml ? ` · ${ml.text}` : ''}
+                        </AppText>
+                      </View>
+                      <ChevronRight size={18} color={colors.textMuted} strokeWidth={2.2} />
+                    </Pressable>
+                  );
+                })}
               </>
             )}
 
@@ -591,6 +679,7 @@ export default function ProAgendaScreen() {
                 const bks = dayBookings(period);
                 const open = dayOpen(period);
                 const busy = dayItems.some((a) => a.kind === 'busy' && a.period === period);
+                const fx = sheetDay ? fixedIndex.get(`${sheetDay}|${period}`) : undefined;
                 return (
                   <View key={period} style={styles.slotBlock}>
                     <View style={styles.slotHead}>
@@ -603,14 +692,23 @@ export default function ProAgendaScreen() {
                           </AppText>
                         </View>
                       )}
-                      {bks.length === 0 && !busy && (
+                      {fx && (
+                        <PressableScale hitSlop={6} onPress={() => { setSheetDay(null); setSessionOpenId(fx.session.id); }}>
+                          <View style={[styles.statePill, { backgroundColor: colors.cta + '1A' }]}>
+                            <AppText style={[styles.statePillText, { color: colors.cta }]} numberOfLines={1}>
+                              {t('session.legend', { defaultValue: 'Date fixe' })} · {fx.session.offering_title} ›
+                            </AppText>
+                          </View>
+                        </PressableScale>
+                      )}
+                      {bks.length === 0 && !busy && !fx && (
                         <View style={[styles.statePill, { backgroundColor: open ? colors.cta + '1A' : colors.textMuted + '22' }]}>
                           <AppText style={[styles.statePillText, { color: open ? colors.cta : colors.textMuted }]}>
                             {open ? t('booking.slotOpen', { defaultValue: 'Ouvert' }) : t('booking.slotClosed', { defaultValue: 'Fermé' })}
                           </AppText>
                         </View>
                       )}
-                      {!sheetIsPast && bks.length === 0 && (
+                      {!sheetIsPast && bks.length === 0 && !fx && (
                         <PressableScale hitSlop={6} onPress={() => sheetDay && handleToggle(sheetDay, period, !open)}>
                           <AppText style={styles.slotToggle}>
                             {open ? t('booking.closeSlot', { defaultValue: 'Fermer' }) : t('booking.openSlot', { defaultValue: 'Ouvrir' })}
@@ -802,6 +900,135 @@ export default function ProAgendaScreen() {
         </Pressable>
       </Modal>
 
+      {/* Fiche d'une date fixe (00575) : remplissage, le groupe et ses fiches, actions. */}
+      <Modal visible={!!openSession} transparent animationType="slide" onRequestClose={() => setSessionOpenId(null)}>
+        <Pressable style={styles.backdrop} onPress={() => setSessionOpenId(null)}>
+          <Pressable style={[styles.sheet, styles.sheetTall]} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.grab} />
+            {openSession ? (() => {
+              const se = openSession;
+              const head = sessionHead(se);
+              const c = sportCategoryColor(se.sport_category, colors.cta);
+              const ml = minLine(se);
+              const signUps = signUpsOf(se.id);
+              const asks = signUps.some((b) => formsState(b) != null);
+              const done = signUps.reduce((n, b) => n + (formsState(b)?.done ?? 0), 0);
+              const started = se.start_day < today;
+              return (
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: spacing.md }}>
+                  <View style={styles.dHead}>
+                    <SportTile b={head} size={48} />
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <AppText style={styles.dTitle}>{se.offering_title}</AppText>
+                      <AppText style={[styles.dWhen, { color: c }]}>{sessionRange(se)}</AppText>
+                      {se.meeting_point ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                          <MapPin size={12} color={colors.textSecondary} strokeWidth={2.2} />
+                          <AppText style={styles.dClientSub} numberOfLines={2}>{se.meeting_point}</AppText>
+                        </View>
+                      ) : null}
+                    </View>
+                  </View>
+
+                  <View style={styles.fillBox}>
+                    <View style={styles.fillHead}>
+                      <AppText style={styles.dClientName}>{t('session.placesTaken', { defaultValue: '{{taken}} / {{max}} places prises', taken: se.taken, max: se.max_participants })}</AppText>
+                      {ml ? <AppText style={[styles.fillMin, { color: ml.ok ? colors.cta : colors.warning }]}>{ml.text}</AppText> : null}
+                    </View>
+                    <View style={styles.fillTrack}>
+                      <View style={[styles.fillBar, { width: `${Math.min(100, Math.round((se.taken / se.max_participants) * 100))}%`, backgroundColor: c }]} />
+                    </View>
+                  </View>
+
+                  <View style={{ gap: 6 }}>
+                    <AppText style={styles.dLabel}>
+                      {asks
+                        ? t('session.groupForms', { defaultValue: 'Le groupe · fiches {{done}} sur {{total}}', done, total: se.taken })
+                        : t('session.group', { defaultValue: 'Le groupe' })}
+                    </AppText>
+                    {signUps.length === 0 ? (
+                      <AppText style={styles.empty}>{t('session.noSignUp', { defaultValue: 'Personne d’inscrit pour l’instant.' })}</AppText>
+                    ) : (
+                      <View style={styles.dForms}>
+                        {signUps.map((b, bi) => {
+                          const forms = formsState(b);
+                          return (
+                            <View key={b.id} style={[bi > 0 && styles.dFormSep, { paddingBottom: spacing.sm }]}>
+                              <View style={styles.groupHead}>
+                                <ClientAvatar b={b} size={30} onProfile={b.client_id ? () => openProfile(b) : undefined} />
+                                <AppText style={[styles.dClientName, { flex: 1 }]} numberOfLines={1}>
+                                  {b.client_name ?? '—'} · {t('booking.peopleCount', { defaultValue: '{{count}} personnes', count: b.party_size ?? 0 })}
+                                </AppText>
+                                {b.client_id ? (
+                                  <PressableScale hitSlop={8} onPress={() => openProfile(b)}>
+                                    <AppText style={styles.dLink}>{t('booking.profileLink', { defaultValue: 'Profil ›' })}</AppText>
+                                  </PressableScale>
+                                ) : null}
+                              </View>
+                              {forms ? Array.from({ length: forms.total }, (_, i) => {
+                                const e = b.participant_info?.[i];
+                                return e ? (
+                                  <View key={i} style={styles.dFormRow}>
+                                    <AppText style={styles.dFormNum}>{i + 1}</AppText>
+                                    <AppText style={styles.dFormText} numberOfLines={2}>{formatEntry(e)}</AppText>
+                                  </View>
+                                ) : null;
+                              }) : null}
+                              {forms && forms.done < forms.total ? (
+                                <View style={styles.missingRow}>
+                                  <AppText style={styles.missingText}>
+                                    {t('session.formsMissing', { defaultValue: '{{count}} fiches pas encore remplies', count: forms.total - forms.done })}
+                                  </AppText>
+                                  {b.client_id ? (
+                                    <PressableScale hitSlop={6} onPress={() => { setSessionOpenId(null); void handleWrite(b); }}>
+                                      <AppText style={styles.dLink}>{t('booking.write', { defaultValue: 'Écrire' })} ›</AppText>
+                                    </PressableScale>
+                                  ) : null}
+                                </View>
+                              ) : null}
+                              {!started ? (
+                                <PressableScale hitSlop={6} onPress={() => { setSessionOpenId(null); handleCancelPro(b); }}>
+                                  <AppText style={styles.removeText}>{t('session.removeSignUp', { defaultValue: 'Retirer' })}</AppText>
+                                </PressableScale>
+                              ) : null}
+                            </View>
+                          );
+                        })}
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={styles.reqActs}>
+                    {signUps.some((b) => b.client_id) ? (
+                      <Pressable style={({ pressed }) => [styles.btnPrimary, { flex: 1 }, pressed && styles.pressed]} onPress={() => openOuting('write', head, se.id, sessionRange(se))}>
+                        <MessagesSquare size={16} color={colors.onCta} strokeWidth={2.2} />
+                        <AppText style={styles.btnPrimaryText}>{t('booking.writeAll', { defaultValue: 'Écrire à tous' })}</AppText>
+                      </Pressable>
+                    ) : null}
+                    <Pressable style={({ pressed }) => [styles.btnOutline, pressed && styles.pressed]} onPress={() => { setSessionOpenId(null); router.push(`/(auth)/pro/session-form?dup=${se.id}`); }}>
+                      <Copy size={16} color={colors.textPrimary} strokeWidth={2.2} />
+                      <AppText style={styles.btnOutlineText}>{t('session.duplicate', { defaultValue: 'Dupliquer' })}</AppText>
+                    </Pressable>
+                  </View>
+                  {!started ? (
+                    <View style={styles.sessionFoot}>
+                      <PressableScale hitSlop={6} onPress={() => { setSessionOpenId(null); router.push(`/(auth)/pro/session-form?id=${se.id}`); }} style={styles.footBtn}>
+                        <Pencil size={14} color={colors.textPrimary} strokeWidth={2.2} />
+                        <AppText style={styles.footText}>{t('session.edit', { defaultValue: 'Modifier la date' })}</AppText>
+                      </PressableScale>
+                      <PressableScale hitSlop={6} onPress={() => openOuting('cancel', head, se.id, sessionRange(se))} style={styles.footBtn}>
+                        <CalendarX2 size={14} color={colors.error} strokeWidth={2.2} />
+                        <AppText style={[styles.footText, { color: colors.error }]}>{t('booking.cancelOuting', { defaultValue: 'Annuler la sortie' })}</AppText>
+                      </PressableScale>
+                    </View>
+                  ) : null}
+                </ScrollView>
+              );
+            })() : null}
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {/* Une sortie entière : message à tous / annulation avec motif (00567). */}
       <Modal visible={!!outing} transparent animationType="slide" onRequestClose={() => setOuting(null)}>
         <Pressable style={styles.backdrop} onPress={() => setOuting(null)}>
@@ -816,7 +1043,7 @@ export default function ProAgendaScreen() {
                     : t('booking.cancelOuting', { defaultValue: 'Annuler la sortie' })}
                 </AppText>
                 <AppText style={styles.outSub} numberOfLines={1}>
-                  {outing.head.offering_title ?? '—'} · {bookingWhen(outing.head.day, outing.head.period, t)}
+                  {outing.head.offering_title ?? '—'} · {outing.when ?? bookingWhen(outing.head.day, outing.head.period, t)}
                 </AppText>
                 {outing.kind === 'cancel' && (
                   <AppText style={[styles.inputLabel, { marginTop: spacing.md }]}>{t('booking.cancelReasonLabel', { defaultValue: 'Motif (facultatif)' })}</AppText>
@@ -965,6 +1192,21 @@ export default function ProAgendaScreen() {
 
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  fillBox: { backgroundColor: colors.surfaceAlt, borderRadius: radius.lg, padding: spacing.sm + 4, gap: 8 },
+  fillHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: spacing.sm, flexWrap: 'wrap' },
+  fillMin: { fontSize: fontSizes.xs, fontWeight: '700' },
+  fillTrack: { height: 8, borderRadius: 4, backgroundColor: colors.lineStrong, overflow: 'hidden' },
+  fillBar: { height: 8 },
+  groupHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.sm + 2, paddingTop: spacing.sm },
+  missingRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginHorizontal: spacing.sm + 2, marginTop: 6,
+    paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.sm, borderRadius: radius.md, backgroundColor: colors.warning + '14',
+  },
+  missingText: { flex: 1, color: colors.warning, fontSize: fontSizes.xs + 1, fontWeight: '700' },
+  removeText: { color: colors.textSecondary, fontSize: fontSizes.xs + 1, fontWeight: '700', paddingHorizontal: spacing.sm + 2, paddingTop: 6 },
+  sessionFoot: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 2 },
+  footBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6 },
+  footText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
   scroll: { padding: spacing.md },
   center: { paddingVertical: spacing.xl, alignItems: 'center' },
   hint: { color: colors.textMuted, fontSize: fontSizes.xs + 1, marginTop: spacing.xs + 2, marginHorizontal: 2 },
