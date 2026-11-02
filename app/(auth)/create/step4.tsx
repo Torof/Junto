@@ -24,6 +24,7 @@ import { getFriendlyError } from '@/utils/friendly-error';
 import { haptic } from '@/lib/haptics';
 import { formatMeetingLabel } from '@/utils/meeting-label';
 import { askPermission } from '@/lib/permissions';
+import { formatDurationMs, multiDayRange } from '@/utils/activity-time';
 
 export default function CreateStep4() {
   const colors = useColors();
@@ -148,11 +149,14 @@ export default function CreateStep4() {
         <RecapRow label={t('create.maxParticipants')} value={form.max_participants === null ? t('create.openActivityValue') : `${form.max_participants}`} />
         <RecapRow
           label={t('create.dateTime')}
-          value={form.starts_at ? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm') : '-'}
+          value={form.starts_at
+            ? multiDayRange(form.starts_at.toISOString(), `${form.duration_hours} hours ${form.duration_minutes} minutes`)
+              ?? dayjs(form.starts_at).locale(i18n.language).format('ddd D MMM · H[h]mm')
+            : '-'}
         />
         <RecapRow
           label={t('create.duration')}
-          value={`${form.duration_hours}h${form.duration_minutes > 0 ? form.duration_minutes : ''}`}
+          value={formatDurationMs((form.duration_hours * 60 + form.duration_minutes) * 60000)}
         />
         <RecapRow
           label={t('create.step3Title')}

@@ -33,6 +33,7 @@ import { activityService, type GeoJsonLineString } from '@/services/activity-ser
 import { TracePickerModal } from '@/components/trace-picker-modal';
 import { TraceDrawModal } from '@/components/trace-draw-modal';
 import { WaypointEditorModal } from '@/components/waypoint-editor-modal';
+import { MultiDayEndField, MultiDayToggle } from '@/components/multi-day-end-field';
 import { withWaypoints } from '@/utils/trace-waypoints';
 
 export default function CreateStep2() {
@@ -62,6 +63,8 @@ export default function CreateStep2() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [drawOpen, setDrawOpen] = useState(false);
   const [waypointsOpen, setWaypointsOpen] = useState(false);
+  // Multi-day outing (Scott 2026-11-02): end date + time instead of hours.
+  const [multiDay, setMultiDay] = useState(() => useCreateStore.getState().form.duration_hours >= 24);
   // Distance / D+ the server reads off the trace (mig 00452) — shown under the
   // trace row and written into the two fields just below it (Scott 2026-10-16:
   // setting a trace FILLS the fields, typed or not; the organiser corrects
@@ -449,6 +452,15 @@ export default function CreateStep2() {
             </View>
           </Pressable>
 
+          {multiDay ? (
+            <MultiDayEndField
+              style={styles.timingItem}
+              startsAt={form.starts_at}
+              hours={form.duration_hours}
+              minutes={form.duration_minutes}
+              onChange={(h, m) => updateForm({ duration_hours: h, duration_minutes: m })}
+            />
+          ) : (
           <View style={[styles.durationRow, styles.timingItem]}>
             <View style={styles.durationHeader}>
               <Clock size={18} color={colors.textSecondary} strokeWidth={2.2} />
@@ -472,7 +484,16 @@ export default function CreateStep2() {
               </Pressable>
             </View>
           </View>
+          )}
         </View>
+        <MultiDayToggle
+          value={multiDay}
+          onChange={(v) => {
+            setMultiDay(v);
+            if (v && form.duration_hours < 24) updateForm({ duration_hours: form.duration_hours + 24 });
+            if (!v && form.duration_hours >= 24) updateForm({ duration_hours: 8, duration_minutes: 0 });
+          }}
+        />
         {startsAtInPast && (
           <AppText style={styles.dateError}>{t('create.startsAtPast')}</AppText>
         )}

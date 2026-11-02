@@ -17,6 +17,9 @@ import { getLevelScale, OPEN_LEVEL, formatLevelRange } from '@/constants/sport-l
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
+import { MultiDayEndField, MultiDayToggle } from '@/components/multi-day-end-field';
+import { splitDuration } from '@/utils/activity-time';
+import { parsePgIntervalMs } from '@/utils/parse-pg-interval';
 
 const VISIBILITIES = ['public', 'approval', 'private_link', 'private_link_approval'] as const;
 
@@ -48,6 +51,7 @@ export default function EditActivityScreen() {
   const [startsAt, setStartsAt] = useState<Date | null>(null);
   const [durationHours, setDurationHours] = useState(2);
   const [durationMinutes, setDurationMinutes] = useState(0);
+  const [multiDay, setMultiDay] = useState(false);
   const [visibility, setVisibility] = useState('public');
   const [initialized, setInitialized] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -63,12 +67,13 @@ export default function EditActivityScreen() {
     setMaxParticipants(activity.max_participants);
     setStartsAt(new Date(activity.starts_at));
     setVisibility(activity.visibility);
-    // Parse duration string (e.g. "04:00:00" or "2 hours")
-    const dMatch = activity.duration.match(/(\d+):(\d+)/);
-    if (dMatch?.[1] && dMatch[2]) {
-      setDurationHours(parseInt(dMatch[1], 10));
-      setDurationMinutes(parseInt(dMatch[2], 10));
-    }
+    // Shared interval parser: a multi-day outing comes back as « 2 days
+    // 04:00:00 » — the old `HH:MM` regex read it as 4 h, and saving then
+    // silently shortened the outing.
+    const d = splitDuration(parsePgIntervalMs(activity.duration));
+    setDurationHours(d.hours);
+    setDurationMinutes(d.minutes);
+    setMultiDay(d.hours >= 24);
     setInitialized(true);
   }
 
@@ -249,6 +254,15 @@ export default function EditActivityScreen() {
       <AppText style={styles.label}>{t('create.duration')}</AppText>
       {/* Locked once started (00467) and once people joined (00516: their
           schedules depend on it — the server ignores a change). */}
+      {multiDay ? (
+        <MultiDayEndField
+          startsAt={startsAt}
+          hours={durationHours}
+          minutes={durationMinutes}
+          onChange={(h, m) => { setDurationHours(h); setDurationMinutes(m); }}
+          disabled={hasStarted || hasParticipants}
+        />
+      ) : (
       <View style={[styles.durationRow, (hasStarted || hasParticipants) && styles.locked]} pointerEvents={hasStarted || hasParticipants ? 'none' : 'auto'}>
         <Pressable
           style={styles.counterButton}
@@ -264,6 +278,18 @@ export default function EditActivityScreen() {
         <Pressable style={styles.counterButton} onPress={() => setDurationHours(Math.min(24, durationHours + 1))}>
           <Plus size={18} color={colors.textPrimary} strokeWidth={2.4} />
         </Pressable>
+      </View>
+      )}
+      <View style={{ marginTop: spacing.md }}>
+        <MultiDayToggle
+          value={multiDay}
+          disabled={hasStarted || hasParticipants}
+          onChange={(v) => {
+            setMultiDay(v);
+            if (v && durationHours < 24) setDurationHours(durationHours + 24);
+            if (!v && durationHours >= 24) { setDurationHours(8); setDurationMinutes(0); }
+          }}
+        />
       </View>
 
       <AppText style={styles.label}>{t('create.step3Title')}</AppText>
