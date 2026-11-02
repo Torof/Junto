@@ -19,6 +19,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { authService } from '@/services/auth-service';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
+import { Wordmark } from '@/components/wordmark';
 
 type Mode = 'login' | 'register' | 'forgot';
 
@@ -133,7 +134,7 @@ export default function LoginScreen() {
         <View style={styles.content}>
         <View style={styles.header}>
           <Image source={require('../../assets/askandgo_icon_square.png')} style={styles.logo} />
-          <AppText style={styles.brand}>{t('app.name')}</AppText>
+          <Wordmark size={32} color={colors.brand} andColor={colors.brandGreen} />
           <AppText style={styles.tagline}>{t('auth.tagline')}</AppText>
         </View>
 
@@ -219,7 +220,7 @@ export default function LoginScreen() {
         {mode === 'register' && (
           <Pressable style={styles.tosRow} onPress={() => setTosAccepted((v) => !v)}>
             <View style={[styles.checkbox, tosAccepted && styles.checkboxChecked]}>
-              {tosAccepted && <Check size={14} color={colors.textPrimary} strokeWidth={3} />}
+              {tosAccepted && <Check size={14} color={colors.onCta} strokeWidth={3} />}
             </View>
             <AppText style={styles.tosText}>
               {t('auth.tosPrefix')}{' '}
@@ -242,7 +243,7 @@ export default function LoginScreen() {
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color={colors.textPrimary} />
+            <ActivityIndicator color={colors.onCta} />
           ) : (
             <AppText style={styles.primaryButtonText}>{ctaLabel}</AppText>
           )}
@@ -273,8 +274,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
   header: { alignItems: 'center', marginBottom: spacing.xl },
   logo: { width: 76, height: 76, marginBottom: spacing.md, borderRadius: 18 },
-  brand: { color: colors.textPrimary, fontSize: 32, fontWeight: '800', letterSpacing: -0.5 },
-  tagline: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 4 },
+  tagline: { color: colors.textSecondary, fontSize: fontSizes.sm, marginTop: 6 },
 
   tabs: {
     flexDirection: 'row',
@@ -287,7 +287,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 999 },
   tabActive: { backgroundColor: colors.cta },
   tabText: { color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '700' },
-  tabTextActive: { color: colors.textPrimary, fontWeight: '800' },
+  tabTextActive: { color: colors.onCta, fontWeight: '800' },
 
   forgotHeader: { marginBottom: spacing.lg, alignItems: 'center' },
   forgotTitle: {
@@ -338,7 +338,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.xs,
   },
   buttonDisabled: { opacity: 0.6 },
-  primaryButtonText: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
+  primaryButtonText: { color: colors.onCta, fontSize: fontSizes.md, fontWeight: '800' },
 
   linkRow: { paddingVertical: spacing.md, alignItems: 'center' },
   linkText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '700' },

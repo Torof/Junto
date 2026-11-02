@@ -12,6 +12,12 @@ export const darkColors = {
   // Text/icon color ON solid accent fills (cta/success/error buttons).
   // Canon 2026-09-19 — replaces ~106 hardcoded '#FFFFFF' text literals.
   onCta: '#FFFFFF',
+  // The « and » of the askandgo wordmark — the identity green, FIXED: never
+  // follows the accent override that `cta` does. `brandGreenOnBlue` is its
+  // lifted version on a brand-blue fill (opening screen). Same in both themes
+  // except the base green, lifted on the dark canvas like `cta`.
+  brandGreen: '#45A06D',
+  brandGreenOnBlue: '#9FE3BC',
 
   textPrimary: '#F5F5F0',
   textSecondary: '#8A9BB0',
@@ -97,6 +103,8 @@ export const lightColors = {
   // Text/icon color ON solid accent fills (cta/success/error buttons).
   // Canon 2026-09-19 — replaces ~106 hardcoded '#FFFFFF' text literals.
   onCta: '#FFFFFF',
+  brandGreen: '#246342', // see darkColors.brandGreen
+  brandGreenOnBlue: '#9FE3BC',
 
   textPrimary: '#1F1A15',
   textSecondary: '#6F665A',
