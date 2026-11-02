@@ -97,6 +97,9 @@ export default function ProOfferingEditScreen() {
   const [saving, setSaving] = useState(false);
   // How clients ask for it (00577): null = a half-day, 1 = a day, 2-14 = days.
   const [requestDays, setRequestDays] = useState<number | null>(null);
+  // Cancel automatically the day before when the minimum is not reached (00578,
+  // the pro's explicit choice — off by default).
+  const [autoCancel, setAutoCancel] = useState(false);
   // Chantiers A+B (00422) : matériel + fiche participant demandée.
   const [equipProvided, setEquipProvided] = useState<string[]>([]);
   const [equipRequired, setEquipRequired] = useState<string[]>([]);
@@ -155,6 +158,7 @@ export default function ProOfferingEditScreen() {
     setPStd(existing.participant_fields?.std ?? []);
     setPCustom(existing.participant_fields?.custom ?? []);
     setRequestDays(existing.request_days ?? null);
+    setAutoCancel(existing.auto_cancel ?? false);
   }, [existing]);
 
   // New outing: the meeting place defaults to the pro's own address — most
@@ -358,6 +362,18 @@ export default function ProOfferingEditScreen() {
           });
         }
       };
+      const saveAutoCancel = async (id: string) => {
+        const want = autoCancel && parsedMin !== null;
+        if (want === (existing?.auto_cancel ?? false)) return;
+        try {
+          await proOfferingService.setAutoCancel(id, want);
+        } catch {
+          Burnt.toast({
+            title: t('proOffering.autoCancelNotSaved', { defaultValue: 'Sortie enregistrée, mais pas l’annulation automatique — réessaie depuis Modifier.' }),
+            preset: 'error',
+          });
+        }
+      };
       const saveCover = async (id: string) => {
         if (coverChange.kind === 'unchanged') return;
         try {
@@ -375,6 +391,7 @@ export default function ProOfferingEditScreen() {
         await proOfferingService.update({ ...payload, offering_id: offeringId });
         await saveDetails(offeringId);
         await saveRequestLength(offeringId);
+        await saveAutoCancel(offeringId);
         await saveCover(offeringId);
         await queryClient.invalidateQueries({ queryKey: ['pro-offering', offeringId] });
         await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
@@ -383,6 +400,7 @@ export default function ProOfferingEditScreen() {
         const newId = await proOfferingService.create(payload);
         await saveDetails(newId);
         await saveRequestLength(newId);
+        await saveAutoCancel(newId);
         await saveCover(newId);
         await queryClient.invalidateQueries({ queryKey: ['pro-offerings'] });
         // Land on the detail page so the freshly-created offering is
@@ -670,6 +688,26 @@ export default function ProOfferingEditScreen() {
                 <AppTextInput style={styles.input} value={maxParticipants} onChangeText={setMaxParticipants} placeholder={t('proOffering.maxParticipantsPlaceholder')} placeholderTextColor={colors.textMuted} keyboardType="number-pad" maxLength={2} />
               </Field>
             </View>
+            {minParticipants ? (
+              <>
+                <Pressable
+                  style={styles.checkRow}
+                  onPress={() => setAutoCancel((v) => !v)}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: autoCancel }}
+                >
+                  <View style={[styles.checkBox, autoCancel && styles.checkBoxOn]}>
+                    {autoCancel ? <AppText style={styles.checkMark}>✓</AppText> : null}
+                  </View>
+                  <AppText style={styles.checkLabel}>
+                    {t('proOffering.autoCancel', { defaultValue: 'Annuler automatiquement si le minimum n’est pas atteint' })}
+                  </AppText>
+                </Pressable>
+                <AppText style={styles.helper}>
+                  {t('proOffering.autoCancelHelp', { defaultValue: 'La veille à 9 h, sauf si tu as maintenu la sortie. Tu es prévenu 2 jours avant.' })}
+                </AppText>
+              </>
+            ) : null}
           </View>
         )}
 

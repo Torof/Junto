@@ -33,6 +33,8 @@ export interface ProOffering {
   // How it is asked for on request (00577): null = a half-day, 1 = a day,
   // 2-14 = that many days (start morning → last day afternoon).
   request_days: number | null;
+  // Cancelled automatically the day before when short of the minimum (00578).
+  auto_cancel: boolean;
   // Review aggregate — present only on getNearby (map labels / hero).
   avg_rating?: number | null;
   review_count?: number;
@@ -86,7 +88,7 @@ export const proOfferingService = {
     const { data, error } = await supabase
       .from('pro_offerings_with_coords')
       .select(
-        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at, equipment_provided, equipment_required, participant_fields, request_days',
+        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at, equipment_provided, equipment_required, participant_fields, request_days, auto_cancel',
       )
       .eq('id', id)
       .maybeSingle();
@@ -99,7 +101,7 @@ export const proOfferingService = {
     const { data, error } = await supabase
       .from('pro_offerings_with_coords')
       .select(
-        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at, equipment_provided, equipment_required, participant_fields, request_days',
+        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at, equipment_provided, equipment_required, participant_fields, request_days, auto_cancel',
       )
       .eq('pro_id', proId)
       .order('created_at', { ascending: false });
@@ -118,7 +120,7 @@ export const proOfferingService = {
     let query = supabase
       .from('pro_offerings_with_coords')
       .select(
-        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at, equipment_provided, equipment_required, participant_fields, request_days',
+        'id, pro_id, sport_id, title, description, level, location_name, duration, max_participants, schedule_text, distance_km, elevation_gain_m, price_eur, price_unit, min_participants, image_url, lng, lat, sport_key, sport_icon, sport_category, pro_name, created_at, updated_at, equipment_provided, equipment_required, participant_fields, request_days, auto_cancel',
       )
       // Capped like the sorties (MAP_FETCH_CAP); description stays because the
       // offering drawer renders straight from this row.
@@ -204,6 +206,11 @@ export const proOfferingService = {
     const { error } = await supabase.rpc('set_offering_request_length', {
       p_offering_id: offeringId, p_days: days as number,
     });
+    if (error) throw error;
+  },
+
+  setAutoCancel: async (offeringId: string, on: boolean): Promise<void> => {
+    const { error } = await supabase.rpc('set_offering_auto_cancel', { p_offering_id: offeringId, p_on: on });
     if (error) throw error;
   },
 

@@ -51,7 +51,7 @@
     "booking_reminder": {"title": "Morgen ist es so weit!", "body": "„{{title}}“ mit {{name}}, morgen {{period}}.", "forms": {"title": "Morgen ist es so weit!", "body": "„{{title}}“ morgen {{period}} – denk daran, deine Teilnehmerbögen auszufüllen."}},
     "booking_requests_waiting": {"title": "Offene Anfragen", "body_one": "1 Anfrage wartet seit über 24 Std. auf deine Antwort.", "body_other": "{{count}} Anfragen warten seit über 24 Std. auf deine Antwort."},
     "booking_forms_reminder": {"title": "Gruppenbogen ausfüllen", "body": "{{name}} wartet auf die Angaben deiner Gruppe für „{{title}}“ ({{date}})."},
-    "booking_forms_missing": {"title": "Angaben fehlen", "body_one": "„{{title}}“ ({{date}}): 1 von {{total}} Teilnehmerbögen fehlt.", "body_other": "„{{title}}“ ({{date}}): {{count}} von {{total}} Teilnehmerbögen fehlen.", "minimum": {"title": "Mindestanzahl nicht erreicht", "body": "„{{title}}“ ({{date}}): {{total}}/{{min}} angemeldet. Führ sie durch, sonst wird sie morgen um 9 Uhr abgesagt."}, "both": {"title": "Angaben fehlen", "body_one": "„{{title}}“ ({{date}}): 1 Teilnehmerbogen fehlt, und {{total}}/{{min}} angemeldet. Führ sie durch, sonst wird sie morgen um 9 Uhr abgesagt.", "body_other": "„{{title}}“ ({{date}}): {{count}} Teilnehmerbögen fehlen, und {{total}}/{{min}} angemeldet. Führ sie durch, sonst wird sie morgen um 9 Uhr abgesagt."}},
+    "booking_forms_missing": {"title": "Angaben fehlen", "body_one": "„{{title}}“ ({{date}}): 1 von {{total}} Teilnehmerbögen fehlt.", "body_other": "„{{title}}“ ({{date}}): {{count}} von {{total}} Teilnehmerbögen fehlen.", "minimum": {"title": "Mindestanzahl nicht erreicht", "body": "„{{title}}“ ({{date}}): {{total}}/{{min}} angemeldet, mindestens {{min}} nötig."}, "both": {"title": "Angaben fehlen", "body_one": "„{{title}}“ ({{date}}): 1 Teilnehmerbogen fehlt, und {{total}}/{{min}} angemeldet.", "body_other": "„{{title}}“ ({{date}}): {{count}} Teilnehmerbögen fehlen, und {{total}}/{{min}} angemeldet."}, "minimum_auto": {"title": "Mindestanzahl nicht erreicht", "body": "„{{title}}“ ({{date}}): {{total}}/{{min}} angemeldet. Führ sie durch, sonst wird sie morgen um 9 Uhr abgesagt."}, "both_auto": {"title": "Angaben fehlen", "body_one": "„{{title}}“ ({{date}}): 1 Teilnehmerbogen fehlt, und {{total}}/{{min}} angemeldet. Führ sie durch, sonst wird sie morgen um 9 Uhr abgesagt.", "body_other": "„{{title}}“ ({{date}}): {{count}} Teilnehmerbögen fehlen, und {{total}}/{{min}} angemeldet. Führ sie durch, sonst wird sie morgen um 9 Uhr abgesagt."}},
     "session_joined": {"title": "Neue Anmeldung", "body": "{{name}} · „{{title}}“ · {{date}} · {{count}} Pers."},
     "booking_confirmed": {"title": "Start bestätigt", "body": "Der Start von „{{title}}“ am {{date}} ist bestätigt."},
     "outing_auto_cancelled": {"title": "Tour automatisch abgesagt", "body": "„{{title}}“ am {{date}}: Mindestanzahl nicht erreicht ({{total}}/{{min}}), die Tour ist abgesagt."},
@@ -729,6 +729,8 @@
       "session_closed": "Dieser Termin hat begonnen oder ist nicht mehr offen.",
       "session_has_clients": "Es sind Kunden angemeldet: Um die Tage zu ändern, sag den Termin ab und lege einen neuen an.",
       "offering_request_days": "Dauer auf Anfrage: zwischen 1 und 14 Tagen.",
+      "outing_closed": "Die Tour ist seit mehr als 7 Tagen vorbei: Das Gespräch öffnet sich nicht mehr über die Buchung.",
+      "session_signup_cap": "Du hast bei diesem Profi bereits 3 kommende Anmeldungen.",
       "booking_message": "Nachricht zu lang (max. 500 Zeichen).",
       "booking_already": "Du hast für diesen Termin schon eine Anfrage.",
       "booking_pending_cap": "Du hast schon 5 offene Anfragen — warte auf eine Antwort.",
@@ -1950,6 +1952,9 @@
     "traceDraw": "Zeichnen"
   },
   "proOffering": {
+    "autoCancel": "Automatisch absagen, wenn die Mindestanzahl nicht erreicht ist",
+    "autoCancelHelp": "Am Vortag um 9 Uhr, außer du hast die Tour bestätigt. Du wirst 2 Tage vorher gewarnt.",
+    "autoCancelNotSaved": "Tour gespeichert, aber nicht die automatische Absage — versuch es erneut über Bearbeiten.",
     "secRequest": "Dauer auf Anfrage",
     "requestHalf": "Halber Tag",
     "requestDay": "Tag",

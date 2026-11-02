@@ -51,7 +51,7 @@
     "booking_reminder": {"title": "¡Es mañana!", "body": "«{{title}}» con {{name}}, mañana por la {{period}}.", "forms": {"title": "¡Es mañana!", "body": "«{{title}}» mañana por la {{period}}: recuerda rellenar tus fichas de participantes."}},
     "booking_requests_waiting": {"title": "Solicitudes pendientes", "body_one": "1 solicitud espera tu respuesta desde hace más de 24 h.", "body_other": "{{count}} solicitudes esperan tu respuesta desde hace más de 24 h."},
     "booking_forms_reminder": {"title": "Ficha del grupo por completar", "body": "{{name}} espera los datos de tu grupo para «{{title}}» ({{date}})."},
-    "booking_forms_missing": {"title": "Faltan datos", "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante de {{total}}.", "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes de {{total}}.", "minimum": {"title": "Mínimo no alcanzado", "body": "«{{title}}» ({{date}}): {{total}}/{{min}} inscritos. Mantenla, o se cancelará mañana a las 9:00."}, "both": {"title": "Faltan datos", "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, y {{total}}/{{min}} inscritos. Mantenla, o se cancelará mañana a las 9:00.", "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes, y {{total}}/{{min}} inscritos. Mantenla, o se cancelará mañana a las 9:00."}},
+    "booking_forms_missing": {"title": "Faltan datos", "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante de {{total}}.", "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes de {{total}}.", "minimum": {"title": "Mínimo no alcanzado", "body": "«{{title}}» ({{date}}): {{total}}/{{min}} inscritos, mínimo {{min}} para salir."}, "both": {"title": "Faltan datos", "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, y {{total}}/{{min}} inscritos.", "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes, y {{total}}/{{min}} inscritos."}, "minimum_auto": {"title": "Mínimo no alcanzado", "body": "«{{title}}» ({{date}}): {{total}}/{{min}} inscritos. Mantenla, o se cancelará mañana a las 9:00."}, "both_auto": {"title": "Faltan datos", "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, y {{total}}/{{min}} inscritos. Mantenla, o se cancelará mañana a las 9:00.", "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes, y {{total}}/{{min}} inscritos. Mantenla, o se cancelará mañana a las 9:00."}},
     "session_joined": {"title": "Nueva inscripción", "body": "{{name}} · «{{title}}» · {{date}} · {{count}} pers."},
     "booking_confirmed": {"title": "Salida confirmada", "body": "La salida de «{{title}}» del {{date}} está confirmada."},
     "outing_auto_cancelled": {"title": "Salida cancelada automáticamente", "body": "«{{title}}» del {{date}}: mínimo no alcanzado ({{total}}/{{min}}), la salida se cancela."},
@@ -729,6 +729,8 @@
       "session_closed": "Esta fecha ya ha empezado o ya no está abierta.",
       "session_has_clients": "Hay clientes inscritos: para cambiar los días, cancela la fecha y publica otra.",
       "offering_request_days": "Duración bajo demanda: entre 1 y 14 días.",
+      "outing_closed": "La salida terminó hace más de 7 días: la conversación ya no se abre desde la reserva.",
+      "session_signup_cap": "Ya tienes 3 inscripciones próximas con este profesional.",
       "booking_message": "Mensaje demasiado largo (500 caracteres máx.).",
       "booking_already": "Ya tienes una solicitud en esta franja.",
       "booking_pending_cap": "Ya tienes 5 solicitudes pendientes — espera una respuesta.",
@@ -1950,6 +1952,9 @@
     "traceDraw": "Dibujar"
   },
   "proOffering": {
+    "autoCancel": "Cancelar automáticamente si no se alcanza el mínimo",
+    "autoCancelHelp": "La víspera a las 9:00, salvo si has mantenido la salida. Te avisamos 2 días antes.",
+    "autoCancelNotSaved": "Salida guardada, pero no la cancelación automática — inténtalo de nuevo desde Modificar.",
     "secRequest": "Duración bajo demanda",
     "requestHalf": "Media jornada",
     "requestDay": "Día",

@@ -51,7 +51,7 @@
     "booking_reminder": {"title": "C’est demain !", "body": "« {{title}} » avec {{name}}, demain {{period}}.", "forms": {"title": "C’est demain !", "body": "« {{title}} » demain {{period}} — pense à remplir tes fiches participants."}},
     "booking_requests_waiting": {"title": "Demandes en attente", "body_one": "1 demande attend ta réponse depuis plus de 24 h.", "body_other": "{{count}} demandes attendent ta réponse depuis plus de 24 h."},
     "booking_forms_reminder": {"title": "Fiche du groupe à compléter", "body": "{{name}} attend les infos de ton groupe pour « {{title}} » ({{date}})."},
-    "booking_forms_missing": {"title": "Il manque des infos", "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante sur {{total}}.", "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes sur {{total}}.", "minimum": {"title": "Minimum pas atteint", "body": "« {{title}} » ({{date}}) : {{total}}/{{min}} inscrits. Maintiens-la, sinon elle sera annulée demain à 9 h."}, "both": {"title": "Il manque des infos", "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante, et {{total}}/{{min}} inscrits. Maintiens-la, sinon elle sera annulée demain à 9 h.", "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes, et {{total}}/{{min}} inscrits. Maintiens-la, sinon elle sera annulée demain à 9 h."}},
+    "booking_forms_missing": {"title": "Il manque des infos", "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante sur {{total}}.", "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes sur {{total}}.", "minimum": {"title": "Minimum pas atteint", "body": "« {{title}} » ({{date}}) : {{total}}/{{min}} inscrits, minimum {{min}} pour partir."}, "both": {"title": "Il manque des infos", "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante, et {{total}}/{{min}} inscrits.", "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes, et {{total}}/{{min}} inscrits."}, "minimum_auto": {"title": "Minimum pas atteint", "body": "« {{title}} » ({{date}}) : {{total}}/{{min}} inscrits. Maintiens-la, sinon elle sera annulée demain à 9 h."}, "both_auto": {"title": "Il manque des infos", "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante, et {{total}}/{{min}} inscrits. Maintiens-la, sinon elle sera annulée demain à 9 h.", "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes, et {{total}}/{{min}} inscrits. Maintiens-la, sinon elle sera annulée demain à 9 h."}},
     "session_joined": {"title": "Nouvelle inscription", "body": "{{name}} · « {{title}} » · {{date}} · {{count}} pers."},
     "booking_confirmed": {"title": "Départ confirmé", "body": "Le départ de « {{title}} » du {{date}} est confirmé."},
     "outing_auto_cancelled": {"title": "Sortie annulée automatiquement", "body": "« {{title}} » du {{date}} : minimum non atteint ({{total}}/{{min}}), la sortie est annulée."},
@@ -729,6 +729,8 @@
       "session_closed": "Cette date a commencé ou n’est plus ouverte.",
       "session_has_clients": "Des clients sont inscrits : pour changer les jours, annule la date et poses-en une autre.",
       "offering_request_days": "Durée sur demande : entre 1 et 14 jours.",
+      "outing_closed": "La sortie est passée depuis plus de 7 jours : la conversation ne s’ouvre plus depuis la réservation.",
+      "session_signup_cap": "Tu as déjà 3 inscriptions à venir chez ce professionnel.",
       "booking_message": "Message trop long (500 caractères max).",
       "booking_already": "Tu as déjà une demande sur ce créneau.",
       "booking_pending_cap": "Tu as déjà 5 demandes en attente — attends une réponse.",
@@ -1950,6 +1952,9 @@
     "traceDraw": "Dessiner"
   },
   "proOffering": {
+    "autoCancel": "Annuler automatiquement si le minimum n’est pas atteint",
+    "autoCancelHelp": "La veille à 9 h, sauf si tu as maintenu la sortie. Tu es prévenu 2 jours avant.",
+    "autoCancelNotSaved": "Sortie enregistrée, mais pas l’annulation automatique — réessaie depuis Modifier.",
     "secRequest": "Durée sur demande",
     "requestHalf": "Demi-journée",
     "requestDay": "Journée",

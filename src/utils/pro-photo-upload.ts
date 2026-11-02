@@ -48,11 +48,13 @@ async function uploadAsset(
 
   const objectName = `${user.id}/${pathPrefix}/${uniqueSuffix}.jpg`;
 
+  // Never overwrite (00578): names are unique, and a community photo cannot
+  // be swapped after the pro has seen it.
   const { error: uploadError } = await supabase.storage
     .from('pro-photos')
     .upload(objectName, decode(base64), {
       contentType: 'image/jpeg',
-      upsert: true,
+      upsert: false,
     });
   if (uploadError) throw uploadError;
 

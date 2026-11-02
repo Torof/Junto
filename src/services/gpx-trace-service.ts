@@ -48,11 +48,13 @@ export const gpxTraceService = {
 
   // Replaces only the trace's waypoints (00571); the line is untouched.
   setWaypoints: async (id: string, waypoints: TraceWaypoint[]): Promise<void> => {
-    const { error } = await supabase.rpc('set_gpx_trace_waypoints', {
+    const { data, error } = await supabase.rpc('set_gpx_trace_waypoints', {
       p_id: id,
       p_waypoints: waypoints as unknown as Json,
     });
     if (error) throw error;
+    // 00578: an invalid list is reported (junto.<code>), not raised.
+    if (data) throw new Error(data);
   },
 
   remove: async (id: string): Promise<void> => {

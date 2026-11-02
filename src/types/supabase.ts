@@ -2229,6 +2229,7 @@ export type Database = {
       }
       pro_offerings: {
         Row: {
+          auto_cancel: boolean
           cover_url: string | null
           created_at: string
           description: string
@@ -2255,6 +2256,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_cancel?: boolean
           cover_url?: string | null
           created_at?: string
           description: string
@@ -2281,6 +2283,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_cancel?: boolean
           cover_url?: string | null
           created_at?: string
           description?: string
@@ -3544,6 +3547,7 @@ export type Database = {
       }
       pro_offerings_with_coords: {
         Row: {
+          auto_cancel: boolean | null
           created_at: string | null
           description: string | null
           distance_km: number | null
@@ -3819,7 +3823,7 @@ export type Database = {
       }
       calendar_feed_valid: { Args: { p_token: string }; Returns: boolean }
       calendar_import_apply: {
-        Args: { p_error: string; p_pro: string; p_slots: Json }
+        Args: { p_error: string; p_pro: string; p_slots: Json; p_url?: string }
         Returns: undefined
       }
       calendar_import_targets: {
@@ -5013,10 +5017,14 @@ export type Database = {
       }
       set_gpx_trace_waypoints: {
         Args: { p_id: string; p_waypoints: Json }
-        Returns: undefined
+        Returns: string
       }
       set_message_reaction: {
         Args: { p_emoji: string; p_message_id: string }
+        Returns: undefined
+      }
+      set_offering_auto_cancel: {
+        Args: { p_offering_id: string; p_on: boolean }
         Returns: undefined
       }
       set_offering_cover: {

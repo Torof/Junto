@@ -51,7 +51,7 @@
     "booking_reminder": {"title": "It’s tomorrow!", "body": "“{{title}}” with {{name}}, tomorrow {{period}}.", "forms": {"title": "It’s tomorrow!", "body": "“{{title}}” tomorrow {{period}} — remember to fill in your participant forms."}},
     "booking_requests_waiting": {"title": "Requests waiting", "body_one": "1 request has been waiting for your answer for over 24 h.", "body_other": "{{count}} requests have been waiting for your answer for over 24 h."},
     "booking_forms_reminder": {"title": "Group form to complete", "body": "{{name}} is waiting for your group’s details for “{{title}}” ({{date}})."},
-    "booking_forms_missing": {"title": "Details missing", "body_one": "“{{title}}” ({{date}}): 1 participant form missing out of {{total}}.", "body_other": "“{{title}}” ({{date}}): {{count}} participant forms missing out of {{total}}.", "minimum": {"title": "Minimum not reached", "body": "“{{title}}” ({{date}}): {{total}}/{{min}} signed up. Keep it, or it will be cancelled tomorrow at 9:00."}, "both": {"title": "Details missing", "body_one": "“{{title}}” ({{date}}): 1 participant form missing, and {{total}}/{{min}} signed up. Keep it, or it will be cancelled tomorrow at 9:00.", "body_other": "“{{title}}” ({{date}}): {{count}} participant forms missing, and {{total}}/{{min}} signed up. Keep it, or it will be cancelled tomorrow at 9:00."}},
+    "booking_forms_missing": {"title": "Details missing", "body_one": "“{{title}}” ({{date}}): 1 participant form missing out of {{total}}.", "body_other": "“{{title}}” ({{date}}): {{count}} participant forms missing out of {{total}}.", "minimum": {"title": "Minimum not reached", "body": "“{{title}}” ({{date}}): {{total}}/{{min}} signed up, {{min}} needed to go."}, "both": {"title": "Details missing", "body_one": "“{{title}}” ({{date}}): 1 participant form missing, and {{total}}/{{min}} signed up.", "body_other": "“{{title}}” ({{date}}): {{count}} participant forms missing, and {{total}}/{{min}} signed up."}, "minimum_auto": {"title": "Minimum not reached", "body": "“{{title}}” ({{date}}): {{total}}/{{min}} signed up. Keep it, or it will be cancelled tomorrow at 9:00."}, "both_auto": {"title": "Details missing", "body_one": "“{{title}}” ({{date}}): 1 participant form missing, and {{total}}/{{min}} signed up. Keep it, or it will be cancelled tomorrow at 9:00.", "body_other": "“{{title}}” ({{date}}): {{count}} participant forms missing, and {{total}}/{{min}} signed up. Keep it, or it will be cancelled tomorrow at 9:00."}},
     "session_joined": {"title": "New sign-up", "body": "{{name}} · “{{title}}” · {{date}} · {{count}} people"},
     "booking_confirmed": {"title": "Departure confirmed", "body": "“{{title}}” on {{date}} is confirmed to go ahead."},
     "outing_auto_cancelled": {"title": "Outing cancelled automatically", "body": "“{{title}}” on {{date}}: minimum not reached ({{total}}/{{min}}), the outing is cancelled."},
@@ -725,6 +725,8 @@
       "session_closed": "This date has started or is no longer open.",
       "session_has_clients": "Clients are signed up: to change the days, cancel the date and post a new one.",
       "offering_request_days": "Length on request: between 1 and 14 days.",
+      "outing_closed": "The outing ended more than 7 days ago: the conversation no longer opens from the booking.",
+      "session_signup_cap": "You already have 3 upcoming sign-ups with this pro.",
       "booking_message": "Message too long (500 characters max).",
       "booking_already": "You already have a request on this slot.",
       "booking_pending_cap": "You already have 5 pending requests — wait for an answer.",
@@ -1950,6 +1952,9 @@
     "traceDraw": "Draw"
   },
   "proOffering": {
+    "autoCancel": "Cancel automatically if the minimum is not reached",
+    "autoCancelHelp": "The day before at 9:00, unless you kept the outing. You are warned 2 days before.",
+    "autoCancelNotSaved": "Outing saved, but not the automatic cancellation — try again from Edit.",
     "secRequest": "Length on request",
     "requestHalf": "Half-day",
     "requestDay": "Day",

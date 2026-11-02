@@ -283,9 +283,18 @@
       "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes de {{total}}.",
       "minimum": {
         "title": "Mínimo não atingido",
-        "body": "«{{title}}» ({{date}}): {{total}}/{{min}} inscritos. Mantém-na, senão será cancelada amanhã às 9h."
+        "body": "«{{title}}» ({{date}}): {{total}}/{{min}} inscritos, mínimo {{min}} para sair."
       },
       "both": {
+        "title": "Faltam dados",
+        "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, e {{total}}/{{min}} inscritos.",
+        "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes, e {{total}}/{{min}} inscritos."
+      },
+      "minimum_auto": {
+        "title": "Mínimo não atingido",
+        "body": "«{{title}}» ({{date}}): {{total}}/{{min}} inscritos. Mantém-na, senão será cancelada amanhã às 9h."
+      },
+      "both_auto": {
         "title": "Faltam dados",
         "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, e {{total}}/{{min}} inscritos. Mantém-na, senão será cancelada amanhã às 9h.",
         "body_other": "«{{title}}» ({{date}}): faltam {{count}} fichas de participantes, e {{total}}/{{min}} inscritos. Mantém-na, senão será cancelada amanhã às 9h."
@@ -961,7 +970,9 @@
       "session_conflict": "Estes dias não estão livres na tua agenda (outra data fixa, reserva aceite ou agenda importada).",
       "session_closed": "Esta data já começou ou já não está aberta.",
       "session_has_clients": "Há clientes inscritos: para mudar os dias, cancela a data e publica outra.",
-      "offering_request_days": "Duração a pedido: entre 1 e 14 dias."
+      "offering_request_days": "Duração a pedido: entre 1 e 14 dias.",
+      "outing_closed": "A atividade terminou há mais de 7 dias: a conversa já não abre a partir da reserva.",
+      "session_signup_cap": "Já tens 3 inscrições futuras com este profissional."
     },
     "createActivity": "Não foi possível criar a atividade. Verifica os dados e tenta outra vez.",
     "updateActivity": "Não foi possível alterar a atividade. Tenta outra vez.",
@@ -2299,7 +2310,10 @@
     "requestMore": "Mais um dia",
     "requestHalfHelp": "O cliente pede uma manhã ou uma tarde abertas na tua agenda.",
     "requestDaysHelp": "O cliente escolhe o dia de partida. Cada dia tem de estar aberto de manhã e à tarde na tua agenda, com lugares.",
-    "requestNotSaved": "Atividade guardada, mas não a duração a pedido — tenta de novo a partir de Alterar."
+    "requestNotSaved": "Atividade guardada, mas não a duração a pedido — tenta de novo a partir de Alterar.",
+    "autoCancel": "Cancelar automaticamente se o mínimo não for atingido",
+    "autoCancelHelp": "Na véspera às 9h, a não ser que tenhas mantido a atividade. És avisado 2 dias antes.",
+    "autoCancelNotSaved": "Atividade guardada, mas não o cancelamento automático — tenta de novo a partir de Alterar."
   },
   "common": {
     "share": "Partilhar",
