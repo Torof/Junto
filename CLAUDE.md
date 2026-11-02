@@ -131,10 +131,10 @@ Every public table has FORCE RLS. A client write needs a table/column grant AND 
 - `presence_tokens` — `create_presence_token`
 - `push_tokens` — `register_push_token`, `revoke_push_token_for_device`
 - `user_badge_progression` — `award_badge_progression` (trigger)
-- `gpx_traces` — `create/rename/delete_gpx_trace`
+- `gpx_traces` — `create/rename/delete_gpx_trace`, `set_gpx_trace_waypoints`
 - `favorites` — `add_favorite`/`remove_favorite`
 - `pro_profiles` — `register_as_pro`/`update_pro_profile`/`resubmit_pro_application`/`unregister_as_pro`, pin setters, admin `approve_pro`/`reject_pro`
-- `pro_offerings` — `create/update/delete_pro_offering`, `set_offering_details`, `set_offering_request_length`
+- `pro_offerings` — `create/update/delete_pro_offering`, `set_offering_details`, `set_offering_request_length`, `set_offering_auto_cancel`
 - `pro_profile_photos` / `pro_offering_photos` / `pro_community_photos` — `add/remove/reorder_*` RPCs
 - `pro_reviews` / `offering_reviews` — `create/update/delete/reply_to_*_review`
 - `pro_availabilities` — `set_pro_availability(_bulk)`
