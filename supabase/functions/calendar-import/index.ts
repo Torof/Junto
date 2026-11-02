@@ -26,6 +26,14 @@ const MAX_OCCURRENCES = 3000;   // occurrences inside the window, per event
 const MAX_EVENTS = 5000;
 const MAX_STEPS = 25_000;          // days walked + occurrences in the window
 const MAX_SKIPPED = 300_000;       // cheap steps over occurrences before the window
+// 00580 (CALENDAR-8): the feed's own time zones are expanded by ical.js outside
+// the budget above — only ordinary ones are kept (yearly rules from 1900, a
+// handful of parts); an event in a refused zone is read without its zone.
+// And a wall-clock budget, so we always fail with 'too_large' before the
+// platform kills the worker (no error recorded then).
+const MAX_ZONES = 50;
+const MAX_ZONE_PARTS = 50;
+const MAX_MS = 800;
 
 function constantTimeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -68,12 +76,34 @@ async function fetchCalendar(url: string): Promise<string> {
 
 type Slot = { day: string; period: 'am' | 'pm' };
 
+function zoneOk(tz: IcalComponent): boolean {
+  const parts = tz.getAllSubcomponents();
+  let count = 0;
+  for (const p of parts) {
+    count += 1 + p.getAllProperties('rdate').length;
+    if (count > MAX_ZONE_PARTS) return false;
+    const start = p.getFirstPropertyValue('dtstart') as IcalTime | null;
+    if (!start || start.year < 1900) return false;
+    for (const rule of p.getAllProperties('rrule')) {
+      const v = rule.getFirstValue() as { freq?: string } | null;
+      if (!v || String(v.freq ?? '').toUpperCase() !== 'YEARLY') return false;
+    }
+  }
+  return true;
+}
+
 function busySlots(ics: string, today: string): Slot[] {
+  const t0 = performance.now();
+  const overTime = () => { if (performance.now() - t0 > MAX_MS) throw new Error('too large'); };
   const comp = new ICAL.Component(ICAL.parse(ics));
   // The timezone registry is global to the worker: start clean, and never let
   // a feed redefine UTC (one pro's file must not shift another's hours).
   ICAL.TimezoneService.reset();
-  for (const tz of comp.getAllSubcomponents('vtimezone')) {
+  const zones = comp.getAllSubcomponents('vtimezone');
+  if (zones.length > MAX_ZONES) throw new Error('too large');
+  for (const tz of zones) {
+    // Removed from the file too: ical.js would otherwise find it there.
+    if (!zoneOk(tz)) { comp.removeSubcomponent(tz); continue; }
     const id = String(tz.getFirstPropertyValue('tzid') ?? '').toUpperCase();
     if (id && !['UTC', 'Z', 'GMT', 'ETC/UTC'].includes(id)) ICAL.TimezoneService.register(tz);
   }
@@ -83,7 +113,10 @@ function busySlots(ics: string, today: string): Slot[] {
   const out = new Set<string>();
   let steps = 0;
   let skipped = 0;
-  const step = () => { if (++steps > MAX_STEPS) throw new Error('too large'); };
+  const step = () => {
+    if (++steps > MAX_STEPS) throw new Error('too large');
+    if ((steps & 255) === 0) overTime();
+  };
 
   // Days walked only inside [today, last]: an event spanning a century costs
   // the window, not 36 000 iterations.
@@ -132,6 +165,7 @@ function busySlots(ics: string, today: string): Slot[] {
   for (const [uid, list] of exceptions) if (!masterUids.has(uid)) masters.push(...list);
 
   for (const m of masters) {
+    overTime();
     if (skip(m)) continue;
     const ev = new ICAL.Event(m);
     if (ev.isRecurring() && !m.hasProperty('recurrence-id')) {
@@ -147,6 +181,7 @@ function busySlots(ics: string, today: string): Slot[] {
         const at = next.toJSDate();
         if (at.getTime() < skipBefore) {
           if (++skipped > MAX_SKIPPED) throw new Error('too large');
+          if ((skipped & 1023) === 0) overTime();
           continue;
         }
         step();

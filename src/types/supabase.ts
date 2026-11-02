@@ -3833,6 +3833,10 @@ export type Database = {
           pro_id: string
         }[]
       }
+      can_add_community_photo: {
+        Args: { p_offering_id?: string; p_pro_id: string }
+        Returns: boolean
+      }
       cancel_accepted_seat: {
         Args: { p_request_id: string }
         Returns: undefined
@@ -3871,6 +3875,7 @@ export type Database = {
         Args: { p_activity_id: string }
         Returns: undefined
       }
+      community_photo_orphans: { Args: { p_limit?: number }; Returns: string[] }
       compute_trace_stats: {
         Args: { p_geojson: Json }
         Returns: {
