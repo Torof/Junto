@@ -4,7 +4,12 @@ import { AppText, AppTextInput } from '@/components/app-text';
 import Svg, { Polyline } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { X, Undo2, Trash2, Pencil, Magnet, Waypoints } from 'lucide-react-native';
+import { X, Undo2, Trash2, Pencil, Magnet, Waypoints, MapPinned } from 'lucide-react-native';
+import Animated from 'react-native-reanimated';
+import * as Burnt from 'burnt';
+import { WaypointDraftPanel, commitDraft, draftFromTap, draftFromWaypoint, type WaypointDraft } from './waypoint-draft-panel';
+import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
+import { MAX_WAYPOINTS, snapToLine, withWaypoints } from '@/utils/trace-waypoints';
 import { JuntoMapView, type MapPin, type JuntoMapRef } from './map-view';
 import { MapStyleButton } from './map-style-button';
 import { useColors } from '@/hooks/use-theme';
@@ -13,7 +18,7 @@ import type { AppColors } from '@/constants/colors';
 import { distanceMeters } from '@/utils/geo';
 import { simplifyRDP, type Pt } from '@/utils/simplify-path';
 import { useInitialLocation } from '@/hooks/use-initial-location';
-import { activityService, type GeoJsonLineString } from '@/services/activity-service';
+import { activityService, type GeoJsonLineString, type TraceWaypoint } from '@/services/activity-service';
 import { snapTrailService } from '@/services/snap-trail-service';
 import { fetchTraceElevations } from '@/utils/trace-elevation';
 
@@ -62,6 +67,10 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
   const [snapEnabled, setSnapEnabled] = useState(true);
   const [naming, setNaming] = useState(false);
   const [name, setName] = useState('');
+  // « Étapes » mode (Scott 2026-11-02): stops placed on the line being drawn.
+  const [wps, setWps] = useState<TraceWaypoint[]>([]);
+  const [draft, setDraft] = useState<WaypointDraft | null>(null);
+  const imePadding = useKeyboardDockPadding(insets.bottom + spacing.sm);
 
   const nextId = useRef(1);
   const chunksRef = useRef<Chunk[]>([]);
@@ -74,6 +83,8 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
       setNaming(false);
       setName('');
       setSnapEnabled(true);
+      setWps([]);
+      setDraft(null);
     }
   }, [visible]);
 
@@ -111,7 +122,8 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
 
   // Freehand mode: 'nav' = pan/zoom + tap-to-place (default); 'draw' = the map
   // is locked and the finger traces a line.
-  const [mode, setMode] = useState<'nav' | 'draw'>('nav');
+  // 'stops' = the trace is there, a tap on it places a stop (refuge, water…).
+  const [mode, setMode] = useState<'nav' | 'draw' | 'stops'>('nav');
   const mapRef = useRef<JuntoMapRef>(null);
   const livePtsRef = useRef<Pt[]>([]);        // current stroke, in screen px
   const [, setLiveTick] = useState(0);         // forces re-render of the live SVG
@@ -216,6 +228,9 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
     return out;
   }, [chunks]);
 
+  // No line left (undo / clear) → back to placing points.
+  useEffect(() => { if (mode === 'stops' && flatCoords.length < 2) { setMode('nav'); setDraft(null); } }, [mode, flatCoords.length]);
+
   // D+ from the server (same derivation as the saved trace), refreshed when
   // the 3D line changes and at least 90 % of it carries altitudes.
   const [gainM, setGainM] = useState<number | null>(null);
@@ -252,17 +267,35 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
   // Snap only applies to Points mode (freehand can't route) → show it "off" in draw mode.
   const snapVisualOn = snapEnabled && mode !== 'draw';
 
-  const pins: MapPin[] = anchors.map((a) => ({ id: `pt-${a.id}`, coordinate: a.coord, color: colors.cta }));
+  const pins: MapPin[] = [
+    ...(mode === 'stops' ? [] : anchors.map((a) => ({ id: `pt-${a.id}`, coordinate: a.coord, color: colors.cta }))),
+    ...(draft ? [{ id: 'wp-draft', coordinate: [draft.lng, draft.lat] as [number, number], color: colors.mapAction }] : []),
+  ];
   const routeLine = flatCoords.length >= 2 ? (flatCoords as [number, number][]) : undefined;
   const canSave = flatCoords.length >= 2 && !saving && !snapping;
 
   const undoLast = () => setChunks((prev) => prev.slice(0, -1));
-  const clearAll = () => setChunks([]);
+  const clearAll = () => { setChunks([]); setWps([]); setDraft(null); };
+
+  const onStopsTap = (lng: number, lat: number) => {
+    if (!draft && wps.length >= MAX_WAYPOINTS) {
+      Burnt.toast({ title: t('waypoint.max', { defaultValue: '{{count}} étapes maximum', count: MAX_WAYPOINTS }) });
+      return;
+    }
+    setDraft(draftFromTap(draft, lng, lat, flatCoords));
+  };
+
+  // The line may have changed after the stops were placed (undo, more
+  // points): every stop is snapped back onto the final line.
+  const finalTrace = (): GeoJsonLineString => withWaypoints(
+    { type: 'LineString', coordinates: flatCoords },
+    wps.map((w) => ({ ...w, ...snapToLine(w.lng, w.lat, flatCoords) })),
+  );
 
   const confirmSave = () => {
     const trimmed = name.trim();
     if (trimmed.length < 1 || saving || flatCoords.length < 2) return;
-    onSave(trimmed, { type: 'LineString', coordinates: flatCoords });
+    onSave(trimmed, finalTrace());
   };
 
   return (
@@ -272,13 +305,15 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
           center={center}
           pins={pins}
           routeLine={routeLine}
-          onMapPress={mode === 'nav' ? addPoint : undefined}
+          waypoints={wps}
+          onWaypointPress={mode === 'stops' ? (i) => setDraft(draftFromWaypoint(wps, i)) : undefined}
+          onMapPress={mode === 'nav' ? addPoint : mode === 'stops' ? onStopsTap : undefined}
           surfaceView={false}
           mapViewRef={mapRef}
-          scrollEnabled={mode === 'nav'}
-          zoomEnabled={mode === 'nav'}
-          rotateEnabled={mode === 'nav'}
-          pitchEnabled={mode === 'nav'}
+          scrollEnabled={mode !== 'draw'}
+          zoomEnabled={mode !== 'draw'}
+          rotateEnabled={mode !== 'draw'}
+          pitchEnabled={mode !== 'draw'}
         />
 
         {mode === 'draw' && (
@@ -307,6 +342,8 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
           <AppText style={styles.topBannerText}>
             {mode === 'draw'
               ? t('gpx.drawFreehandHint', { defaultValue: 'Trace au doigt · la carte est verrouillée' })
+              : mode === 'stops'
+                ? t('waypoint.drawHint', { defaultValue: 'Touche ta trace pour poser une étape · {{count}} étapes', count: wps.length })
               : anchors.length === 0
                 ? t('gpx.drawHint', { defaultValue: 'Touche la carte pour poser des points' })
                 : `${t('gpx.drawStats', { defaultValue: '{{n}} pts · {{km}} km', n: anchors.length, km: distanceKm.toFixed(1) })}`
@@ -316,6 +353,17 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
           </AppText>
         </View>
 
+        {draft ? (
+          <Animated.View style={[styles.stopPanel, imePadding]}>
+            <WaypointDraftPanel
+              draft={draft}
+              onChange={setDraft}
+              onCommit={() => { setWps(commitDraft(wps, draft, flatCoords)); setDraft(null); }}
+              onRemove={() => { if (draft.index != null) setWps(wps.filter((_, i) => i !== draft.index)); setDraft(null); }}
+              onCancel={() => setDraft(null)}
+            />
+          </Animated.View>
+        ) : (
         <View style={[styles.toolbar, { bottom: insets.bottom + spacing.sm }]}>
           {/* Mode — segmented selector, active segment clearly filled so you
               always see which mode you're in (the old toggle showed the OTHER
@@ -337,6 +385,17 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
               <Pencil size={17} color={mode === 'draw' ? '#FFFFFF' : colors.cta} strokeWidth={2.4} />
               <AppText style={[styles.segmentText, mode === 'draw' && styles.segmentTextActive]}>
                 {t('gpx.modeFreehand', { defaultValue: 'Main levée' })}
+              </AppText>
+            </Pressable>
+            {/* Stops need a line to sit on. */}
+            <Pressable
+              style={[styles.segment, styles.segmentLast, mode === 'stops' && styles.segmentActive, flatCoords.length < 2 && styles.chipDisabled]}
+              onPress={() => setMode('stops')}
+              disabled={flatCoords.length < 2}
+            >
+              <MapPinned size={17} color={mode === 'stops' ? '#FFFFFF' : colors.cta} strokeWidth={2.4} />
+              <AppText style={[styles.segmentText, mode === 'stops' && styles.segmentTextActive]}>
+                {t('waypoint.modeStops', { defaultValue: 'Étapes' })}
               </AppText>
             </Pressable>
           </View>
@@ -376,7 +435,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
               disabled={!canSave}
               onPress={() => {
                 if (askName) setNaming(true);
-                else onSave('', { type: 'LineString', coordinates: flatCoords });
+                else onSave('', finalTrace());
               }}
             >
               <AppText style={styles.saveText} numberOfLines={1}>
@@ -387,6 +446,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
             </Pressable>
           </View>
         </View>
+        )}
 
         {naming ? (
           <View style={styles.nameOverlay}>
@@ -441,6 +501,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.surfaceAlt,
   },
   segmentFirst: { borderRightWidth: 1.5, borderRightColor: colors.cta },
+  segmentLast: { borderLeftWidth: 1.5, borderLeftColor: colors.cta },
+  stopPanel: {
+    position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 10,
+    backgroundColor: colors.background, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl,
+    paddingHorizontal: spacing.md, paddingTop: spacing.md,
+    elevation: 8, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: -2 },
+  },
   segmentActive: { backgroundColor: colors.cta },
   segmentText: { color: colors.cta, fontSize: fontSizes.sm, fontWeight: '800' },
   segmentTextActive: { color: '#FFFFFF' },

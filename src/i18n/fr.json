@@ -2560,6 +2560,8 @@
     }
   },
   "waypoint": {
+    "modeStops": "Étapes",
+    "drawHint": "Touche ta trace pour poser une étape · {{count}} étapes",
     "title": "Étapes du parcours",
     "menu": "Étapes du parcours",
     "hintAdd": "Touche la trace pour ajouter une étape. Touche une étape pour la modifier.",

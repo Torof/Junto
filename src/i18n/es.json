@@ -2560,6 +2560,8 @@
     }
   },
   "waypoint": {
+    "modeStops": "Etapas",
+    "drawHint": "Toca tu track para poner una etapa · {{count}} etapas",
     "title": "Etapas del recorrido",
     "menu": "Etapas del recorrido",
     "hintAdd": "Toca el track para añadir una etapa. Toca una etapa para modificarla.",

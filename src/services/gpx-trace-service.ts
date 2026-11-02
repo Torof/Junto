@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import type { Json } from '@/types/supabase';
-import type { GeoJsonLineString } from './activity-service';
+import type { GeoJsonLineString, TraceWaypoint } from './activity-service';
 
 // A saved trace from the user's personal GPX library (table gpx_traces).
 // Reads go through owner-only RLS; writes only via the SECURITY DEFINER
@@ -42,6 +42,15 @@ export const gpxTraceService = {
     const { error } = await supabase.rpc('rename_gpx_trace', {
       p_id: id,
       p_name: name,
+    });
+    if (error) throw error;
+  },
+
+  // Replaces only the trace's waypoints (00571); the line is untouched.
+  setWaypoints: async (id: string, waypoints: TraceWaypoint[]): Promise<void> => {
+    const { error } = await supabase.rpc('set_gpx_trace_waypoints', {
+      p_id: id,
+      p_waypoints: waypoints as unknown as Json,
     });
     if (error) throw error;
   },

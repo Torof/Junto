@@ -2560,6 +2560,8 @@
     }
   },
   "waypoint": {
+    "modeStops": "Stops",
+    "drawHint": "Tap your trace to place a stop · {{count}} stops",
     "title": "Route stops",
     "menu": "Route stops",
     "hintAdd": "Tap the trace to add a stop. Tap a stop to edit it.",

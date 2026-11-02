@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { gpxTraceService } from '@/services/gpx-trace-service';
-import type { GeoJsonLineString } from '@/services/activity-service';
+import type { GeoJsonLineString, TraceWaypoint } from '@/services/activity-service';
 
 const GPX_TRACES_KEY = ['gpx-traces'];
 
@@ -24,6 +24,14 @@ export function useRenameGpxTrace() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, name }: { id: string; name: string }) => gpxTraceService.rename(id, name),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: GPX_TRACES_KEY }),
+  });
+}
+
+export function useSetGpxTraceWaypoints() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, waypoints }: { id: string; waypoints: TraceWaypoint[] }) => gpxTraceService.setWaypoints(id, waypoints),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: GPX_TRACES_KEY }),
   });
 }

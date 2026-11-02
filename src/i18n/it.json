@@ -2560,6 +2560,8 @@
     }
   },
   "waypoint": {
+    "modeStops": "Tappe",
+    "drawHint": "Tocca la traccia per mettere una tappa · {{count}} tappe",
     "title": "Tappe del percorso",
     "menu": "Tappe del percorso",
     "hintAdd": "Tocca la traccia per aggiungere una tappa. Tocca una tappa per modificarla.",

@@ -1,20 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Pressable, Modal, StyleSheet, ScrollView } from 'react-native';
+import { View, Pressable, Modal, StyleSheet } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
-import { X as XIcon, Trash2 } from 'lucide-react-native';
-import { AppText, AppTextInput } from '@/components/app-text';
+import { X as XIcon } from 'lucide-react-native';
+import { AppText } from '@/components/app-text';
 import { JuntoMapView } from '@/components/map-view';
+import { WaypointDraftPanel, commitDraft, draftFromTap, draftFromWaypoint, type WaypointDraft } from '@/components/waypoint-draft-panel';
 import { useColors } from '@/hooks/use-theme';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
-import type { GeoJsonLineString, TraceWaypoint, TraceWaypointKind } from '@/services/activity-service';
-import {
-  MAX_WAYPOINTS, WAYPOINT_KINDS, WAYPOINT_NAME_MAX, cleanWaypointName, snapToLine, sortAlongTrace,
-} from '@/utils/trace-waypoints';
+import type { GeoJsonLineString, TraceWaypoint } from '@/services/activity-service';
+import { MAX_WAYPOINTS } from '@/utils/trace-waypoints';
 
 interface Props {
   visible: boolean;
@@ -24,9 +23,10 @@ interface Props {
   onSave: (waypoints: TraceWaypoint[]) => void;
 }
 
-// Waypoints editor (Scott 2026-11-02, option 2): the trace already exists —
-// drawn or imported — and a tap on the map drops a stop on the nearest point
-// of the line. Tap a stop to change or remove it.
+// Waypoints editor for an EXISTING trace (Scott 2026-11-02, option 2): an
+// imported or saved trace — a tap drops a stop on the nearest point of the
+// line; tap a stop to change or remove it. A trace being drawn has the same
+// tool as its « Étapes » mode (trace-draw-modal).
 export function WaypointEditorModal({ visible, trace, saving = false, onClose, onSave }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -35,8 +35,7 @@ export function WaypointEditorModal({ visible, trace, saving = false, onClose, o
   const imePadding = useKeyboardDockPadding(insets.bottom + spacing.md);
 
   const [wps, setWps] = useState<TraceWaypoint[]>([]);
-  // The stop being placed or edited: a new point (index null) or an existing one.
-  const [draft, setDraft] = useState<{ index: number | null; lng: number; lat: number; kind: TraceWaypointKind; name: string } | null>(null);
+  const [draft, setDraft] = useState<WaypointDraft | null>(null);
 
   useEffect(() => {
     if (visible) { setWps(trace?.waypoints ?? []); setDraft(null); }
@@ -59,33 +58,12 @@ export function WaypointEditorModal({ visible, trace, saving = false, onClose, o
     return spread > 0.3 ? 9 : spread > 0.1 ? 10 : spread > 0.03 ? 12 : 13;
   }, [coords]);
 
-  const placeAt = (lng: number, lat: number) => {
-    if (coords.length < 2) return;
-    if (draft) { setDraft({ ...draft, ...snapToLine(lng, lat, coords) }); return; }
-    if (wps.length >= MAX_WAYPOINTS) {
-      Burnt.toast({ title: t('waypoint.max', { defaultValue: '30 étapes maximum', count: MAX_WAYPOINTS }) });
+  const onMapTap = (lng: number, lat: number) => {
+    if (!draft && wps.length >= MAX_WAYPOINTS) {
+      Burnt.toast({ title: t('waypoint.max', { defaultValue: '{{count}} étapes maximum', count: MAX_WAYPOINTS }) });
       return;
     }
-    setDraft({ index: null, ...snapToLine(lng, lat, coords), kind: 'refuge', name: '' });
-  };
-
-  const editAt = (index: number) => {
-    const w = wps[index];
-    if (w) setDraft({ index, lng: w.lng, lat: w.lat, kind: w.kind, name: w.name ?? '' });
-  };
-
-  const commitDraft = () => {
-    if (!draft) return;
-    const name = cleanWaypointName(draft.name);
-    const wp: TraceWaypoint = name ? { lng: draft.lng, lat: draft.lat, kind: draft.kind, name } : { lng: draft.lng, lat: draft.lat, kind: draft.kind };
-    const next = draft.index === null ? [...wps, wp] : wps.map((w, i) => (i === draft.index ? wp : w));
-    setWps(sortAlongTrace(next, coords));
-    setDraft(null);
-  };
-
-  const removeDraft = () => {
-    if (draft?.index != null) setWps(wps.filter((_, i) => i !== draft.index));
-    setDraft(null);
+    setDraft(draftFromTap(draft, lng, lat, coords));
   };
 
   return (
@@ -96,9 +74,9 @@ export function WaypointEditorModal({ visible, trace, saving = false, onClose, o
           zoom={zoom}
           routeLine={routeLine}
           waypoints={wps}
-          onWaypointPress={editAt}
+          onWaypointPress={(i) => setDraft(draftFromWaypoint(wps, i))}
           pins={draft ? [{ id: 'wp-draft', coordinate: [draft.lng, draft.lat], color: colors.mapAction }] : []}
-          onMapPress={placeAt}
+          onMapPress={onMapTap}
           surfaceView={false}
         />
 
@@ -118,59 +96,20 @@ export function WaypointEditorModal({ visible, trace, saving = false, onClose, o
 
         <Animated.View style={[styles.panel, imePadding]}>
           {draft ? (
-            <>
-              <AppText style={styles.panelTitle}>
-                {draft.index === null
-                  ? t('waypoint.newTitle', { defaultValue: 'Nouvelle étape' })
-                  : t('waypoint.editTitle', { defaultValue: 'Modifier l’étape' })}
-              </AppText>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.kinds} keyboardShouldPersistTaps="handled">
-                {WAYPOINT_KINDS.map(({ kind, Icon }) => {
-                  const on = draft.kind === kind;
-                  return (
-                    <Pressable
-                      key={kind}
-                      style={[styles.kind, on && { borderColor: colors.mapAction, backgroundColor: colors.mapAction + '1A' }]}
-                      onPress={() => setDraft({ ...draft, kind })}
-                      accessibilityState={{ selected: on }}
-                    >
-                      <Icon size={16} color={on ? colors.mapAction : colors.textSecondary} strokeWidth={2.2} />
-                      <AppText style={[styles.kindText, on && { color: colors.mapAction }]}>{t(`waypoint.kind.${kind}`)}</AppText>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-              <AppTextInput
-                style={styles.input}
-                value={draft.name}
-                onChangeText={(name) => setDraft({ ...draft, name })}
-                placeholder={t('waypoint.namePlaceholder', { defaultValue: 'Nom (facultatif) — ex. Refuge des Bans' })}
-                placeholderTextColor={colors.textMuted}
-                maxLength={WAYPOINT_NAME_MAX}
-              />
-              <View style={styles.row}>
-                {draft.index !== null ? (
-                  <Pressable style={styles.iconBtn} onPress={removeDraft} accessibilityLabel={t('waypoint.remove', { defaultValue: 'Supprimer l’étape' })}>
-                    <Trash2 size={18} color={colors.error} strokeWidth={2.2} />
-                  </Pressable>
-                ) : null}
-                <Pressable style={[styles.btn, styles.btnGhost]} onPress={() => setDraft(null)}>
-                  <AppText style={styles.btnGhostText}>{t('common.cancel', { defaultValue: 'Annuler' })}</AppText>
-                </Pressable>
-                <Pressable style={[styles.btn, styles.btnPrimary]} onPress={commitDraft}>
-                  <AppText style={styles.btnPrimaryText}>
-                    {draft.index === null ? t('waypoint.add', { defaultValue: 'Ajouter' }) : t('common.save', { defaultValue: 'Enregistrer' })}
-                  </AppText>
-                </Pressable>
-              </View>
-            </>
+            <WaypointDraftPanel
+              draft={draft}
+              onChange={setDraft}
+              onCommit={() => { setWps(commitDraft(wps, draft, coords)); setDraft(null); }}
+              onRemove={() => { if (draft.index != null) setWps(wps.filter((_, i) => i !== draft.index)); setDraft(null); }}
+              onCancel={() => setDraft(null)}
+            />
           ) : (
             <View style={styles.row}>
               <AppText style={styles.count}>
                 {t('waypoint.count', { defaultValue: '{{count}} étapes', count: wps.length })}
               </AppText>
-              <Pressable style={[styles.btn, styles.btnPrimary, saving && { opacity: 0.6 }]} onPress={() => onSave(wps)} disabled={saving}>
-                <AppText style={styles.btnPrimaryText}>{t('waypoint.done', { defaultValue: 'Valider les étapes' })}</AppText>
+              <Pressable style={[styles.doneBtn, saving && { opacity: 0.6 }]} onPress={() => onSave(wps)} disabled={saving}>
+                <AppText style={styles.doneText}>{t('waypoint.done', { defaultValue: 'Valider les étapes' })}</AppText>
               </Pressable>
             </View>
           )}
@@ -196,28 +135,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   panel: {
     position: 'absolute', left: 0, right: 0, bottom: 0,
     backgroundColor: colors.background, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl,
-    paddingHorizontal: spacing.md, paddingTop: spacing.md, gap: spacing.sm + 2, ...shadows.card,
-  },
-  panelTitle: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
-  kinds: { gap: spacing.sm, paddingRight: spacing.md },
-  kind: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.lineStrong,
-    borderRadius: radius.full, paddingHorizontal: spacing.sm + 4, paddingVertical: spacing.sm,
-  },
-  kindText: { color: colors.textSecondary, fontSize: fontSizes.sm - 1, fontWeight: '700' },
-  input: {
-    borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.surfaceAlt, borderRadius: radius.card - 4,
-    paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 3, color: colors.textPrimary, fontSize: fontSizes.sm,
+    paddingHorizontal: spacing.md, paddingTop: spacing.md, ...shadows.card,
   },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   count: { flex: 1, color: colors.textSecondary, fontSize: fontSizes.sm, fontWeight: '600' },
-  btn: { borderRadius: radius.full, paddingVertical: spacing.sm + 3, paddingHorizontal: spacing.md, alignItems: 'center', justifyContent: 'center' },
-  btnPrimary: { flex: 1, backgroundColor: colors.cta },
-  btnPrimaryText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
-  btnGhost: { borderWidth: 1, borderColor: colors.lineStrong },
-  btnGhostText: { color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
-  iconBtn: {
-    width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: colors.lineStrong,
+  doneBtn: {
+    flex: 1, backgroundColor: colors.cta, borderRadius: radius.full,
+    paddingVertical: spacing.sm + 3, alignItems: 'center', justifyContent: 'center',
   },
+  doneText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
 });

@@ -2560,6 +2560,8 @@
     }
   },
   "waypoint": {
+    "modeStops": "Etappen",
+    "drawHint": "Tippe auf deinen Track, um eine Etappe zu setzen · {{count}} Etappen",
     "title": "Etappen der Route",
     "menu": "Etappen der Route",
     "hintAdd": "Tippe auf den Track, um eine Etappe hinzuzufügen. Tippe auf eine Etappe, um sie zu ändern.",

@@ -2753,6 +2753,8 @@
       "summit": "Cume",
       "danger": "Passagem delicada",
       "other": "Outro"
-    }
+    },
+    "modeStops": "Etapas",
+    "drawHint": "Toca no trajeto para pôr uma etapa · {{count}} etapas"
   }
 }

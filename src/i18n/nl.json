@@ -2753,6 +2753,8 @@
       "summit": "Top",
       "danger": "Lastige passage",
       "other": "Overig"
-    }
+    },
+    "modeStops": "Etappes",
+    "drawHint": "Tik op je route om een etappe te plaatsen · {{count}} etappes"
   }
 }

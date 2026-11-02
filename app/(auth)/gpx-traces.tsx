@@ -4,7 +4,7 @@ import { AppText, AppTextInput } from '@/components/app-text';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Plus, Share2, Pencil, Trash2, Route as RouteIcon, X } from 'lucide-react-native';
+import { Plus, Share2, Pencil, Trash2, Route as RouteIcon, X, MapPinned } from 'lucide-react-native';
 import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
 import dayjs from 'dayjs';
@@ -16,7 +16,9 @@ import { JuntoMapView } from '@/components/map-view';
 import { MapStyleButton } from '@/components/map-style-button';
 import { TraceDrawModal } from '@/components/trace-draw-modal';
 import { TraceShareSheet } from '@/components/trace-share-sheet';
-import { useGpxTraces, useCreateGpxTrace, useRenameGpxTrace, useDeleteGpxTrace } from '@/hooks/use-gpx-traces';
+import { useGpxTraces, useCreateGpxTrace, useRenameGpxTrace, useDeleteGpxTrace, useSetGpxTraceWaypoints } from '@/hooks/use-gpx-traces';
+import { WaypointEditorModal } from '@/components/waypoint-editor-modal';
+import * as Burnt from 'burnt';
 import type { GpxTrace } from '@/services/gpx-trace-service';
 import { geoJsonLineStringToGpx } from '@/utils/geojson-to-gpx';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -38,6 +40,9 @@ export default function GpxTracesScreen() {
   const [preview, setPreview] = useState<GpxTrace | null>(null);
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  // Waypoints of a saved trace (00571) — the line itself stays as it is.
+  const [stopsOf, setStopsOf] = useState<GpxTrace | null>(null);
+  const waypointsMutation = useSetGpxTraceWaypoints();
   const shareTraceRef = useRef<GpxTrace | null>(null);
 
   const handleSaveNew = async (name: string, geojson: GpxTrace['geojson']) => {
@@ -134,6 +139,9 @@ export default function GpxTracesScreen() {
                 <Pressable style={styles.actionBtn} hitSlop={6} onPress={() => { shareTraceRef.current = trace; setShareOpen(true); }}>
                   <Share2 size={18} color={colors.textSecondary} strokeWidth={2.2} />
                 </Pressable>
+                <Pressable style={styles.actionBtn} hitSlop={6} onPress={() => setStopsOf(trace)} accessibilityLabel={t('waypoint.menu', { defaultValue: 'Étapes du parcours' })}>
+                  <MapPinned size={18} color={colors.textSecondary} strokeWidth={2.2} />
+                </Pressable>
                 <Pressable style={styles.actionBtn} hitSlop={6} onPress={() => setRenaming({ id: trace.id, name: trace.name })}>
                   <Pencil size={18} color={colors.textSecondary} strokeWidth={2.2} />
                 </Pressable>
@@ -161,6 +169,23 @@ export default function GpxTracesScreen() {
         onSave={handleSaveNew}
       />
 
+      <WaypointEditorModal
+        visible={stopsOf !== null}
+        trace={stopsOf?.geojson ?? null}
+        saving={waypointsMutation.isPending}
+        onClose={() => setStopsOf(null)}
+        onSave={(waypoints) => {
+          if (!stopsOf) return;
+          waypointsMutation.mutate({ id: stopsOf.id, waypoints }, {
+            onSuccess: () => {
+              setStopsOf(null);
+              Burnt.toast({ title: t('waypoint.saved', { defaultValue: 'Étapes enregistrées' }), preset: 'done' });
+            },
+            onError: (e) => Alert.alert(getFriendlyError(e)),
+          });
+        }}
+      />
+
       <TraceShareSheet
         visible={shareOpen}
         geojson={shareTraceRef.current?.geojson ?? null}
@@ -177,6 +202,7 @@ export default function GpxTracesScreen() {
               center={midpoint(preview.geojson.coordinates)}
               zoom={11}
               routeLine={preview.geojson.coordinates as [number, number][]}
+              waypoints={preview.geojson.waypoints}
               surfaceView={false}
             />
           ) : null}
