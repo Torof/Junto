@@ -15,6 +15,8 @@ import { HALF_DAYS, parisToUtc } from '../_shared/paris-time.ts';
 type Row = {
   id: string; day: string; period: 'am' | 'pm'; status: string; offering_title: string | null;
   party_size: number; client_name: string | null; is_manual: boolean; hide_names: boolean;
+  // 00575: one row per fixed date (whole span, places taken / max).
+  kind: 'booking' | 'session'; end_day: string; end_period: 'am' | 'pm'; max_participants: number | null;
 };
 
 const stamp = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
@@ -59,7 +61,25 @@ Deno.serve(async (req) => {
     'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
   ];
   for (const r of rows) {
-    const [h0, h1] = HALF_DAYS[r.period];
+    const [h0] = HALF_DAYS[r.period];
+    const [, h1] = HALF_DAYS[r.end_period ?? r.period];
+    const end = r.end_day ?? r.day;
+    if (r.kind === 'session') {
+      const summary = `${r.offering_title ?? 'Sortie'} · date fixe · ${r.party_size}/${r.max_participants ?? '?'} inscrits`;
+      lines.push(
+        'BEGIN:VEVENT',
+        `UID:session-${r.id}@askandgo.io`,
+        `DTSTAMP:${now}`,
+        `DTSTART:${stamp(parisToUtc(r.day, h0))}`,
+        `DTEND:${stamp(parisToUtc(end, h1))}`,
+        fold(`SUMMARY:${text(summary)}`),
+        fold(`DESCRIPTION:${text('Date fixe publiée dans askandgo.')}`),
+        'STATUS:CONFIRMED',
+        'TRANSP:OPAQUE',
+        'END:VEVENT',
+      );
+      continue;
+    }
     const who = r.hide_names
       ? 'Réservation'
       : (r.client_name ?? 'Client') + (r.is_manual ? ' (manuelle)' : '');
@@ -70,7 +90,7 @@ Deno.serve(async (req) => {
       `UID:booking-${r.id}@askandgo.io`,
       `DTSTAMP:${now}`,
       `DTSTART:${stamp(parisToUtc(r.day, h0))}`,
-      `DTEND:${stamp(parisToUtc(r.day, h1))}`,
+      `DTEND:${stamp(parisToUtc(end, h1))}`,
       fold(`SUMMARY:${text(summary)}`),
       fold(`DESCRIPTION:${text(pending ? 'Demande en attente — à accepter dans askandgo.' : 'Réservation confirmée dans askandgo.')}`),
       `STATUS:${pending ? 'TENTATIVE' : 'CONFIRMED'}`,
