@@ -257,6 +257,10 @@
       "forms": {
         "title": "Het is morgen!",
         "body": "„{{title}}” morgen{{period}} — vergeet je deelnemersformulieren niet in te vullen."
+      },
+      "plain": {
+        "title": "Het is morgen!",
+        "body": "„{{title}}” morgen{{period}}."
       }
     },
     "booking_requests_waiting": {
@@ -275,7 +279,11 @@
     },
     "booking_forms_reminder": {
       "title": "Groepsformulier invullen",
-      "body": "{{name}} wacht op de gegevens van je groep voor „{{title}}” ({{date}})."
+      "body": "{{name}} wacht op de gegevens van je groep voor „{{title}}” ({{date}}).",
+      "plain": {
+        "title": "Groepsformulier invullen",
+        "body": "Vul de gegevens van je groep in voor „{{title}}” ({{date}})."
+      }
     },
     "booking_forms_missing": {
       "title": "Er ontbreken gegevens",
@@ -972,7 +980,9 @@
       "session_has_clients": "Er zijn klanten ingeschreven: annuleer de datum en plaats een nieuwe om de dagen te wijzigen.",
       "offering_request_days": "Duur op aanvraag: tussen 1 en 14 dagen.",
       "outing_closed": "De activiteit is meer dan 7 dagen voorbij: het gesprek opent niet meer vanuit de boeking.",
-      "session_signup_cap": "Je hebt al 3 komende inschrijvingen bij deze pro."
+      "session_signup_cap": "Je hebt al 3 komende inschrijvingen bij deze pro.",
+      "photo_requires_booking": "Je kunt foto’s toevoegen zodra je een activiteit met deze pro hebt gedaan.",
+      "session_group_cap": "Maximaal 6 personen per inschrijving — voor meer, neem contact op met de pro."
     },
     "createActivity": "Kan de activiteit niet aanmaken. Controleer de gegevens en probeer het opnieuw.",
     "updateActivity": "Kan de activiteit niet wijzigen. Probeer het opnieuw.",
@@ -1693,7 +1703,8 @@
     "removeContent": "Inhoud verwijderen",
     "removeNeedsReason": "Voeg een notitie (reden) toe om de inhoud te verwijderen.",
     "contentRemoved": "Inhoud verwijderd",
-    "resolveIdentity": "Identiteit bekijken"
+    "resolveIdentity": "Identiteit bekijken",
+    "targetCommunityPhoto": "Foto op een pro-pagina"
   },
   "report": {
     "title": "Melden",
@@ -2955,6 +2966,7 @@
     "edit": "Datum wijzigen",
     "meetingShort": "Verzamelen: {{text}}",
     "wholeDay": "hele dag",
-    "daysCount": "{{count}} dagen"
+    "daysCount": "{{count}} dagen",
+    "groupCap": "Maximaal 6 personen per inschrijving — voor meer, neem contact op met de pro."
   }
 }

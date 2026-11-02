@@ -99,6 +99,17 @@ export const proCommunityPhotoService = {
     return data as string;
   },
 
+  // 00580: only a client whose outing with this pro (this offering when given)
+  // is over may add — the add action shows to them only.
+  canAdd: async (proId: string, offeringId?: string | null): Promise<boolean> => {
+    const { data, error } = await supabase.rpc('can_add_community_photo', {
+      p_pro_id: proId,
+      p_offering_id: offeringId ?? undefined,
+    });
+    if (error) throw error;
+    return data === true;
+  },
+
   remove: async (photoId: string): Promise<void> => {
     const { error } = await supabase.rpc('remove_pro_community_photo', {
       p_photo_id: photoId,

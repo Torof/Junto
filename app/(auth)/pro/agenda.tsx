@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { View, Pressable, ScrollView, StyleSheet, Modal, Platform, Alert, RefreshControl, Linking } from 'react-native';
 import { AppText, AppTextInput } from '@/components/app-text';
 import Animated from 'react-native-reanimated';
@@ -477,11 +477,17 @@ export default function ProAgendaScreen() {
     setManualOpen(true);
   };
 
+  // A double tap would add the booking twice (and could send « Départ confirmé »).
+  const manualBusy = useRef(false);
+  const [manualSaving, setManualSaving] = useState(false);
   const submitManual = async () => {
+    if (manualBusy.current) return;
     if (!mOffering || !mName.trim()) {
       Burnt.toast({ title: t('booking.manualMissing', { defaultValue: 'Choisis une offre et un nom' }) });
       return;
     }
+    manualBusy.current = true;
+    setManualSaving(true);
     try {
       await bookingService.createManualBooking(
         mOffering, dayjs(mDay).format('YYYY-MM-DD'), mPeriod, mSize, mName.trim(), mPhone.trim() || undefined,
@@ -491,6 +497,7 @@ export default function ProAgendaScreen() {
       Burnt.toast({ title: t('booking.manualAdded', { defaultValue: 'Réservation ajoutée' }), preset: 'done' });
       await invalidate();
     } catch (e) { Burnt.toast({ title: getFriendlyError(e, 'generic') }); }
+    finally { manualBusy.current = false; setManualSaving(false); }
   };
 
   // ----- Fiche jour (mode lecture) -----
@@ -1246,7 +1253,7 @@ export default function ProAgendaScreen() {
               </View>
             </View>
 
-            <Pressable style={({ pressed }) => [styles.btnPrimary, styles.btnBig, styles.btnBrand, pressed && styles.pressed]} onPress={submitManual}>
+            <Pressable style={({ pressed }) => [styles.btnPrimary, styles.btnBig, styles.btnBrand, (pressed || manualSaving) && styles.pressed]} onPress={submitManual} disabled={manualSaving}>
               <AppText style={styles.btnPrimaryText}>{t('booking.manualSubmitFull', { defaultValue: 'Ajouter la réservation' })}</AppText>
             </Pressable>
           </Pressable>

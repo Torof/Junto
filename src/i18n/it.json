@@ -48,9 +48,9 @@
       "client_gone": { "title": "Prenotazione annullata", "body": "La prenotazione di « {{title}} » del {{date}} è stata annullata." }
     },
     "booking_expired": { "title": "Richiesta scaduta", "body": "La tua richiesta per « {{title}} » del {{date}}, {{period}} è scaduta senza risposta. Puoi chiedere un altro slot." },
-    "booking_reminder": {"title": "È domani!", "body": "« {{title}} » con {{name}}, domani {{period}}.", "forms": {"title": "È domani!", "body": "« {{title}} » domani {{period}} — ricordati di compilare le schede partecipanti."}},
+    "booking_reminder": {"title": "È domani!", "body": "« {{title}} » con {{name}}, domani {{period}}.", "forms": {"title": "È domani!", "body": "« {{title}} » domani {{period}} — ricordati di compilare le schede partecipanti."}, "plain": {"title": "È domani!", "body": "« {{title}} » domani {{period}}."}},
     "booking_requests_waiting": {"title": "Richieste in attesa", "body_one": "1 richiesta aspetta la tua risposta da più di 24 h.", "body_other": "{{count}} richieste aspettano la tua risposta da più di 24 h."},
-    "booking_forms_reminder": {"title": "Scheda del gruppo da completare", "body": "{{name}} aspetta le informazioni del tuo gruppo per « {{title}} » ({{date}})."},
+    "booking_forms_reminder": {"title": "Scheda del gruppo da completare", "body": "{{name}} aspetta le informazioni del tuo gruppo per « {{title}} » ({{date}}).", "plain": {"title": "Scheda del gruppo da completare", "body": "Compila le informazioni del tuo gruppo per « {{title}} » ({{date}})."}},
     "booking_forms_missing": {"title": "Mancano delle informazioni", "body_one": "« {{title}} » ({{date}}): manca 1 scheda partecipante su {{total}}.", "body_other": "« {{title}} » ({{date}}): mancano {{count}} schede partecipanti su {{total}}.", "minimum": {"title": "Minimo non raggiunto", "body": "« {{title}} » ({{date}}): {{total}}/{{min}} iscritti, minimo {{min}} per partire."}, "both": {"title": "Mancano delle informazioni", "body_one": "« {{title}} » ({{date}}): manca 1 scheda partecipante, e {{total}}/{{min}} iscritti.", "body_other": "« {{title}} » ({{date}}): mancano {{count}} schede partecipanti, e {{total}}/{{min}} iscritti."}, "minimum_auto": {"title": "Minimo non raggiunto", "body": "« {{title}} » ({{date}}): {{total}}/{{min}} iscritti. Confermala, altrimenti sarà annullata domani alle 9."}, "both_auto": {"title": "Mancano delle informazioni", "body_one": "« {{title}} » ({{date}}): manca 1 scheda partecipante, e {{total}}/{{min}} iscritti. Confermala, altrimenti sarà annullata domani alle 9.", "body_other": "« {{title}} » ({{date}}): mancano {{count}} schede partecipanti, e {{total}}/{{min}} iscritti. Confermala, altrimenti sarà annullata domani alle 9."}},
     "session_joined": {"title": "Nuova iscrizione", "body": "{{name}} · « {{title}} » · {{date}} · {{count}} pers."},
     "booking_confirmed": {"title": "Partenza confermata", "body": "La partenza di « {{title}} » del {{date}} è confermata."},
@@ -730,6 +730,8 @@
       "session_has_clients": "Ci sono clienti iscritti: per cambiare i giorni, annulla la data e pubblicane un’altra.",
       "offering_request_days": "Durata su richiesta: tra 1 e 14 giorni.",
       "outing_closed": "L’uscita è finita da più di 7 giorni: la conversazione non si apre più dalla prenotazione.",
+      "photo_requires_booking": "Potrai aggiungere foto dopo aver fatto un’uscita con questo professionista.",
+      "session_group_cap": "Massimo 6 persone per iscrizione — oltre, contatta il professionista.",
       "session_signup_cap": "Hai già 3 iscrizioni in programma con questo professionista.",
       "booking_message": "Messaggio troppo lungo (max 500 caratteri).",
       "booking_already": "Hai già una richiesta per questo slot.",
@@ -1440,6 +1442,7 @@
     "targetGroup": "Gruppo",
     "targetChannel": "Discussione aperta",
     "targetProReview": "Recensione di un professionista",
+    "targetCommunityPhoto": "Foto su una pagina pro",
     "targetOfferingReview": "Recensione di un'offerta",
     "targetActivity": "Attività",
     "targetWallMessage": "Messaggio bacheca",
@@ -2649,6 +2652,7 @@
     "days_other": "{{count}} g"
   },
   "session": {
+    "groupCap": "Massimo 6 persone per iscrizione — oltre, contatta il professionista.",
     "placesLeft_one": "1 posto rimasto",
     "placesLeft_other": "{{count}} posti rimasti",
     "sure": "partenza garantita",

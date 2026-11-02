@@ -184,6 +184,10 @@
      "forms": {
       "title": "C’est demain !",
       "body": "« {{title}} » demain {{period}} — pense à remplir tes fiches participants."
+     },
+     "plain": {
+      "title": "C’est demain !",
+      "body": "« {{title}} » demain {{period}}."
      }
     },
     "booking_requests_waiting": {
@@ -193,7 +197,11 @@
     },
     "booking_forms_reminder": {
      "title": "Fiche du groupe à compléter",
-     "body": "{{name}} attend les infos de ton groupe pour « {{title}} » ({{date}})."
+     "body": "{{name}} attend les infos de ton groupe pour « {{title}} » ({{date}}).",
+     "plain": {
+      "title": "Fiche du groupe à compléter",
+      "body": "Remplis les infos de ton groupe pour « {{title}} » ({{date}})."
+     }
     },
     "booking_forms_missing": {
      "title": "Il manque des infos",
@@ -504,6 +512,10 @@
      "forms": {
       "title": "It’s tomorrow!",
       "body": "“{{title}}” tomorrow {{period}} — remember to fill in your participant forms."
+     },
+     "plain": {
+      "title": "It’s tomorrow!",
+      "body": "“{{title}}” tomorrow {{period}}."
      }
     },
     "booking_requests_waiting": {
@@ -513,7 +525,11 @@
     },
     "booking_forms_reminder": {
      "title": "Group form to complete",
-     "body": "{{name}} is waiting for your group’s details for “{{title}}” ({{date}})."
+     "body": "{{name}} is waiting for your group’s details for “{{title}}” ({{date}}).",
+     "plain": {
+      "title": "Group form to complete",
+      "body": "Fill in your group’s details for “{{title}}” ({{date}})."
+     }
     },
     "booking_forms_missing": {
      "title": "Details missing",
@@ -824,6 +840,10 @@
      "forms": {
       "title": "È domani!",
       "body": "« {{title}} » domani {{period}} — ricordati di compilare le schede partecipanti."
+     },
+     "plain": {
+      "title": "È domani!",
+      "body": "« {{title}} » domani {{period}}."
      }
     },
     "booking_requests_waiting": {
@@ -833,7 +853,11 @@
     },
     "booking_forms_reminder": {
      "title": "Scheda del gruppo da completare",
-     "body": "{{name}} aspetta le informazioni del tuo gruppo per « {{title}} » ({{date}})."
+     "body": "{{name}} aspetta le informazioni del tuo gruppo per « {{title}} » ({{date}}).",
+     "plain": {
+      "title": "Scheda del gruppo da completare",
+      "body": "Compila le informazioni del tuo gruppo per « {{title}} » ({{date}})."
+     }
     },
     "booking_forms_missing": {
      "title": "Mancano delle informazioni",
@@ -1144,6 +1168,10 @@
      "forms": {
       "title": "¡Es mañana!",
       "body": "«{{title}}» mañana por la {{period}}: recuerda rellenar tus fichas de participantes."
+     },
+     "plain": {
+      "title": "¡Es mañana!",
+      "body": "«{{title}}» mañana por la {{period}}."
      }
     },
     "booking_requests_waiting": {
@@ -1153,7 +1181,11 @@
     },
     "booking_forms_reminder": {
      "title": "Ficha del grupo por completar",
-     "body": "{{name}} espera los datos de tu grupo para «{{title}}» ({{date}})."
+     "body": "{{name}} espera los datos de tu grupo para «{{title}}» ({{date}}).",
+     "plain": {
+      "title": "Ficha del grupo por completar",
+      "body": "Completa los datos de tu grupo para «{{title}}» ({{date}})."
+     }
     },
     "booking_forms_missing": {
      "title": "Faltan datos",
@@ -1464,6 +1496,10 @@
      "forms": {
       "title": "Morgen ist es so weit!",
       "body": "„{{title}}“ morgen {{period}} – denk daran, deine Teilnehmerbögen auszufüllen."
+     },
+     "plain": {
+      "title": "Morgen ist es so weit!",
+      "body": "„{{title}}“ morgen {{period}}."
      }
     },
     "booking_requests_waiting": {
@@ -1473,7 +1509,11 @@
     },
     "booking_forms_reminder": {
      "title": "Gruppenbogen ausfüllen",
-     "body": "{{name}} wartet auf die Angaben deiner Gruppe für „{{title}}“ ({{date}})."
+     "body": "{{name}} wartet auf die Angaben deiner Gruppe für „{{title}}“ ({{date}}).",
+     "plain": {
+      "title": "Gruppenbogen ausfüllen",
+      "body": "Fülle die Angaben deiner Gruppe für „{{title}}“ aus ({{date}})."
+     }
     },
     "booking_forms_missing": {
      "title": "Angaben fehlen",
@@ -1860,6 +1900,10 @@
      "forms": {
       "title": "Het is morgen!",
       "body": "„{{title}}” morgen{{period}} — vergeet je deelnemersformulieren niet in te vullen."
+     },
+     "plain": {
+      "title": "Het is morgen!",
+      "body": "„{{title}}” morgen{{period}}."
      }
     },
     "booking_requests_waiting": {
@@ -1878,7 +1922,11 @@
     },
     "booking_forms_reminder": {
      "title": "Groepsformulier invullen",
-     "body": "{{name}} wacht op de gegevens van je groep voor „{{title}}” ({{date}})."
+     "body": "{{name}} wacht op de gegevens van je groep voor „{{title}}” ({{date}}).",
+     "plain": {
+      "title": "Groepsformulier invullen",
+      "body": "Vul de gegevens van je groep in voor „{{title}}” ({{date}})."
+     }
     },
     "booking_forms_missing": {
      "title": "Er ontbreken gegevens",
@@ -2180,6 +2228,10 @@
      "forms": {
       "title": "É amanhã!",
       "body": "«{{title}}» amanhã de {{period}} — lembra-te de preencher as fichas dos participantes."
+     },
+     "plain": {
+      "title": "É amanhã!",
+      "body": "«{{title}}» amanhã de {{period}}."
      }
     },
     "booking_requests_waiting": {
@@ -2198,7 +2250,11 @@
     },
     "booking_forms_reminder": {
      "title": "Ficha do grupo por preencher",
-     "body": "{{name}} aguarda os dados do teu grupo para «{{title}}» ({{date}})."
+     "body": "{{name}} aguarda os dados do teu grupo para «{{title}}» ({{date}}).",
+     "plain": {
+      "title": "Ficha do grupo por preencher",
+      "body": "Preenche os dados do teu grupo para «{{title}}» ({{date}})."
+     }
     },
     "booking_forms_missing": {
      "title": "Faltam dados",

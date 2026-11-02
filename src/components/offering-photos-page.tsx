@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Camera, Plus } from 'lucide-react-native';
 import { AppText } from '@/components/app-text';
 import { PhotoGallery } from '@/components/photo-gallery';
+import { ReportModal } from '@/components/report-modal';
 import { useColors } from '@/hooks/use-theme';
 import { useProOfferingPhotos } from '@/hooks/use-pro-photos';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -77,7 +78,18 @@ export function OfferingPhotosPage({ offering, isOwner, currentUserId }: Props) 
     if (!p) return;
     void run(() => (p.kind === 'curated' ? removeProOfferingPhoto(p.id) : removeProCommunityPhoto(p.id)));
   };
-  const canAdd = !isOwner || photos.length < GALLERY_MAX;
+  // 00580: adding a community photo needs a finished outing of this offering.
+  const { data: canContribute = false } = useQuery({
+    queryKey: ['can-add-community-photo', offering.pro_id, offering.id],
+    queryFn: () => proCommunityPhotoService.canAdd(offering.pro_id, offering.id),
+    enabled: !isOwner && !!currentUserId,
+  });
+  const canAdd = isOwner ? photos.length < GALLERY_MAX : canContribute;
+  const [reportPhotoId, setReportPhotoId] = useState<string | null>(null);
+  const canReport = (id: string) => {
+    const p = byId.get(id);
+    return !!p && p.kind === 'community' && !!currentUserId && p.contributor_id !== currentUserId;
+  };
 
   return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -95,6 +107,14 @@ export function OfferingPhotosPage({ offering, isOwner, currentUserId }: Props) 
         emptyText={t('pro.picturesEmpty', { defaultValue: 'Aucune photo pour le moment.' })}
         canDelete={(p) => canDelete(p.id)}
         onDelete={(p) => handleDelete(p.id)}
+        canReport={(p) => canReport(p.id)}
+        onReport={(p) => setReportPhotoId(p.id)}
+      />
+      <ReportModal
+        visible={reportPhotoId !== null}
+        targetType="pro_community_photo"
+        targetId={reportPhotoId ?? ''}
+        onClose={() => setReportPhotoId(null)}
       />
     </ScrollView>
   );

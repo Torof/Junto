@@ -57,6 +57,13 @@ export default function ProSpaceScreen() {
   // The agenda RPC asserts an APPROVED pro — a pending one got a silent
   // error and a dashboard pretending « Aucune sortie aujourd'hui ».
   const isApproved = proProfile?.status === 'approved';
+  // The rejection reason is not readable on the row (column grant): the own
+  // application RPC returns it.
+  const { data: application } = useQuery({
+    queryKey: ['pro-profile-mine'],
+    queryFn: () => proService.getMine(),
+    enabled: proProfile?.status === 'rejected',
+  });
 
   // Fenêtre courte pour le dashboard (aujourd'hui + compteurs 7 j + demandes du
   // mois), ouverte 14 jours en arrière : une sortie sur plusieurs jours
@@ -181,7 +188,7 @@ export default function ProSpaceScreen() {
           </AppText>
           <AppText style={[styles.emptyLine, { marginTop: spacing.xs }]}>
             {rejected
-              ? (proProfile.rejection_reason || t('pro.bannerRejected', { defaultValue: 'Demande refusée. Corrige tes informations puis renvoie-la.' }))
+              ? (application?.rejection_reason || t('pro.bannerRejected', { defaultValue: 'Demande refusée. Corrige tes informations puis renvoie-la.' }))
               : t('pro.pendingBody', { defaultValue: 'Notre équipe vérifie ta demande. Tu reçois une notification dès qu’elle est validée, et ton espace s’ouvre ici.' })}
           </AppText>
           <Pressable

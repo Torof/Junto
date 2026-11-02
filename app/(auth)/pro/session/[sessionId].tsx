@@ -25,6 +25,8 @@ import { STD_LABELS, trimBlankTail } from '@/utils/participant-fields';
 // Sign-up to a fixed date (00575, maquette validée 2026-11-02): no request,
 // the place is taken at once. The group form sits on the same screen and is
 // optional — finished later from Mes réservations, with reminders (00574).
+const SESSION_GROUP_MAX = 6;
+
 export default function JoinSessionScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -45,6 +47,8 @@ export default function JoinSessionScreen() {
   });
   const session = (sessions ?? []).find((s) => s.id === sessionId) ?? null;
   const left = session ? Math.max(0, session.max_participants - session.taken) : 0;
+  // One sign-up is at most 6 people (00578, join_pro_session): beyond, the pro is contacted.
+  const maxParty = Math.min(left, SESSION_GROUP_MAX);
 
   const [partySize, setPartySize] = useState(1);
   const [message, setMessage] = useState('');
@@ -52,8 +56,8 @@ export default function JoinSessionScreen() {
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    if (left > 0 && partySize > left) setPartySize(left);
-  }, [left, partySize]);
+    if (maxParty > 0 && partySize > maxParty) setPartySize(maxParty);
+  }, [maxParty, partySize]);
   useEffect(() => {
     setEntries((prev) => Array.from({ length: partySize }, (_, i) => prev[i] ?? {}));
   }, [partySize]);
@@ -154,12 +158,15 @@ export default function JoinSessionScreen() {
           <View style={{ flex: 1 }}>
             <AppText style={styles.boxTitle}>{t('booking.partySize', { defaultValue: 'Personnes' })}</AppText>
             <AppText style={styles.boxSub}>{t('session.placesLeft', { defaultValue: '{{count}} places restantes', count: left })}</AppText>
+            {left > SESSION_GROUP_MAX && (
+              <AppText style={styles.boxSub}>{t('session.groupCap', { defaultValue: '6 personnes max par inscription — au-delà, contacte le pro.' })}</AppText>
+            )}
           </View>
           <PressableScale style={styles.stepBtn} onPress={() => setPartySize((s) => Math.max(1, s - 1))} accessibilityLabel="−">
             <Minus size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </PressableScale>
           <AppText style={styles.stepVal}>{partySize}</AppText>
-          <PressableScale style={styles.stepBtn} onPress={() => setPartySize((s) => Math.min(Math.max(1, left), s + 1))} accessibilityLabel="+">
+          <PressableScale style={styles.stepBtn} onPress={() => setPartySize((s) => Math.min(Math.max(1, maxParty), s + 1))} accessibilityLabel="+">
             <Plus size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </PressableScale>
         </View>

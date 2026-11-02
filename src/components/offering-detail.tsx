@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import { requestStarts, requestWindow, sessionBlockSub } from '@/utils/session-time';
 import 'dayjs/locale/fr';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { MapPin, Calendar, BarChart3, Users, Clock, Route, Mountain, Share2, X, Star, StarHalf, ImagePlus, Pencil, Euro } from 'lucide-react-native';
@@ -87,10 +88,16 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
     queryKey: ['pro-availability', offering.pro_id],
     queryFn: () => bookingService.getProAvailability(offering.pro_id),
   });
-  const nextSlots = (proSlots ?? [])
+  // By the day / over days (00577): start days whose whole range is open.
+  const reqDays = offering.request_days ?? null;
+  const openSlots = reqDays == null
+    ? (proSlots ?? []).map((sl) => ({ day: sl.day, period: sl.period, taken: sl.taken }))
+    : [...requestStarts(proSlots ?? [], reqDays, offering.max_participants)]
+        .map(([day, v]) => ({ day, period: 'am' as const, taken: v.taken }));
+  const nextSlots = openSlots
     .filter((sl) => offering.max_participants == null || offering.max_participants - sl.taken > 0)
     .slice(0, 3);
-  const moreSlots = Math.max(0, (proSlots ?? []).length - nextSlots.length);
+  const moreSlots = Math.max(0, openSlots.length - nextSlots.length);
 
   const { data: communityPhotos = [] } = useQuery({
     queryKey: ['offering-community-photos', offering.id],
@@ -102,6 +109,12 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   });
 
   const currentUserId = session?.user?.id ?? null;
+  // 00580: adding a community photo needs a finished outing of this offering.
+  const { data: canContribute = false } = useQuery({
+    queryKey: ['can-add-community-photo', offering.pro_id, offering.id],
+    queryFn: () => proCommunityPhotoService.canAdd(offering.pro_id, offering.id),
+    enabled: !isOwner && !!currentUserId,
+  });
   const invalidatePhotos = async () => {
     await queryClient.invalidateQueries({ queryKey: ['pro-offering-photos', offering.id] });
     await queryClient.invalidateQueries({ queryKey: ['offering-community-photos', offering.id] });
@@ -304,7 +317,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
                   <AppText style={styles.photoAddText}>{t('pro.addPhotos', { defaultValue: 'Ajouter' })}</AppText>
                 </Pressable>
               ) : null}
-              {!isOwner ? (
+              {!isOwner && canContribute ? (
                 <Pressable style={styles.photoAddTile} onPress={handleCommunityAdd}>
                   <ImagePlus size={22} color={colors.cta} strokeWidth={2.2} />
                   <AppText style={styles.photoAddText}>{t('pro.addPhotos', { defaultValue: 'Ajouter' })}</AppText>
@@ -342,7 +355,9 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
                   >
                     <AppText style={styles.slotChipDay}>{dayjs(sl.day).format('ddd D')}</AppText>
                     <AppText style={styles.slotChipPeriod}>
-                      {sl.period === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' })}
+                      {reqDays != null
+                        ? sessionBlockSub(requestWindow(sl.day, 'am', reqDays))
+                        : sl.period === 'am' ? t('booking.am', { defaultValue: 'matin' }) : t('booking.pm', { defaultValue: 'après-midi' })}
                     </AppText>
                     {free != null && (
                       <AppText style={styles.slotChipFree}>

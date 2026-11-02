@@ -257,6 +257,10 @@
       "forms": {
         "title": "É amanhã!",
         "body": "«{{title}}» amanhã de {{period}} — lembra-te de preencher as fichas dos participantes."
+      },
+      "plain": {
+        "title": "É amanhã!",
+        "body": "«{{title}}» amanhã de {{period}}."
       }
     },
     "booking_requests_waiting": {
@@ -275,7 +279,11 @@
     },
     "booking_forms_reminder": {
       "title": "Ficha do grupo por preencher",
-      "body": "{{name}} aguarda os dados do teu grupo para «{{title}}» ({{date}})."
+      "body": "{{name}} aguarda os dados do teu grupo para «{{title}}» ({{date}}).",
+      "plain": {
+        "title": "Ficha do grupo por preencher",
+        "body": "Preenche os dados do teu grupo para «{{title}}» ({{date}})."
+      }
     },
     "booking_forms_missing": {
       "title": "Faltam dados",
@@ -972,7 +980,9 @@
       "session_has_clients": "Há clientes inscritos: para mudar os dias, cancela a data e publica outra.",
       "offering_request_days": "Duração a pedido: entre 1 e 14 dias.",
       "outing_closed": "A atividade terminou há mais de 7 dias: a conversa já não abre a partir da reserva.",
-      "session_signup_cap": "Já tens 3 inscrições futuras com este profissional."
+      "session_signup_cap": "Já tens 3 inscrições futuras com este profissional.",
+      "photo_requires_booking": "Poderás adicionar fotos depois de fazeres uma atividade com este profissional.",
+      "session_group_cap": "Máximo de 6 pessoas por inscrição — para mais, contacta o profissional."
     },
     "createActivity": "Não foi possível criar a atividade. Verifica os dados e tenta outra vez.",
     "updateActivity": "Não foi possível alterar a atividade. Tenta outra vez.",
@@ -1693,7 +1703,8 @@
     "removeContent": "Remover o conteúdo",
     "removeNeedsReason": "Adiciona uma nota (motivo) para remover o conteúdo.",
     "contentRemoved": "Conteúdo removido",
-    "resolveIdentity": "Ver a identidade"
+    "resolveIdentity": "Ver a identidade",
+    "targetCommunityPhoto": "Foto numa página pro"
   },
   "report": {
     "title": "Denunciar",
@@ -2955,6 +2966,7 @@
     "edit": "Alterar a data",
     "meetingShort": "Encontro: {{text}}",
     "wholeDay": "dia inteiro",
-    "daysCount": "{{count}} dias"
+    "daysCount": "{{count}} dias",
+    "groupCap": "Máximo de 6 pessoas por inscrição — para mais, contacta o profissional."
   }
 }

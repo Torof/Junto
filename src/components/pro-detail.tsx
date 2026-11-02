@@ -31,6 +31,7 @@ import { sportCategoryColor } from '@/utils/sport-category-color';
 import { JuntoMapView } from './map-view';
 import { MapStyleButton } from './map-style-button';
 import { PhotoGallery } from './photo-gallery';
+import { ReportModal } from './report-modal';
 import { PhotoManager } from './photo-manager';
 import { PhotoLightbox } from './photo-lightbox';
 import { SportIcon } from '@/components/sport-icon';
@@ -226,6 +227,13 @@ export function ProDetail({ pro, isOwner, initialTab, soloTab, onEdit, inSheet =
   });
   const currentUserId = session?.user?.id ?? null;
   const myCommunityCount = communityPhotos.filter((c) => c.contributor_id === currentUserId).length;
+  // 00580: adding a community photo needs a finished outing with this pro.
+  const { data: canContribute = false } = useQuery({
+    queryKey: ['can-add-community-photo', pro.user_id, null],
+    queryFn: () => proCommunityPhotoService.canAdd(pro.user_id),
+    enabled: !isOwner && !!currentUserId,
+  });
+  const [reportPhotoId, setReportPhotoId] = useState<string | null>(null);
   // Merged display list for the carousel — owner gallery first, community after.
   const galleryPhotos = useMemo(
     () => [...photos, ...communityPhotos.map((c) => ({ id: c.id, photo_url: c.photo_url }))],
@@ -476,13 +484,15 @@ export function ProDetail({ pro, isOwner, initialTab, soloTab, onEdit, inSheet =
             {/* The owner feeds the GALLERY (cap 25); everyone else contributes
                 a community photo (cap 5). Same tile, two destinations — the
                 owner used to land in the community path. */}
-            <Pressable onPress={isOwner ? handleGalleryAdd : handleCommunityAdd} style={[styles.photoSmall, styles.photoActionTile]}>
-              <View style={styles.addPhotoIconRow}>
-                <Camera size={16} color={colors.cta} strokeWidth={2.4} />
-                <Plus size={12} color={colors.cta} strokeWidth={3} />
-              </View>
-              <AppText style={styles.photoActionText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</AppText>
-            </Pressable>
+            {isOwner || canContribute ? (
+              <Pressable onPress={isOwner ? handleGalleryAdd : handleCommunityAdd} style={[styles.photoSmall, styles.photoActionTile]}>
+                <View style={styles.addPhotoIconRow}>
+                  <Camera size={16} color={colors.cta} strokeWidth={2.4} />
+                  <Plus size={12} color={colors.cta} strokeWidth={3} />
+                </View>
+                <AppText style={styles.photoActionText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</AppText>
+              </Pressable>
+            ) : null}
           </View>
         </GHScrollView>
       )}
@@ -719,13 +729,15 @@ export function ProDetail({ pro, isOwner, initialTab, soloTab, onEdit, inSheet =
             </View>
           ) : (
             <View style={styles.galleryWrap}>
-              <Pressable style={styles.addPhotoChip} onPress={handleCommunityAdd}>
-                <View style={styles.addPhotoIconRow}>
-                  <Camera size={16} color={colors.cta} strokeWidth={2.4} />
-                  <Plus size={12} color={colors.cta} strokeWidth={3} />
-                </View>
-                <AppText style={styles.addPhotoChipText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</AppText>
-              </Pressable>
+              {canContribute ? (
+                <Pressable style={styles.addPhotoChip} onPress={handleCommunityAdd}>
+                  <View style={styles.addPhotoIconRow}>
+                    <Camera size={16} color={colors.cta} strokeWidth={2.4} />
+                    <Plus size={12} color={colors.cta} strokeWidth={3} />
+                  </View>
+                  <AppText style={styles.addPhotoChipText}>{t('pro.addPhotos', { defaultValue: 'Ajouter des photos' })}</AppText>
+                </Pressable>
+              ) : null}
               {/* One merged grid — owner gallery + community photos rendered
                   indistinguishably. Delete shows only on tiles the viewer can
                   moderate (their own community contributions). */}
@@ -737,6 +749,17 @@ export function ProDetail({ pro, isOwner, initialTab, soloTab, onEdit, inSheet =
                   return !!c && c.contributor_id === currentUserId;
                 }}
                 onDelete={(p) => handleCommunityRemove(p.id)}
+                canReport={(p) => {
+                  const c = communityPhotos.find((x) => x.id === p.id);
+                  return !!c && !!currentUserId && c.contributor_id !== currentUserId;
+                }}
+                onReport={(p) => setReportPhotoId(p.id)}
+              />
+              <ReportModal
+                visible={reportPhotoId !== null}
+                targetType="pro_community_photo"
+                targetId={reportPhotoId ?? ''}
+                onClose={() => setReportPhotoId(null)}
               />
             </View>
           )}

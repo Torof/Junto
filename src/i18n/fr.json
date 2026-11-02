@@ -48,9 +48,9 @@
       "client_gone": { "title": "Réservation annulée", "body": "La réservation de « {{title}} » du {{date}} a été annulée." }
     },
     "booking_expired": { "title": "Demande expirée", "body": "Ta demande pour « {{title}} » du {{date}}, {{period}} a expiré sans réponse. Tu peux demander un autre créneau." },
-    "booking_reminder": {"title": "C’est demain !", "body": "« {{title}} » avec {{name}}, demain {{period}}.", "forms": {"title": "C’est demain !", "body": "« {{title}} » demain {{period}} — pense à remplir tes fiches participants."}},
+    "booking_reminder": {"title": "C’est demain !", "body": "« {{title}} » avec {{name}}, demain {{period}}.", "forms": {"title": "C’est demain !", "body": "« {{title}} » demain {{period}} — pense à remplir tes fiches participants."}, "plain": {"title": "C’est demain !", "body": "« {{title}} » demain {{period}}."}},
     "booking_requests_waiting": {"title": "Demandes en attente", "body_one": "1 demande attend ta réponse depuis plus de 24 h.", "body_other": "{{count}} demandes attendent ta réponse depuis plus de 24 h."},
-    "booking_forms_reminder": {"title": "Fiche du groupe à compléter", "body": "{{name}} attend les infos de ton groupe pour « {{title}} » ({{date}})."},
+    "booking_forms_reminder": {"title": "Fiche du groupe à compléter", "body": "{{name}} attend les infos de ton groupe pour « {{title}} » ({{date}}).", "plain": {"title": "Fiche du groupe à compléter", "body": "Remplis les infos de ton groupe pour « {{title}} » ({{date}})."}},
     "booking_forms_missing": {"title": "Il manque des infos", "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante sur {{total}}.", "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes sur {{total}}.", "minimum": {"title": "Minimum pas atteint", "body": "« {{title}} » ({{date}}) : {{total}}/{{min}} inscrits, minimum {{min}} pour partir."}, "both": {"title": "Il manque des infos", "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante, et {{total}}/{{min}} inscrits.", "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes, et {{total}}/{{min}} inscrits."}, "minimum_auto": {"title": "Minimum pas atteint", "body": "« {{title}} » ({{date}}) : {{total}}/{{min}} inscrits. Maintiens-la, sinon elle sera annulée demain à 9 h."}, "both_auto": {"title": "Il manque des infos", "body_one": "« {{title}} » ({{date}}) : 1 fiche participant manquante, et {{total}}/{{min}} inscrits. Maintiens-la, sinon elle sera annulée demain à 9 h.", "body_other": "« {{title}} » ({{date}}) : {{count}} fiches participants manquantes, et {{total}}/{{min}} inscrits. Maintiens-la, sinon elle sera annulée demain à 9 h."}},
     "session_joined": {"title": "Nouvelle inscription", "body": "{{name}} · « {{title}} » · {{date}} · {{count}} pers."},
     "booking_confirmed": {"title": "Départ confirmé", "body": "Le départ de « {{title}} » du {{date}} est confirmé."},
@@ -730,6 +730,8 @@
       "session_has_clients": "Des clients sont inscrits : pour changer les jours, annule la date et poses-en une autre.",
       "offering_request_days": "Durée sur demande : entre 1 et 14 jours.",
       "outing_closed": "La sortie est passée depuis plus de 7 jours : la conversation ne s’ouvre plus depuis la réservation.",
+      "photo_requires_booking": "Tu pourras ajouter des photos après une sortie faite avec ce professionnel.",
+      "session_group_cap": "6 personnes max par inscription — au-delà, contacte le pro.",
       "session_signup_cap": "Tu as déjà 3 inscriptions à venir chez ce professionnel.",
       "booking_message": "Message trop long (500 caractères max).",
       "booking_already": "Tu as déjà une demande sur ce créneau.",
@@ -1440,6 +1442,7 @@
     "targetGroup": "Groupe",
     "targetChannel": "Discussion ouverte",
     "targetProReview": "Avis sur un pro",
+    "targetCommunityPhoto": "Photo sur une page pro",
     "targetOfferingReview": "Avis sur une offre",
     "targetActivity": "Activité",
     "targetWallMessage": "Message mur",
@@ -2649,6 +2652,7 @@
     "days_other": "{{count}} j"
   },
   "session": {
+    "groupCap": "6 personnes max par inscription — au-delà, contacte le pro.",
     "placesLeft_one": "1 place restante",
     "placesLeft_other": "{{count}} places restantes",
     "sure": "départ assuré",

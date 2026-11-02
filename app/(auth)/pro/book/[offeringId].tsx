@@ -20,7 +20,7 @@ import { PressableScale } from '@/components/pressable-scale';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { SportIcon } from '@/components/sport-icon';
-import { requestWindow, sessionBlockSub, sessionHalfDays, sessionRange } from '@/utils/session-time';
+import { requestStarts, requestWindow, sessionBlockSub, sessionRange } from '@/utils/session-time';
 
 export default function BookOfferingScreen() {
   const colors = useColors();
@@ -62,24 +62,10 @@ export default function BookOfferingScreen() {
   // day — one that works when every half-day of the range is open, with the
   // fewest places left over the range.
   const reqDays = offering?.request_days ?? null;
-  const starts = useMemo(() => {
-    if (reqDays == null) return null;
-    const map = new Map<string, { taken: number; free: number | null }>();
-    for (const s of slots ?? []) {
-      if (s.period !== 'am') continue;
-      let ok = true;
-      let taken = 0;
-      let free: number | null = null;
-      for (const [d, p] of sessionHalfDays(requestWindow(s.day, 'am', reqDays))) {
-        const info = slotInfo.get(`${d}|${p}`);
-        if (!info) { ok = false; break; }
-        taken = Math.max(taken, info.taken);
-        if (info.free != null) free = free == null ? info.free : Math.min(free, info.free);
-      }
-      if (ok) map.set(s.day, { taken, free });
-    }
-    return map;
-  }, [reqDays, slots, slotInfo]);
+  const starts = useMemo(
+    () => (reqDays == null ? null : requestStarts(slots ?? [], reqDays, offering?.max_participants ?? null)),
+    [reqDays, slots, offering?.max_participants],
+  );
   const infoFor = (day: string, period: BookingPeriod) =>
     starts ? (period === 'am' ? starts.get(day) : undefined) : slotInfo.get(`${day}|${period}`);
 

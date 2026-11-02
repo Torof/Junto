@@ -48,9 +48,9 @@
       "client_gone": { "title": "Reserva cancelada", "body": "La reserva de «{{title}}» del {{date}} ha sido cancelada." }
     },
     "booking_expired": { "title": "Solicitud caducada", "body": "Tu solicitud para «{{title}}» del {{date}}, {{period}} ha caducado sin respuesta. Puedes pedir otra franja." },
-    "booking_reminder": {"title": "¡Es mañana!", "body": "«{{title}}» con {{name}}, mañana por la {{period}}.", "forms": {"title": "¡Es mañana!", "body": "«{{title}}» mañana por la {{period}}: recuerda rellenar tus fichas de participantes."}},
+    "booking_reminder": {"title": "¡Es mañana!", "body": "«{{title}}» con {{name}}, mañana por la {{period}}.", "forms": {"title": "¡Es mañana!", "body": "«{{title}}» mañana por la {{period}}: recuerda rellenar tus fichas de participantes."}, "plain": {"title": "¡Es mañana!", "body": "«{{title}}» mañana por la {{period}}."}},
     "booking_requests_waiting": {"title": "Solicitudes pendientes", "body_one": "1 solicitud espera tu respuesta desde hace más de 24 h.", "body_other": "{{count}} solicitudes esperan tu respuesta desde hace más de 24 h."},
-    "booking_forms_reminder": {"title": "Ficha del grupo por completar", "body": "{{name}} espera los datos de tu grupo para «{{title}}» ({{date}})."},
+    "booking_forms_reminder": {"title": "Ficha del grupo por completar", "body": "{{name}} espera los datos de tu grupo para «{{title}}» ({{date}}).", "plain": {"title": "Ficha del grupo por completar", "body": "Completa los datos de tu grupo para «{{title}}» ({{date}})."}},
     "booking_forms_missing": {"title": "Faltan datos", "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante de {{total}}.", "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes de {{total}}.", "minimum": {"title": "Mínimo no alcanzado", "body": "«{{title}}» ({{date}}): {{total}}/{{min}} inscritos, mínimo {{min}} para salir."}, "both": {"title": "Faltan datos", "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, y {{total}}/{{min}} inscritos.", "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes, y {{total}}/{{min}} inscritos."}, "minimum_auto": {"title": "Mínimo no alcanzado", "body": "«{{title}}» ({{date}}): {{total}}/{{min}} inscritos. Mantenla, o se cancelará mañana a las 9:00."}, "both_auto": {"title": "Faltan datos", "body_one": "«{{title}}» ({{date}}): falta 1 ficha de participante, y {{total}}/{{min}} inscritos. Mantenla, o se cancelará mañana a las 9:00.", "body_other": "«{{title}}» ({{date}}): faltan {{count}} fichas de participantes, y {{total}}/{{min}} inscritos. Mantenla, o se cancelará mañana a las 9:00."}},
     "session_joined": {"title": "Nueva inscripción", "body": "{{name}} · «{{title}}» · {{date}} · {{count}} pers."},
     "booking_confirmed": {"title": "Salida confirmada", "body": "La salida de «{{title}}» del {{date}} está confirmada."},
@@ -730,6 +730,8 @@
       "session_has_clients": "Hay clientes inscritos: para cambiar los días, cancela la fecha y publica otra.",
       "offering_request_days": "Duración bajo demanda: entre 1 y 14 días.",
       "outing_closed": "La salida terminó hace más de 7 días: la conversación ya no se abre desde la reserva.",
+      "photo_requires_booking": "Podrás añadir fotos después de hacer una salida con este profesional.",
+      "session_group_cap": "Máximo 6 personas por inscripción — para más, contacta con el profesional.",
       "session_signup_cap": "Ya tienes 3 inscripciones próximas con este profesional.",
       "booking_message": "Mensaje demasiado largo (500 caracteres máx.).",
       "booking_already": "Ya tienes una solicitud en esta franja.",
@@ -1440,6 +1442,7 @@
     "targetGroup": "Grupo",
     "targetChannel": "Conversación abierta",
     "targetProReview": "Opinión sobre un profesional",
+    "targetCommunityPhoto": "Foto en una página pro",
     "targetOfferingReview": "Opinión sobre una oferta",
     "targetActivity": "Actividad",
     "targetWallMessage": "Mensaje de muro",
@@ -2649,6 +2652,7 @@
     "days_other": "{{count}} d"
   },
   "session": {
+    "groupCap": "Máximo 6 personas por inscripción — para más, contacta con el profesional.",
     "placesLeft_one": "Queda 1 plaza",
     "placesLeft_other": "Quedan {{count}} plazas",
     "sure": "salida garantizada",

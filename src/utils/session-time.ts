@@ -60,3 +60,26 @@ export function requestWindow(day: string, period: 'am' | 'pm', days: number | n
   if (days == null) return { start_day: day, start_period: period, end_day: day, end_period: period };
   return { start_day: day, start_period: 'am', end_day: dayjs(day).add(days - 1, 'day').format('YYYY-MM-DD'), end_period: 'pm' };
 }
+
+// The start days of an offering asked for by the day / over days (00577): a
+// morning whose whole range is open, with the fewest places left over it.
+export function requestStarts(
+  slots: { day: string; period: 'am' | 'pm'; taken: number }[],
+  days: number,
+  max: number | null,
+): Map<string, { taken: number; free: number | null }> {
+  const open = new Map(slots.map((s) => [`${s.day}|${s.period}`, s.taken]));
+  const out = new Map<string, { taken: number; free: number | null }>();
+  for (const s of slots) {
+    if (s.period !== 'am') continue;
+    let ok = true;
+    let taken = 0;
+    for (const [d, p] of sessionHalfDays(requestWindow(s.day, 'am', days))) {
+      const t = open.get(`${d}|${p}`);
+      if (t === undefined) { ok = false; break; }
+      taken = Math.max(taken, t);
+    }
+    if (ok) out.set(s.day, { taken, free: max != null ? Math.max(0, max - taken) : null });
+  }
+  return out;
+}

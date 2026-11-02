@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
-import { X } from 'lucide-react-native';
+import { Flag, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
@@ -26,6 +26,9 @@ interface PhotoGalleryProps {
   // true (used for community-photo moderation).
   onDelete?: (photo: GalleryPhoto) => void;
   canDelete?: (photo: GalleryPhoto) => boolean;
+  // Same for reporting a community photo (someone else's contribution).
+  onReport?: (photo: GalleryPhoto) => void;
+  canReport?: (photo: GalleryPhoto) => boolean;
 }
 
 const SCREEN = Dimensions.get('window');
@@ -35,7 +38,7 @@ const TILE_SIZE = (SCREEN.width - SIDE_PADDING * 2 - COLUMN_GAP) / 2;
 
 // Read-only gallery — 2-column square grid (Instagram-ish). Tap any
 // tile to open the fullscreen pager (PhotoLightbox).
-export function PhotoGallery({ photos, emptyText, onDelete, canDelete }: PhotoGalleryProps) {
+export function PhotoGallery({ photos, emptyText, onDelete, canDelete, onReport, canReport }: PhotoGalleryProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -71,6 +74,16 @@ export function PhotoGallery({ photos, emptyText, onDelete, canDelete }: PhotoGa
                 <X size={14} color={colors.background} strokeWidth={3} />
               </Pressable>
             ) : null}
+            {onReport && canReport?.(photo) ? (
+              <Pressable
+                style={styles.reportBtn}
+                onPress={() => onReport(photo)}
+                hitSlop={6}
+                accessibilityLabel={t('report.title', { defaultValue: 'Signaler' })}
+              >
+                <Flag size={12} color={colors.background} strokeWidth={2.6} />
+              </Pressable>
+            ) : null}
           </Pressable>
         ))}
       </View>
@@ -102,6 +115,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     position: 'absolute',
     top: 6,
     right: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reportBtn: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
     width: 24,
     height: 24,
     borderRadius: 12,
