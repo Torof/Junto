@@ -11,6 +11,7 @@ import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import type { AgendaItem, BookingPeriod } from '@/services/booking-service';
+import { filledCount } from '@/utils/participant-fields';
 import { requestWindow, sessionBlockSub, sessionHalfDays, sessionRange } from '@/utils/session-time';
 
 // Pro agenda building blocks (maquette validée 2026-11-01): a booking reads as
@@ -42,7 +43,7 @@ export const bookingWhen = (day: string, period: BookingPeriod, t: TFn, endDay?:
 export const formsState = (b: AgendaItem): { done: number; total: number } | null => {
   const asked = (b.participant_fields?.std?.length ?? 0) + (b.participant_fields?.custom?.length ?? 0);
   if (asked === 0 || b.status !== 'accepted') return null;
-  return { done: Math.min(b.participant_info?.length ?? 0, b.party_size ?? 0), total: b.party_size ?? 0 };
+  return { done: Math.min(filledCount(b.participant_info), b.party_size ?? 0), total: b.party_size ?? 0 };
 };
 
 // Same count as the DB (00566, 00577): places ACCEPTED on each half-day of

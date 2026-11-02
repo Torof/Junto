@@ -7,3 +7,14 @@ export const STD_LABELS: Record<string, { key: string; fallback: string; keyboar
   age: { key: 'booking.fAge', fallback: 'Âge', keyboard: 'number-pad' },
   level: { key: 'booking.fLevel', fallback: 'Niveau' },
 };
+
+// Entries keep their position (participant 2 stays participant 2): a blank
+// participant is an empty object, and only the blank tail is dropped. The
+// database counts only the filled ones (00578).
+export const isFilledEntry = (e: object | null | undefined) => !!e && Object.keys(e).length > 0;
+export function trimBlankTail<T extends object>(entries: T[]): T[] {
+  let n = entries.length;
+  while (n > 0 && !isFilledEntry(entries[n - 1])) n--;
+  return entries.slice(0, n);
+}
+export const filledCount = (info: object[] | null | undefined) => (info ?? []).filter(isFilledEntry).length;

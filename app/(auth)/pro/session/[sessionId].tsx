@@ -20,7 +20,7 @@ import { LogoSpinner } from '@/components/logo-spinner';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { sportCategoryColor } from '@/utils/sport-category-color';
 import { sessionBlockSub, sessionRange } from '@/utils/session-time';
-import { STD_LABELS } from '@/utils/participant-fields';
+import { STD_LABELS, trimBlankTail } from '@/utils/participant-fields';
 
 // Sign-up to a fixed date (00575, maquette validée 2026-11-02): no request,
 // the place is taken at once. The group form sits on the same screen and is
@@ -71,7 +71,8 @@ export default function JoinSessionScreen() {
 
   // Only what was typed; a participant left blank is not sent (the form stays
   // « à compléter » for them).
-  const filledEntries = (): ParticipantEntry[] => entries
+  // Each participant keeps their place (a blank one is {}), only the blank tail goes.
+  const filledEntries = (): ParticipantEntry[] => trimBlankTail(entries
     .map((e) => {
       const out: ParticipantEntry = {};
       for (const f of stdFields) {
@@ -85,8 +86,7 @@ export default function JoinSessionScreen() {
       }
       if (Object.keys(cust).length > 0) out.custom = cust;
       return out;
-    })
-    .filter((e) => Object.keys(e).length > 0);
+    }));
 
   const submit = async () => {
     if (!session || sending) return;
@@ -100,6 +100,7 @@ export default function JoinSessionScreen() {
       }
       await queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
       await queryClient.invalidateQueries({ queryKey: ['offering-sessions', offeringId] });
+      await queryClient.invalidateQueries({ queryKey: ['pro-availability'] });
       Burnt.toast({ title: t('session.joinedToast', { defaultValue: 'Inscription confirmée' }), preset: 'done' });
       router.replace('/(auth)/my-bookings');
     } catch (e) {

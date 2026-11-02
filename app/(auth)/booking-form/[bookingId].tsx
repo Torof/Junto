@@ -15,7 +15,7 @@ import { bookingService, type ParticipantEntry } from '@/services/booking-servic
 import { PressableScale } from '@/components/pressable-scale';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { getFriendlyError } from '@/utils/friendly-error';
-import { STD_LABELS } from '@/utils/participant-fields';
+import { STD_LABELS, trimBlankTail } from '@/utils/participant-fields';
 
 // Fiche du groupe (chantier B) — le client remplit, APRÈS confirmation, les
 // infos par participant demandées par l'offre (pointure/taille/poids/âge/
@@ -59,8 +59,9 @@ export default function BookingFormScreen() {
 
   const submit = async () => {
     if (!bookingId) return;
-    // N'envoyer que les valeurs non vides (la RPC valide clés + longueurs).
-    const clean: ParticipantEntry[] = entries.map((e) => {
+    // N'envoyer que les valeurs non vides (la RPC valide clés + longueurs) ;
+    // chaque participant garde sa place, seule la fin vide est retirée.
+    const clean: ParticipantEntry[] = trimBlankTail(entries.map((e) => {
       const out: ParticipantEntry = {};
       for (const f of stdFields) {
         const v = (e[f] ?? '').trim();
@@ -73,7 +74,7 @@ export default function BookingFormScreen() {
       }
       if (Object.keys(cust).length > 0) out.custom = cust;
       return out;
-    });
+    }));
     setSending(true);
     try {
       await bookingService.setParticipantInfo(bookingId, clean);
