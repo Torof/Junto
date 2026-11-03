@@ -61,6 +61,8 @@ export const darkColors = {
   // PP pushpin (v4): grey head rim on the white Google-place body. Same in
   // both themes — the pin sits on the (independently-styled) map.
   pinProRim: '#6B7280',
+  // « Rejoint » badge on a peer pin (Scott 2026-11-03). Same in both themes — it sits on the map.
+  pinJoined: '#1F9D55',
   // On-map route line color (the create FAB moved to `brand`, 2026-10-30). FIXED — independent of the
   // user's accent AND of the theme, because these elements sit on the Mapbox
   // terrain (green-dominant, uncontrolled): a themeable accent could match the
@@ -129,6 +131,8 @@ export const lightColors = {
   // PP pushpin (v4): grey head rim on the white Google-place body. Same in
   // both themes — the pin sits on the (independently-styled) map.
   pinProRim: '#6B7280',
+  // « Rejoint » badge on a peer pin (Scott 2026-11-03). Same in both themes — it sits on the map.
+  pinJoined: '#1F9D55',
   // See darkColors.mapAction — same value both themes (sits on the map).
   mapAction: '#B15A38',
   border: '#B3AC9C',

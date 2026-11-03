@@ -8,6 +8,7 @@ import { type NearbyActivity, type TraceWaypoint } from '@/services/activity-ser
 import { TraceWaypointMarkers } from './trace-waypoint-markers';
 import { type NearbyPro } from '@/services/pro-service';
 import { type ProOffering } from '@/services/pro-offering-service';
+import type { ActivityMark } from '@/hooks/use-my-activity-marks';
 import { ActivityPin, ACTIVITY_PIN_ANCHOR } from './activity-pin';
 import { ProPin, PRO_PIN_ANCHOR } from './pro-pin';
 import { proPinLook } from '@/utils/pro-pin-look';
@@ -120,6 +121,8 @@ interface MapViewProps {
   tapMarker?: [number, number] | null;
   tapMarkerContent?: React.ReactNode;
   onActivityPress?: (activity: NearbyActivity) => void;
+  // Your relation to each outing (organised / joined / pending) — a badge on its pin.
+  activityMark?: (activity: NearbyActivity) => ActivityMark | null;
   onProPress?: (pro: NearbyPro) => void;
   onProOfferingPress?: (offering: ProOffering) => void;
   onPinPress?: (pin: MapPin) => void;
@@ -241,6 +244,7 @@ export function JuntoMapView({
   tapMarker,
   tapMarkerContent,
   onActivityPress,
+  activityMark,
   onProPress,
   onProOfferingPress,
   onPinPress,
@@ -660,7 +664,7 @@ export function JuntoMapView({
             >
               <View style={isSelected ? { elevation: 999, zIndex: 999 } : highlightStyle}>
                 <Pressable onPressIn={stampMarkerTouch} onPress={() => { beforePress?.(); onActivityPress?.(activity); }} hitSlop={14}>
-                  <ActivityPin activity={activity} />
+                  <ActivityPin activity={activity} mark={activityMark?.(activity)} />
                 </Pressable>
                 {fanSide ? fanLabel(pinProps, fanSide) : null}
               </View>

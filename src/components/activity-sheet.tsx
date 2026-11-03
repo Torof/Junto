@@ -7,8 +7,9 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
+import type { ActivityMark } from '@/hooks/use-my-activity-marks';
 import { useTranslation } from 'react-i18next';
-import { Calendar, BarChart2, MapPin, Car, Users, X, Clock, Lock, Route } from 'lucide-react-native';
+import { Calendar, BarChart2, MapPin, Car, Users, X, Clock, Lock, Route, Check, Flag, Hourglass } from 'lucide-react-native';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
@@ -39,9 +40,11 @@ interface Props {
   onClose: () => void;
   // CTA → the full activity page.
   onOpen: (activity: NearbyActivity) => void;
+  // Your relation to the outing — a pill beside the sport chip (Scott 2026-11-03).
+  mark?: ActivityMark | null;
 }
 
-export function ActivitySheet({ activity, onClose, onOpen }: Props) {
+export function ActivitySheet({ activity, onClose, onOpen, mark }: Props) {
   const { t, i18n } = useTranslation();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -103,11 +106,31 @@ export function ActivitySheet({ activity, onClose, onOpen }: Props) {
             </Pressable>
             <FavoriteButton kind="activity" id={activity.id} size={21} style={styles.favBtn} />
 
-            <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
-              <SportIcon sportKey={activity.sport_key} size={15} color={accent} />
-              <AppText style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>
-                {t(`sports.${activity.sport_key}`, { defaultValue: activity.sport_key })}
-              </AppText>
+            <View style={styles.chipRow}>
+              <View style={[styles.sportChip, { borderColor: accent, backgroundColor: accent + '18' }]}>
+                <SportIcon sportKey={activity.sport_key} size={15} color={accent} />
+                <AppText style={[styles.sportChipText, { color: accent }]} numberOfLines={1}>
+                  {t(`sports.${activity.sport_key}`, { defaultValue: activity.sport_key })}
+                </AppText>
+              </View>
+              {/* Same three states as the pin badge: solid green when joined,
+                  tinted when it's yours, grey while the request waits. */}
+              {mark === 'joined' ? (
+                <View style={[styles.markPill, { backgroundColor: colors.pinJoined }]}>
+                  <Check size={12} color={colors.onCta} strokeWidth={3.2} />
+                  <AppText style={[styles.markPillText, { color: colors.onCta }]}>{t('map.markJoined', { defaultValue: 'Rejoint' })}</AppText>
+                </View>
+              ) : mark === 'mine' ? (
+                <View style={[styles.markPill, { backgroundColor: colors.cta + '1F' }]}>
+                  <Flag size={12} color={colors.cta} strokeWidth={2.6} />
+                  <AppText style={[styles.markPillText, { color: colors.cta }]}>{t('map.markMine', { defaultValue: 'Ta sortie' })}</AppText>
+                </View>
+              ) : mark === 'pending' ? (
+                <View style={[styles.markPill, { backgroundColor: colors.surfaceAlt }]}>
+                  <Hourglass size={12} color={colors.textSecondary} strokeWidth={2.4} />
+                  <AppText style={[styles.markPillText, { color: colors.textSecondary }]}>{t('map.markPending', { defaultValue: 'Demande envoyée' })}</AppText>
+                </View>
+              ) : null}
             </View>
             <View style={styles.kindRow}>
               {(activity.visibility === 'private_link' || activity.visibility === 'private_link_approval') && (
@@ -221,6 +244,17 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     paddingBottom: spacing.lg,
     gap: spacing.sm,
   },
+  chipRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  markPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingLeft: 7,
+    paddingRight: 9,
+    paddingVertical: 3,
+    borderRadius: radius.full,
+  },
+  markPillText: { fontSize: fontSizes.xs - 0.5, fontWeight: '800' },
   sportChip: {
     alignSelf: 'flex-start',
     flexDirection: 'row',

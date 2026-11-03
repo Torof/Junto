@@ -88,6 +88,24 @@ export const participationService = {
     if (error) throw error;
   },
 
+  // The map's « your outings » marks (Scott 2026-11-03): who I am, plus my
+  // accepted / pending participations — two columns, own rows only (RLS).
+  getMyMarks: async (): Promise<{ userId: string | null; statuses: Map<string, 'accepted' | 'pending'> }> => {
+    const userId = (await supabase.auth.getUser()).data.user?.id ?? null;
+    const statuses = new Map<string, 'accepted' | 'pending'>();
+    if (!userId) return { userId, statuses };
+    const { data, error } = await supabase
+      .from('participations')
+      .select('activity_id, status')
+      .eq('user_id', userId)
+      .in('status', ['accepted', 'pending']);
+    if (error) throw error;
+    for (const r of data ?? []) {
+      if (r.status === 'accepted' || r.status === 'pending') statuses.set(r.activity_id, r.status);
+    }
+    return { userId, statuses };
+  },
+
   getMyStatus: async (activityId: string): Promise<Participation | null> => {
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) return null;

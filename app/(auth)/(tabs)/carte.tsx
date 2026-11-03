@@ -22,6 +22,7 @@ import { MapStyleButton } from '@/components/map-style-button';
 import { RecenterButton } from '@/components/recenter-button';
 import { askPermission } from '@/lib/permissions';
 import { useInitialLocation } from '@/hooks/use-initial-location';
+import { useMyActivityMarks } from '@/hooks/use-my-activity-marks';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
 import { useNearbyPros } from '@/hooks/use-nearby-pros';
 import { useNearbyProOfferings } from '@/hooks/use-nearby-pro-offerings';
@@ -152,6 +153,7 @@ export default function CarteScreen() {
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: activities } = useNearbyActivities(searchBounds);
+  const activityMark = useMyActivityMarks();
   const { data: pros } = useNearbyPros(searchBounds);
   const { data: proOfferings } = useNearbyProOfferings(searchBounds);
 
@@ -416,6 +418,7 @@ export default function CarteScreen() {
               center={center}
               zoom={initialZoom}
               activities={filteredActivitiesByType}
+              activityMark={activityMark}
               pros={filteredProsByType}
               onProPress={(pro) => {
                 // Guard the tap-through: a pin tap can also fire onMapPress,
@@ -565,6 +568,7 @@ export default function CarteScreen() {
             pushed page. */}
         <ActivitySheet
           activity={selectedActivity}
+          mark={selectedActivity ? activityMark(selectedActivity) : null}
           onClose={() => setSelectedActivity(null)}
           onOpen={(a) => {
             suppressMapPressUntil.current = Date.now() + 400;

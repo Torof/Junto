@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { AppText } from '@/components/app-text';
 import Svg from 'react-native-svg';
-import { Lock } from 'lucide-react-native';
+import { Lock, Check, Flag, Hourglass } from 'lucide-react-native';
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { getActivityTimeStatus } from '@/utils/activity-status';
@@ -15,9 +15,13 @@ import {
   PIN_DROP_TIP_Y, PIN_HEAD_CX, PIN_HEAD_CY, PIN_PAD_X, PIN_PAD_Y,
 } from '@/constants/pin-style';
 import { PinBody } from '@/components/pin-body';
+import type { ActivityMark } from '@/hooks/use-my-activity-marks';
 
 interface ActivityPinProps {
   activity: NearbyActivity;
+  // Your relation to the outing — a badge top-right (Scott 2026-11-03):
+  // joined = solid green check, mine = flag, pending = hourglass.
+  mark?: ActivityMark | null;
 }
 
 // Pin restyle 2026-10-16 (see constants/pin-style.ts): soft shadow drawn in
@@ -42,7 +46,7 @@ const GLYPH_SIZE = 24;
 // The tip sits on the geographic point.
 export const ACTIVITY_PIN_ANCHOR = { x: 0.5, y: (PIN_DROP_TIP_Y + PIN_PAD_Y) / VIEWBOX_H };
 
-export function ActivityPin({ activity }: ActivityPinProps) {
+export function ActivityPin({ activity, mark }: ActivityPinProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const timeStatus = getActivityTimeStatus(activity.starts_at, activity.status);
@@ -75,6 +79,18 @@ export function ActivityPin({ activity }: ActivityPinProps) {
           <Lock size={9} color="#57534E" strokeWidth={2.8} />
         </View>
       )}
+      {mark === 'joined' && (
+        <View style={[styles.markBadge, styles.markJoined]}>
+          <Check size={12} color={colors.onCta} strokeWidth={3.6} />
+        </View>
+      )}
+      {(mark === 'mine' || mark === 'pending') && (
+        <View style={[styles.markBadge, styles.markPlain]}>
+          {mark === 'mine'
+            ? <Flag size={11} color={colors.cta} strokeWidth={2.6} />
+            : <Hourglass size={11} color={colors.textSecondary} strokeWidth={2.4} />}
+        </View>
+      )}
     </View>
   );
 }
@@ -92,6 +108,36 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     borderColor: colors.pinBackground,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // Mirror of the lock badge, top-right. Joined is solid (21 px, white ring);
+  // mine / pending stay a white disc (17 px) — mockup « A » + the first board.
+  markBadge: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#0A0F1A',
+    shadowOpacity: 0.45,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 3,
+  },
+  markJoined: {
+    top: PIN_PAD_Y * SCALE - 6,
+    right: PIN_PAD_X * SCALE - 7,
+    width: 21,
+    height: 21,
+    borderRadius: 10.5,
+    backgroundColor: colors.pinJoined,
+    borderWidth: 2,
+    borderColor: colors.pinBackground,
+  },
+  markPlain: {
+    top: PIN_PAD_Y * SCALE - 3,
+    right: PIN_PAD_X * SCALE - 4,
+    width: 17,
+    height: 17,
+    borderRadius: 8.5,
+    backgroundColor: colors.pinBackground,
   },
   wrapper: {
     width: PIN_WIDTH,
