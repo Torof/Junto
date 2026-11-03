@@ -10,6 +10,7 @@ import { fontSizes, spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { proService } from '@/services/pro-service';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { ProPageSkeleton } from '@/components/pro-page-skeleton';
 import { StatusBar } from 'expo-status-bar';
 import { ProDetail } from '@/components/pro-detail';
 import { ProPage } from '@/components/pro-page';
@@ -53,7 +54,7 @@ export default function ProPageScreen() {
   if (authLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
   if (!isAuthenticated) return <Redirect href="/(visitor)/login" />;
   if (isSuspended) return <Redirect href="/(visitor)/suspended" />;
-  if (isLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
+  if (isLoading) return <><StatusBar hidden /><ProPageSkeleton /></>;
 
   // RLS returns null for non-pros and suspended pros — surface a clean
   // not-found state rather than a blank screen.

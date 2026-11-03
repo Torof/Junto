@@ -10,6 +10,7 @@ import { fontSizes, spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { proOfferingService } from '@/services/pro-offering-service';
 import { LogoSpinner } from '@/components/logo-spinner';
+import { OfferingPageSkeleton } from '@/components/offering-page-skeleton';
 import { PageTypeBadge } from '@/components/page-type-badge';
 import { StatusBar } from 'expo-status-bar';
 import { OfferingDetail } from '@/components/offering-detail';
@@ -62,7 +63,7 @@ export default function ProOfferingDetailScreen() {
   if (authLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
   if (!isAuthenticated) return <Redirect href="/(visitor)/login" />;
   if (isSuspended) return <Redirect href="/(visitor)/suspended" />;
-  if (isLoading) return <View style={styles.center}><LogoSpinner size={48} /></View>;
+  if (isLoading) return <><StatusBar hidden /><OfferingPageSkeleton /></>;
 
   if (!offering) {
     return (
