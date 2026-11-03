@@ -9,9 +9,14 @@ import { norm, sportLabel, universeColor } from './tokens';
 // « 4 · Encadré par un pro » — real offers (anonymous read of
 // pro_offerings_with_coords), filtered here by place / activity. With no
 // offer yet, the section is the pitch to pros, not an empty grid.
+// Three offers are enough to get the idea; the rest unfold on demand, like
+// the departures board (Scott 2026-11-03). The search still filters them all.
+const CAP = 3;
+
 export default function Pros({ offers }: { offers: OfferRow[] }) {
   const [query, setQuery] = useState('');
   const [sport, setSport] = useState('all');
+  const [expanded, setExpanded] = useState(false);
 
   const sports = useMemo(() => {
     const seen = new Map<string, string>();
@@ -64,7 +69,7 @@ export default function Pros({ offers }: { offers: OfferRow[] }) {
 
         {list.length > 0 && (
           <div className="l-offers">
-            {list.map((o) => {
+            {(expanded ? list : list.slice(0, CAP)).map((o) => {
               const color = universeColor(o.sport_category);
               const duration = formatDuration(o.duration);
               const price = formatPrice(o.price_eur, o.price_unit);
@@ -92,6 +97,11 @@ export default function Pros({ offers }: { offers: OfferRow[] }) {
               );
             })}
           </div>
+        )}
+        {list.length > CAP && !expanded && (
+          <button type="button" className="l-offers-more" onClick={() => setExpanded(true)}>
+            Voir les {list.length - CAP} autres offres
+          </button>
         )}
 
         {/* The way to the pros page (2026-11-03): a dark map card, the whole card is the link. */}

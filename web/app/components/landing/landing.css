@@ -264,6 +264,8 @@
 .l-offer { display: flex; flex-direction: column; gap: 12px; border: 1px solid rgba(31,26,21,0.32); border-top: 3px solid #2563EB; border-radius: 16px; padding: 16px; text-decoration: none; color: #1F1A15; background: #FFFFFF; box-shadow: 0 2px 5px rgba(31,26,21,0.06); transition: transform .15s, box-shadow .15s; }
 .l-offer:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(31,26,21,0.12); }
 .l-offer-title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 17px; letter-spacing: -0.02em; line-height: 1.2; }
+.l-offers-more { align-self: center; font: inherit; font-size: 14px; font-weight: 700; color: #246342; background: #FFFFFF; border: 1px solid rgba(31,26,21,0.32); border-radius: 999px; padding: 12px 22px; cursor: pointer; }
+.l-offers-more:hover { background: #F1EFEA; }
 .l-offer-empty { padding: 36px 20px; text-align: center; color: #6B6259; font-size: 15px; border: 1px dashed rgba(37,99,235,0.4); border-radius: 16px; }
 
 /* ---------- download ---------- */
