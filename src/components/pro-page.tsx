@@ -14,10 +14,11 @@ import { UserAvatar } from '@/components/user-avatar';
 import { FavoriteButton } from '@/components/favorite-button';
 import { PressableScale } from '@/components/pressable-scale';
 import { SportIcon } from '@/components/sport-icon';
+import { PhotoLightbox } from '@/components/photo-lightbox';
 import { StarRating } from '@/components/star-rating';
 import { useColors } from '@/hooks/use-theme';
 import { useProPhotos } from '@/hooks/use-pro-photos';
-import { fontSizes, spacing, radius, shadows, glow } from '@/constants/theme';
+import { fontSizes, spacing, radius, glow } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import type { ProProfile } from '@/services/pro-service';
 import { proOfferingService, type ProOffering } from '@/services/pro-offering-service';
@@ -40,9 +41,9 @@ import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 
 const WHITE = '#FFFFFF';
 // 292 (was 250, Scott 2026-10-25): room between the top row and the avatar.
-const COVER_H = 350;
+const COVER_H = 340;
 const TOP_BTN = 34;
-const AVATAR = 80;
+const AVATAR = 56;
 const COLLAPSED_DESCRIPTION_CHARS = 280;
 
 function openLink(url: string): void {
@@ -76,6 +77,7 @@ export function ProPage({ pro, isOwner }: Props) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const [descExpanded, setDescExpanded] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
 
   const { data: offerings = [] } = useQuery({
     queryKey: ['pro-offerings', 'by-pro', pro.user_id],
@@ -177,13 +179,8 @@ export function ProPage({ pro, isOwner }: Props) {
           </Pressable>
         </View>
 
-        {/* The pro's title (name or company) heads the photo, the avatar centred under it. */}
-        <View style={[styles.coverHead, { top: Math.max(10, insets.top - 14) + TOP_BTN + 14 }]}>
-          <AppText style={styles.name} numberOfLines={2}>{pro.display_name}</AppText>
-          <View style={styles.avatarRing}>
-            <UserAvatar name={pro.display_name} avatarUrl={avatarUrl} size={AVATAR} />
-          </View>
-        </View>
+        {/* The pro's title (name or company) heads the photo; the avatar lives in « À propos ». */}
+        <AppText style={[styles.name, styles.coverTitle, { top: Math.max(10, insets.top - 14) + TOP_BTN + 14 }]} numberOfLines={2}>{pro.display_name}</AppText>
 
         <View style={styles.identity}>
           {professionsLabel ? (
@@ -340,23 +337,32 @@ export function ProPage({ pro, isOwner }: Props) {
       )}
 
       {/* ===== About ===== */}
-      {(pro.tagline || description) ? (
-        <>
-          <View style={styles.head}><AppText style={styles.sec}>{t('pro.about', { defaultValue: 'À propos' })}</AppText></View>
-          <View style={[styles.inset, { gap: 6 }]}>
-            {pro.tagline ? <AppText style={styles.tagline}>{pro.tagline}</AppText> : null}
-            {description ? (
-              <AppText style={styles.body}>
-                {descExpanded || !descriptionOverflowing ? description : `${description.slice(0, COLLAPSED_DESCRIPTION_CHARS).trimEnd()}…`}
-              </AppText>
-            ) : null}
-            {descriptionOverflowing ? (
-              <Pressable onPress={() => setDescExpanded((v) => !v)} hitSlop={6}>
-                <AppText style={styles.link}>{descExpanded ? t('pro.descSeeLess', { defaultValue: 'Voir moins' }) : t('pro.descSeeMore', { defaultValue: 'Voir plus' })}</AppText>
-              </Pressable>
-            ) : null}
+      <View style={styles.head}><AppText style={styles.sec}>{t('pro.about', { defaultValue: 'À propos' })}</AppText></View>
+      <View style={[styles.inset, { gap: 6 }]}>
+        {/* Who you'll be dealing with: tap the photo to see it full size. */}
+        <View style={[styles.whoRow, (pro.tagline || description) ? { marginBottom: 4 } : null]}>
+          <Pressable onPress={avatarUrl ? () => setAvatarOpen(true) : undefined} disabled={!avatarUrl} hitSlop={6} accessibilityRole={avatarUrl ? 'imagebutton' : undefined}>
+            <UserAvatar name={pro.display_name} avatarUrl={avatarUrl} size={AVATAR} />
+          </Pressable>
+          <View style={{ flex: 1 }}>
+            <AppText style={styles.whoName} numberOfLines={2}>{pro.display_name}</AppText>
+            {professionsLabel ? <AppText style={styles.sub} numberOfLines={2}>{professionsLabel}</AppText> : null}
           </View>
-        </>
+        </View>
+        {pro.tagline ? <AppText style={styles.tagline}>{pro.tagline}</AppText> : null}
+        {description ? (
+          <AppText style={styles.body}>
+            {descExpanded || !descriptionOverflowing ? description : `${description.slice(0, COLLAPSED_DESCRIPTION_CHARS).trimEnd()}…`}
+          </AppText>
+        ) : null}
+        {descriptionOverflowing ? (
+          <Pressable onPress={() => setDescExpanded((v) => !v)} hitSlop={6}>
+            <AppText style={styles.link}>{descExpanded ? t('pro.descSeeLess', { defaultValue: 'Voir moins' }) : t('pro.descSeeMore', { defaultValue: 'Voir plus' })}</AppText>
+          </Pressable>
+        ) : null}
+      </View>
+      {avatarUrl ? (
+        <PhotoLightbox photos={[{ id: 'avatar', photo_url: avatarUrl }]} index={avatarOpen ? 0 : null} onIndexChange={(i) => setAvatarOpen(i !== null)} />
       ) : null}
 
       {/* ===== Address and links ===== */}
@@ -397,9 +403,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   proBadge: { backgroundColor: PRO_GOLD, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 4 },
   proBadgeText: { color: PRO_GOLD_INK, fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
   topBtn: { width: TOP_BTN, height: TOP_BTN, borderRadius: TOP_BTN / 2, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
-  coverHead: { position: 'absolute', left: 18, right: 18, alignItems: 'center', gap: 10 },
+  coverTitle: { position: 'absolute', left: 18, right: 18 },
   identity: { position: 'absolute', left: 18, right: 18, bottom: 12, gap: 5, alignItems: 'center' },
-  avatarRing: { borderWidth: 3, borderColor: WHITE, borderRadius: AVATAR / 2 + 3, ...shadows.card },
+  whoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  whoName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
   name: { textAlign: 'center', color: WHITE, fontSize: 26, fontWeight: '800', lineHeight: 30, letterSpacing: -0.4, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8, textShadowOffset: { width: 0, height: 1 } },
   professions: { textAlign: 'center', color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
   placeRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
