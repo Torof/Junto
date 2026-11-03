@@ -41,7 +41,7 @@ import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 
 const WHITE = '#FFFFFF';
 // 292 (was 250, Scott 2026-10-25): room between the top row and the avatar.
-const COVER_H = 340;
+const COVER_H = 300;
 const TOP_BTN = 34;
 const AVATAR = 56;
 const COLLAPSED_DESCRIPTION_CHARS = 280;
