@@ -41,9 +41,6 @@ import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 const WHITE = '#FFFFFF';
 // 292 (was 250, Scott 2026-10-25): room between the top row and the avatar.
 const COVER_H = 292;
-const AVATAR = 76;
-const AVATAR_RING = 3;
-const AVATAR_OUTER = AVATAR + AVATAR_RING * 2;
 const COLLAPSED_DESCRIPTION_CHARS = 280;
 
 function openLink(url: string): void {
@@ -179,10 +176,17 @@ export function ProPage({ pro, isOwner }: Props) {
         </View>
 
         <View style={styles.identity}>
+          <View style={styles.avatarRing}>
+            <UserAvatar name={pro.display_name} avatarUrl={avatarUrl} size={58} />
+          </View>
           <AppText style={styles.name} numberOfLines={2}>{pro.display_name}</AppText>
           {professionsLabel ? (
             <AppText style={styles.professions} numberOfLines={2}>{professionsLabel}</AppText>
           ) : null}
+          <View style={styles.placeRow}>
+            <MapPin size={13} color={WHITE} strokeWidth={2.4} />
+            <AppText style={styles.place} numberOfLines={1}>{pro.primary_location_name}</AppText>
+          </View>
           {sportKeys.length > 0 ? (
             <View style={styles.labels}>
               {sportKeys.map((s) => (
@@ -193,25 +197,13 @@ export function ProPage({ pro, isOwner }: Props) {
               ))}
             </View>
           ) : null}
-        </View>
-        {/* Beside the straddling avatar, photo side. */}
-        {hasRating ? (
-          <Pressable style={styles.ratingOnEdge} onPress={() => openTab('reviews')} hitSlop={6}>
-            <Star size={14} color="#FBBF24" fill="#FBBF24" strokeWidth={1.6} />
-            <AppText style={styles.ratingAvg}>{Number(reviewStats!.avg_rating).toFixed(1).replace('.', ',')}</AppText>
-            <AppText style={styles.ratingCount}>· {t('pro.page.reviewCount', { defaultValue: '{{count}} avis', count: reviewStats!.review_count })}</AppText>
-          </Pressable>
-        ) : null}
-      </View>
-
-      {/* Avatar straddling the photo's edge; the place beside it, white side. */}
-      <View style={styles.edgeRow}>
-        <View style={styles.avatarRing}>
-          <UserAvatar name={pro.display_name} avatarUrl={avatarUrl} size={AVATAR} />
-        </View>
-        <View style={styles.placeRow}>
-          <MapPin size={14} color={colors.cta} strokeWidth={2.4} />
-          <AppText style={styles.place} numberOfLines={1}>{pro.primary_location_name}</AppText>
+          {hasRating ? (
+            <Pressable style={styles.ratingRow} onPress={() => openTab('reviews')} hitSlop={6}>
+              <Star size={14} color="#FBBF24" fill="#FBBF24" strokeWidth={1.6} />
+              <AppText style={styles.ratingAvg}>{Number(reviewStats!.avg_rating).toFixed(1).replace('.', ',')}</AppText>
+              <AppText style={styles.ratingCount}>· {t('pro.page.reviewCount', { defaultValue: '{{count}} avis', count: reviewStats!.review_count })}</AppText>
+            </Pressable>
+          ) : null}
         </View>
       </View>
 
@@ -399,19 +391,18 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   proBadge: { backgroundColor: PRO_GOLD, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 4 },
   proBadgeText: { color: PRO_GOLD_INK, fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
   topBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
-  identity: { position: 'absolute', left: 18, right: 18, bottom: AVATAR_OUTER / 2 + 9, gap: 5 },
-  edgeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 18 },
-  avatarRing: { marginTop: -AVATAR_OUTER / 2, borderWidth: AVATAR_RING, borderColor: WHITE, borderRadius: AVATAR_OUTER / 2, ...shadows.card },
+  identity: { position: 'absolute', left: 18, right: 18, bottom: 12, gap: 5 },
+  avatarRing: { alignSelf: 'flex-start', borderWidth: 3, borderColor: WHITE, borderRadius: 32, marginBottom: 3, ...shadows.card },
   name: { color: WHITE, fontSize: 22, fontWeight: '800', lineHeight: 25, letterSpacing: -0.4, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8, textShadowOffset: { width: 0, height: 1 } },
   professions: { color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
-  placeRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 5, paddingTop: 10 },
-  place: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.sm, fontWeight: '700' },
+  placeRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  place: { flex: 1, color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '600', opacity: 0.95, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
   labels: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
   label: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 3 },
   labelText: { color: WHITE, fontSize: 11, fontWeight: '700' },
-  ratingOnEdge: { position: 'absolute', left: 18 + AVATAR_OUTER + 12, bottom: 9, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  ratingAvg: { color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
-  ratingCount: { color: WHITE, fontSize: fontSizes.sm - 1, opacity: 0.9, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 1 },
+  ratingAvg: { color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '800' },
+  ratingCount: { color: WHITE, fontSize: fontSizes.sm - 1, opacity: 0.9 },
   actions: { flexDirection: 'row', gap: 8, paddingHorizontal: spacing.md, paddingTop: spacing.sm + 4, paddingBottom: 2 },
   action: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.surfaceAlt, borderRadius: radius.full, paddingHorizontal: 13, paddingVertical: 9 },
   actionText: { color: colors.textPrimary, fontSize: fontSizes.sm - 1, fontWeight: '700' },
