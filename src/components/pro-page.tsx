@@ -40,7 +40,8 @@ import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 
 const WHITE = '#FFFFFF';
 // 292 (was 250, Scott 2026-10-25): room between the top row and the avatar.
-const COVER_H = 292;
+const COVER_H = 340;
+const TOP_BTN = 34;
 const COLLAPSED_DESCRIPTION_CHARS = 280;
 
 function openLink(url: string): void {
@@ -175,11 +176,13 @@ export function ProPage({ pro, isOwner }: Props) {
           </Pressable>
         </View>
 
+        {/* The pro's title (name or company) heads the photo, under the top row. */}
+        <AppText style={[styles.name, { top: Math.max(10, insets.top - 14) + TOP_BTN + 14 }]} numberOfLines={2}>{pro.display_name}</AppText>
+
         <View style={styles.identity}>
           <View style={styles.avatarRing}>
             <UserAvatar name={pro.display_name} avatarUrl={avatarUrl} size={58} />
           </View>
-          <AppText style={styles.name} numberOfLines={2}>{pro.display_name}</AppText>
           {professionsLabel ? (
             <AppText style={styles.professions} numberOfLines={2}>{professionsLabel}</AppText>
           ) : null}
@@ -390,10 +393,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   topRow: { position: 'absolute', left: 12, right: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
   proBadge: { backgroundColor: PRO_GOLD, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 4 },
   proBadgeText: { color: PRO_GOLD_INK, fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
-  topBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
+  topBtn: { width: TOP_BTN, height: TOP_BTN, borderRadius: TOP_BTN / 2, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   identity: { position: 'absolute', left: 18, right: 18, bottom: 12, gap: 5 },
   avatarRing: { alignSelf: 'flex-start', borderWidth: 3, borderColor: WHITE, borderRadius: 32, marginBottom: 3, ...shadows.card },
-  name: { color: WHITE, fontSize: 22, fontWeight: '800', lineHeight: 25, letterSpacing: -0.4, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8, textShadowOffset: { width: 0, height: 1 } },
+  name: { position: 'absolute', left: 18, right: 18, color: WHITE, fontSize: 26, fontWeight: '800', lineHeight: 30, letterSpacing: -0.4, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8, textShadowOffset: { width: 0, height: 1 } },
   professions: { color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
   placeRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   place: { flex: 1, color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '600', opacity: 0.95, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
