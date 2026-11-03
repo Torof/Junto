@@ -42,6 +42,7 @@ const WHITE = '#FFFFFF';
 // 292 (was 250, Scott 2026-10-25): room between the top row and the avatar.
 const COVER_H = 340;
 const TOP_BTN = 34;
+const AVATAR = 72;
 const COLLAPSED_DESCRIPTION_CHARS = 280;
 
 function openLink(url: string): void {
@@ -181,7 +182,7 @@ export function ProPage({ pro, isOwner }: Props) {
 
         <View style={styles.identity}>
           <View style={styles.avatarRing}>
-            <UserAvatar name={pro.display_name} avatarUrl={avatarUrl} size={58} />
+            <UserAvatar name={pro.display_name} avatarUrl={avatarUrl} size={AVATAR} />
           </View>
           {professionsLabel ? (
             <AppText style={styles.professions} numberOfLines={2}>{professionsLabel}</AppText>
@@ -395,7 +396,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   proBadgeText: { color: PRO_GOLD_INK, fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
   topBtn: { width: TOP_BTN, height: TOP_BTN, borderRadius: TOP_BTN / 2, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   identity: { position: 'absolute', left: 18, right: 18, bottom: 12, gap: 5 },
-  avatarRing: { alignSelf: 'flex-start', borderWidth: 3, borderColor: WHITE, borderRadius: 32, marginBottom: 3, ...shadows.card },
+  avatarRing: { alignSelf: 'flex-start', borderWidth: 3, borderColor: WHITE, borderRadius: AVATAR / 2 + 3, marginBottom: 3, ...shadows.card },
   name: { position: 'absolute', left: 18, right: 18, color: WHITE, fontSize: 26, fontWeight: '800', lineHeight: 30, letterSpacing: -0.4, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8, textShadowOffset: { width: 0, height: 1 } },
   professions: { color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
   placeRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
