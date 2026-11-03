@@ -31,7 +31,7 @@ import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 // chip up on the photo, only the title and rating on it, the price as a white
 // tag under the gold SORTIE ENCADRÉE pill; the pro appears as a « par » strip
 // under the photo; the facts in a 2×2 grid; about; gear provided / to bring;
-// reviews of this outing; four photos; the sticky price + Réserver bar. The
+// reviews of this outing; three photos; the sticky price + Réserver bar. The
 // slots are chosen behind Réserver, never on the page.
 
 const WHITE = '#FFFFFF';
