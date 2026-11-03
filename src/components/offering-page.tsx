@@ -359,8 +359,8 @@ export function OfferingPage({ offering, isOwner }: Props) {
         </View>
         {allPhotos.length > 0 ? (
           <View style={styles.thumbs}>
-            {allPhotos.slice(0, 4).map((url, i) => {
-              const more = i === 3 && allPhotos.length > 4 ? allPhotos.length - 4 : 0;
+            {allPhotos.slice(0, 3).map((url, i) => {
+              const more = i === 2 && allPhotos.length > 3 ? allPhotos.length - 3 : 0;
               return (
                 <Pressable key={`${url}-${i}`} style={styles.thumbWrap} onPress={openPhotos}>
                   <Image source={{ uri: url }} style={styles.thumb} contentFit="cover" cachePolicy="memory-disk" />
@@ -368,8 +368,8 @@ export function OfferingPage({ offering, isOwner }: Props) {
                 </Pressable>
               );
             })}
-            {/* Always four slots: one photo stays a thumbnail, not a full-width square. */}
-            {Array.from({ length: Math.max(0, 4 - allPhotos.length) }, (_, i) => <View key={`slot-${i}`} style={styles.thumbSlot} />)}
+            {/* Always three slots: one photo stays a thumbnail, not a full-width square. */}
+            {Array.from({ length: Math.max(0, 3 - allPhotos.length) }, (_, i) => <View key={`slot-${i}`} style={styles.thumbSlot} />)}
           </View>
         ) : (
           <View style={[styles.inset, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>

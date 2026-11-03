@@ -32,7 +32,7 @@ import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 // full page, the photo at its usual height with the identity on it (avatar,
 // PRO in gold, name, profession · place, sport labels, rating), the contact
 // actions right under, ONE featured outing + a banner to the catalogue, the
-// reviews (big rating + two reviews, discreet link), four photo thumbnails,
+// reviews (big rating + two reviews, discreet link), three photo thumbnails,
 // about, then the address and links. No tabs: the old tabs live behind the
 // links (`?tab=catalog|reviews|pictures`, ProDetail).
 //
@@ -306,7 +306,7 @@ export function ProPage({ pro, isOwner }: Props) {
         </View>
       ))}
 
-      {/* ===== Photos — four thumbnails, the page behind ===== */}
+      {/* ===== Photos — three thumbnails, the page behind ===== */}
       <View style={styles.head}>
         <AppText style={styles.sec}>
           {t('pro.tab.pictures', { defaultValue: 'Photos' })}{allPhotos.length > 0 ? <AppText style={styles.sub}>{`  · ${allPhotos.length}`}</AppText> : null}
@@ -317,8 +317,8 @@ export function ProPage({ pro, isOwner }: Props) {
       </View>
       {allPhotos.length > 0 ? (
         <View style={styles.thumbs}>
-          {allPhotos.slice(0, 4).map((url, i) => {
-            const more = i === 3 && allPhotos.length > 4 ? allPhotos.length - 4 : 0;
+          {allPhotos.slice(0, 3).map((url, i) => {
+            const more = i === 2 && allPhotos.length > 3 ? allPhotos.length - 3 : 0;
             return (
               <Pressable key={`${url}-${i}`} style={styles.thumbWrap} onPress={() => openTab('pictures')}>
                 <Image source={{ uri: url }} style={styles.thumb} contentFit="cover" cachePolicy="memory-disk" />
@@ -326,8 +326,8 @@ export function ProPage({ pro, isOwner }: Props) {
               </Pressable>
             );
           })}
-          {/* Always four slots: one photo stays a thumbnail, not a full-width square. */}
-          {Array.from({ length: Math.max(0, 4 - allPhotos.length) }, (_, i) => <View key={`slot-${i}`} style={styles.thumbSlot} />)}
+          {/* Always three slots: one photo stays a thumbnail, not a full-width square. */}
+          {Array.from({ length: Math.max(0, 3 - allPhotos.length) }, (_, i) => <View key={`slot-${i}`} style={styles.thumbSlot} />)}
         </View>
       ) : (
         <View style={[styles.inset, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
