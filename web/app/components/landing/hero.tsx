@@ -69,7 +69,8 @@ export default function Hero({ outings, offers, playUrl }: { outings: OutingRow[
           <a href="#departs">Rejoindre</a>
           <a href="#lancer">Lancer</a>
           <a href="#partenaires">Partenaires</a>
-          <a href="#pros">Pros</a>
+          {/* The pros have their own page (2026-11-03); on the phone this link moves to the chips. */}
+          <a href="/pros" className="l-nav-pro"><span className="l-gold">PRO</span>Pour les pros</a>
           <a href="#telecharger" className="l-nav-cta">Télécharger</a>
         </div>
       </nav>
@@ -79,6 +80,7 @@ export default function Hero({ outings, offers, playUrl }: { outings: OutingRow[
           {chips.map((c) => (
             <span key={c.text} className="l-chip">{c.dot && <span className="l-chip-dot" />}{c.text}</span>
           ))}
+          <a href="/pros" className="l-hero-pro"><span className="l-gold">PRO</span>Pour les pros →</a>
         </div>
         <h1 className="l-h1 l-rise-2">Ta prochaine aventure est déjà <em>sur la carte.</em></h1>
         <p className="l-hero-sub l-rise-3">Tu arrives sur une carte. Quatre choses à y faire :</p>

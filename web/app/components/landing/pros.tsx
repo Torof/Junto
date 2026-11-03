@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { IconChevron, IconClock, IconMountain, IconPin } from './icons';
+import { IconCheck, IconChevron, IconClock, IconMountain, IconPin } from './icons';
 import { formatDuration, formatPrice, initials, type OfferRow } from './data';
 import SportGlyph, { hasSportGlyph } from './sport-glyph';
 import { norm, sportLabel, universeColor } from './tokens';
@@ -94,13 +94,34 @@ export default function Pros({ offers }: { offers: OfferRow[] }) {
           </div>
         )}
 
-        <div className="l-pro-pitch">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: '60ch' }}>
-            <strong style={{ fontSize: 16 }}>Vous êtes guide, moniteur, ou un bureau ?</strong>
-            <span style={{ fontSize: 15, lineHeight: 1.6, color: '#6B6259' }}>Une vitrine, vos offres épinglées sur la carte, un agenda, les réservations et les échanges clients — dans l&apos;app, sans commission.</span>
+        {/* The way to the pros page (2026-11-03): a dark map card, the whole card is the link. */}
+        <a href="/pros" className="l-pt">
+          <img src="/hero-map-ecrins.jpg" alt="" />
+          <div className="l-pt-shade" />
+          <div className="l-pt-grad" />
+          <div className="l-pt-col">
+            <span className="l-pt-chip"><span className="l-gold">PRO</span>Guide, moniteur, accompagnateur ?</span>
+            <h3 className="l-pt-h">Ta vitrine. <em>Et ton outil d&apos;organisation.</em></h3>
+            <div className="l-pt-list"><span>Tes offres sur la carte</span><span>Agenda et réservations</span><span>Fiches du groupe</span><span>Échanges clients</span></div>
+            <span className="l-pt-cta">Découvrir l&apos;espace pro <span aria-hidden>→</span></span>
           </div>
-          <a href="#telecharger" className="l-btn">Créer ma page pro</a>
-        </div>
+          <div className="l-pt-stack" aria-hidden>
+            <div className="l-pt-card l-pt-row l-pt-out">
+              <span className="l-pt-disc"><SportGlyph sportKey="climbing-sport" size={22} color="#FFFFFF" /></span>
+              <div style={{ flex: 1, minWidth: 0 }}><div className="l-pt-t">Initiation falaise</div><div className="l-pt-s">Ailefroide · ★ 4,8 · 3h</div></div>
+              <span className="l-pt-t">45 €</span>
+              <span className="l-pt-blue">Réserver</span>
+            </div>
+            <div className="l-pt-card l-pt-in">
+              <div className="l-pt-row"><div><div className="l-pt-t">Camille · 3 pers.</div><div className="l-pt-s">Initiation falaise · sam. 17, matin</div></div><span className="l-pt-green">Accepter</span></div>
+              <div className="l-pt-week"><i className="r" /><i /><i className="o" /><i className="r" /><i /><i className="p" /><i className="r" /></div>
+            </div>
+            <div className="l-pt-card l-pt-row l-pt-out" style={{ justifyContent: 'flex-start' }}>
+              <span className="l-pt-ok"><IconCheck size={18} color="#246342" width2={3} /></span>
+              <div><div className="l-pt-t">Fiche du groupe reçue</div><div className="l-pt-s">Pointures, tailles, poids · 3 participants</div></div>
+            </div>
+          </div>
+        </a>
       </div>
     </section>
   );
