@@ -5,6 +5,7 @@ import Svg, { Path, G, Rect, Text as SvgText, ClipPath, Image as SvgImage, SvgXm
 import { type AppColors } from '@/constants/colors';
 import { useColors } from '@/hooks/use-theme';
 import { useSports } from '@/hooks/use-sports';
+import { useCachedImageUri } from '@/hooks/use-cached-image-uri';
 import { SPORT_CATEGORY_COLORS } from '@/utils/sport-category-color';
 import { SPORT_ICON_XML } from '@/constants/sport-icon-svgs';
 import { PRO_PICTO_XML } from '@/constants/pro-pictos';
@@ -113,6 +114,8 @@ export function ProPin({ displayName, pinIcon, profession, pinImageUrl }: ProPin
   }, [sports]);
 
   const look = proPinLook({ pin_image_url: pinImageUrl, pin_icon: pinIcon, profession }, categoryOf);
+  // The photo from expo-image's disk cache — the svg <Image> would download it on every mount.
+  const imageUri = useCachedImageUri(look.kind === 'image' ? pinImageUrl : null);
   const universeColor = look.universe ? SPORT_CATEGORY_COLORS[look.universe] : undefined;
   const ground = universeColor ? tint(universeColor, TINT_ALPHA) : colors.pinBackground;
   const ink = colors.pinBorder;
@@ -126,11 +129,11 @@ export function ProPin({ displayName, pinIcon, profession, pinImageUrl }: ProPin
     <View style={styles.wrapper}>
       <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox={`${-PIN_PAD_X} ${-PIN_PAD_Y} ${VIEWBOX_W} ${VIEWBOX_H}`}>
         <PinBody fill={ground} outline={PRO_GOLD} path={PIN_SHIELD_PATH} edge={PIN_SHIELD_EDGE} />
-        {look.kind === 'image' && (
+        {look.kind === 'image' && imageUri && (
           <>
             <ClipPath id="proShieldClip"><Path d={PIN_SHIELD_PATH} /></ClipPath>
             <SvgImage
-              href={{ uri: pinImageUrl ?? undefined }}
+              href={{ uri: imageUri }}
               x={IMAGE_BOX.x}
               y={IMAGE_BOX.y}
               width={IMAGE_BOX.w}
