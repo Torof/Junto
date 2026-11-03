@@ -103,16 +103,17 @@ function ProPin({ left, top, color, sportKey, scale = 1, label }: {
   );
 }
 
-// Small flat landscapes in place of photos (no stock photo on the site).
-const THUMBS: [string, string, string][] = [
-  ['#C9DCEC', '#8FAF96', '#5C8A6A'], ['#E8D9C4', '#B9A27F', '#7D6A4E'],
-  ['#BCD3EA', '#6E9BC7', '#3F6F9E'], ['#DDE6D3', '#9BB58B', '#6A8A5A'],
-];
+// Free-licensed photos from Wikimedia Commons (public/pros/CREDITS.txt,
+// credited under section 1) — never the app's demo photos, which are not ours.
+const THUMBS = ['thumb-cordee.jpg', 'thumb-falaise-ecole.jpg', 'thumb-via-ferrata.jpg', 'thumb-ceuse.jpg'];
 
-function Offer({ sportKey, title, sub, price }: { sportKey: string; title: string; sub: string; price: string }) {
+function Offer({ sportKey, photo, title, sub, price }: { sportKey: string; photo: string; title: string; sub: string; price: string }) {
   return (
     <div className="pp-offer">
-      <span className="pp-disc" style={{ background: MOUNTAIN }}><SportGlyph sportKey={sportKey} size={19} color="#FFFFFF" /></span>
+      <span className="pp-ophoto">
+        <img src={`/pros/${photo}`} alt="" />
+        <span className="pp-disc" style={{ background: MOUNTAIN }}><SportGlyph sportKey={sportKey} size={13} color="#FFFFFF" /></span>
+      </span>
       <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 800, fontSize: 14.5 }}>{title}</div><div className="l-small">{sub}</div></div>
       <div style={{ textAlign: 'right' }}><div style={{ fontWeight: 800, fontSize: 16 }}>{price}</div><span className="l-btn sm" style={{ marginTop: 4 }}>Réserver</span></div>
     </div>
@@ -139,13 +140,7 @@ export function ProsShowcase() {
 
           <div className="pp-page">
             <div className="pp-cover">
-              <svg viewBox="0 0 400 128" preserveAspectRatio="xMidYMid slice" aria-hidden>
-                <rect width="400" height="128" fill="#BFD6E9" />
-                <path d="M0 92 L60 40 L100 70 L160 18 L220 76 L270 44 L330 88 L400 52 V128 H0Z" fill="#7FA48A" />
-                <path d="M160 18 L178 36 L168 34 L160 42 L151 34 L142 36Z" fill="#FFFFFF" />
-                <path d="M0 110 L80 72 L140 98 L210 66 L290 104 L350 80 L400 98 V128 H0Z" fill="#4A7C59" />
-                <path d="M0 122 C80 112 160 120 240 116 C320 112 360 122 400 118 V128 H0Z" fill="#3B6548" />
-              </svg>
+              <img src="/pros/cover-ecrins.jpg" alt="" />
               <span className="l-gold">PRO</span>
             </div>
             <div className="pp-ident"><div className="pp-avatar">LA</div></div>
@@ -160,17 +155,13 @@ export function ProsShowcase() {
                 <span className="pp-chip"><IconChat size={14} color="#246342" width2={2.2} />Écrire</span>
                 <span className="pp-chip"><IconNavigation size={14} color="#246342" width2={2.2} />Itinéraire</span>
               </div>
-              <Offer sportKey="climbing-sport" title="Initiation falaise à Ailefroide" sub="3h · Tous niveaux · jusqu'à 6 pers." price="45 €" />
-              <Offer sportKey="via-ferrata" title="Via ferrata des Vigneaux" sub="3h30 · Tous niveaux · jusqu'à 8 pers." price="55 €" />
+              <Offer sportKey="climbing-sport" photo="offer-initiation.jpg" title="Initiation falaise à Ailefroide" sub="3h · Tous niveaux · jusqu'à 6 pers." price="45 €" />
+              <Offer sportKey="via-ferrata" photo="offer-via-ferrata.jpg" title="Via ferrata des Vigneaux" sub="3h30 · Tous niveaux · jusqu'à 8 pers." price="55 €" />
               <div className="pp-thumbs" aria-hidden>
-                {THUMBS.map(([a, b, c], i) => (
-                  <div key={i} className="pp-thumb">
-                    <svg viewBox="0 0 60 60" preserveAspectRatio="xMidYMid slice">
-                      <rect width="60" height="60" fill={a} />
-                      <path d={`M0 42 L${14 + i * 3} 22 L28 36 L${40 - i * 2} 16 L60 38 V60 H0Z`} fill={b} />
-                      <path d="M0 52 L20 40 L36 50 L60 44 V60 H0Z" fill={c} />
-                    </svg>
-                    {i === THUMBS.length - 1 && <span className="pp-more">+2</span>}
+                {THUMBS.map((t, i) => (
+                  <div key={t} className="pp-thumb">
+                    <img src={`/pros/${t}`} alt="" />
+                    {i === THUMBS.length - 1 && <span className="pp-more">+8</span>}
                   </div>
                 ))}
               </div>
@@ -178,6 +169,13 @@ export function ProsShowcase() {
             </div>
           </div>
         </div>
+        <p className="pp-credits">
+          Photos : <a href="https://commons.wikimedia.org/wiki/File:Pic_de_Neige_Cordier_1.jpg">Nouill</a> (CC BY 4.0),{' '}
+          <a href="https://commons.wikimedia.org/wiki/File:Climbing_rock_@_Duingt_@_Hike_to_Taillefer_%26_Montagne_d%27Entrevernes_(15115775798).jpg">Guilhem Vellut</a> (CC BY 2.0),{' '}
+          Kent Wang (<a href="https://commons.wikimedia.org/wiki/File:Via_Ferrata_du_Tichodrome_02.jpg">1</a>, <a href="https://commons.wikimedia.org/wiki/File:Via_Ferrata_du_Tichodrome_03.jpg">2</a>, CC BY 4.0),{' '}
+          <a href="https://commons.wikimedia.org/wiki/File:Ceuse_Rock_Climbing_Area.jpg">antoine73</a> (CC BY 3.0),{' '}
+          <a href="https://commons.wikimedia.org/wiki/File:Climber_and_belayer_at_Echo_T_(49411673851).jpg">Joshua Tree National Park</a> (domaine public) — via Wikimedia Commons, recadrées.
+        </p>
       </div>
     </section>
   );

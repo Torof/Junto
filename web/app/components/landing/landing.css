@@ -402,7 +402,7 @@
 
 .pp-page { flex: 1 1 380px; min-width: 0; background: #FFFFFF; border: 1px solid rgba(31,26,21,0.32); border-radius: 18px; overflow: hidden; box-shadow: 0 6px 18px rgba(31,26,21,0.10); display: flex; flex-direction: column; }
 .pp-cover { position: relative; height: 128px; background: #4A7C59; }
-.pp-cover svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pp-cover > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .pp-cover .l-gold { position: absolute; top: 12px; left: 14px; font-size: 11px; padding: 4px 10px; }
 .pp-ident { position: relative; padding: 0 18px; margin-top: -30px; }
 .pp-avatar { width: 64px; height: 64px; border-radius: 50%; border: 3px solid #FFFFFF; background: #DCE5D3; color: #3F7A56; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(31,26,21,0.18); }
@@ -415,7 +415,12 @@
 .pp-disc { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .pp-thumbs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .pp-thumb { aspect-ratio: 1; border-radius: 10px; overflow: hidden; position: relative; }
-.pp-thumb svg { width: 100%; height: 100%; display: block; }
+.pp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pp-ophoto { position: relative; width: 52px; height: 52px; flex-shrink: 0; }
+.pp-ophoto > img { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; display: block; }
+.pp-ophoto .pp-disc { position: absolute; right: -5px; bottom: -5px; width: 24px; height: 24px; border: 2px solid #F1EFEA; }
+.pp-credits { margin: 0; font-size: 11px; line-height: 1.5; color: #A0968A; }
+.pp-credits a { color: inherit; }
 .pp-more { position: absolute; inset: 0; background: rgba(15,12,9,0.5); color: #FFFFFF; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; }
 .pp-review { border-left: 3px solid #F2B705; padding: 2px 0 2px 12px; font-size: 13.5px; line-height: 1.5; color: #1F1A15; }
 
