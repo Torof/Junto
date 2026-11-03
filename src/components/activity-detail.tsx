@@ -1680,9 +1680,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginBottom: spacing.md,
     position: 'relative',
     backgroundColor: colors.surfaceAlt,
-    // Soften the seam where the full-bleed map meets the paper below.
-    borderBottomLeftRadius: radius.lg,
-    borderBottomRightRadius: radius.lg,
+    // Square bottom corners: the map meets the page in a straight line (Scott 2026-11-03).
   },
   heroScrim: { position: 'absolute', left: 0, right: 0, bottom: 0 },
   heroMetaLine: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 7, flexWrap: 'wrap' },
