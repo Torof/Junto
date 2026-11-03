@@ -14,6 +14,7 @@ import { FavoriteButton } from '@/components/favorite-button';
 import { PressableScale } from '@/components/pressable-scale';
 import { SportIcon } from '@/components/sport-icon';
 import { StarRating } from '@/components/star-rating';
+import { Bone } from '@/components/skeleton-bone';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius, shadows, glow } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
@@ -71,11 +72,11 @@ export function OfferingPage({ offering, isOwner }: Props) {
     queryKey: ['review-stats', 'pro', offering.pro_id],
     queryFn: () => reviewService.getProStats(offering.pro_id),
   });
-  const { data: photos = [] } = useQuery({
+  const { data: photos = [], isLoading: photosLoading } = useQuery({
     queryKey: ['pro-offering-photos', offering.id],
     queryFn: () => proOfferingPhotoService.listByOffering(offering.id),
   });
-  const { data: communityPhotos = [] } = useQuery({
+  const { data: communityPhotos = [], isLoading: communityLoading } = useQuery({
     queryKey: ['offering-community-photos', offering.id],
     queryFn: () => proCommunityPhotoService.listByOffering(offering.id),
   });
@@ -83,7 +84,7 @@ export function OfferingPage({ offering, isOwner }: Props) {
     queryKey: ['reviews', 'offering', offering.id],
     queryFn: () => reviewService.getForOffering(offering.id),
   });
-  const { data: stats } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['review-stats', 'offering', offering.id],
     queryFn: () => reviewService.getOfferingStats(offering.id),
   });
@@ -331,6 +332,11 @@ export function OfferingPage({ offering, isOwner }: Props) {
               <AppText style={styles.sub}>{t('pro.page.reviewCount', { defaultValue: '{{count}} avis', count: stats!.review_count })}</AppText>
             </View>
           </View>
+        ) : statsLoading ? (
+          <View style={styles.ratingBlock}>
+            <Bone width={58} height={34} />
+            <View style={{ gap: 6 }}><Bone width={90} height={14} /><Bone width={50} height={12} /></View>
+          </View>
         ) : (
           <AppText style={[styles.sub, styles.inset]}>{t('reviews.empty', { defaultValue: 'Aucun avis pour le moment.' })}</AppText>
         )}
@@ -370,6 +376,10 @@ export function OfferingPage({ offering, isOwner }: Props) {
             })}
             {/* Always three slots: one photo stays a thumbnail, not a full-width square. */}
             {Array.from({ length: Math.max(0, 3 - allPhotos.length) }, (_, i) => <View key={`slot-${i}`} style={styles.thumbSlot} />)}
+          </View>
+        ) : photosLoading || communityLoading ? (
+          <View style={styles.thumbs}>
+            {[0, 1, 2].map((i) => <Bone key={i} width="auto" style={styles.thumbBone} />)}
           </View>
         ) : (
           <View style={[styles.inset, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
@@ -443,6 +453,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   thumbWrap: { flex: 1, aspectRatio: 1, borderRadius: 10, overflow: 'hidden', backgroundColor: colors.surfaceAlt },
   thumb: { width: '100%', height: '100%' },
   thumbSlot: { flex: 1 },
+  thumbBone: { flex: 1, aspectRatio: 1, borderRadius: 10 },
   thumbMore: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,12,9,0.5)', alignItems: 'center', justifyContent: 'center' },
   thumbMoreText: { color: WHITE, fontSize: fontSizes.sm, fontWeight: '800' },
   sticky: {

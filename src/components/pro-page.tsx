@@ -16,6 +16,7 @@ import { PressableScale } from '@/components/pressable-scale';
 import { SportIcon } from '@/components/sport-icon';
 import { PhotoLightbox } from '@/components/photo-lightbox';
 import { StarRating } from '@/components/star-rating';
+import { Bone } from '@/components/skeleton-bone';
 import { useColors } from '@/hooks/use-theme';
 import { useProPhotos } from '@/hooks/use-pro-photos';
 import { fontSizes, spacing, radius, glow } from '@/constants/theme';
@@ -79,12 +80,12 @@ export function ProPage({ pro, isOwner }: Props) {
   const [descExpanded, setDescExpanded] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
 
-  const { data: offerings = [] } = useQuery({
+  const { data: offerings = [], isLoading: offeringsLoading } = useQuery({
     queryKey: ['pro-offerings', 'by-pro', pro.user_id],
     queryFn: () => proOfferingService.getByProId(pro.user_id),
   });
-  const { data: photos = [] } = useProPhotos(pro.user_id);
-  const { data: communityPhotos = [] } = useQuery({
+  const { data: photos = [], isLoading: photosLoading } = useProPhotos(pro.user_id);
+  const { data: communityPhotos = [], isLoading: communityLoading } = useQuery({
     queryKey: ['community-photos', pro.user_id],
     queryFn: () => proCommunityPhotoService.listByPro(pro.user_id),
   });
@@ -92,7 +93,7 @@ export function ProPage({ pro, isOwner }: Props) {
     queryKey: ['reviews', 'pro', pro.user_id],
     queryFn: () => reviewService.getForPro(pro.user_id),
   });
-  const { data: reviewStats } = useQuery({
+  const { data: reviewStats, isLoading: statsLoading } = useQuery({
     queryKey: ['review-stats', 'pro', pro.user_id],
     queryFn: () => reviewService.getProStats(pro.user_id),
   });
@@ -255,7 +256,12 @@ export function ProPage({ pro, isOwner }: Props) {
             ) : null}
           </View>
         </Pressable>
-      )) : isOwner ? (
+      )) : offeringsLoading ? (
+        <>
+          <Bone width="auto" height={116} style={styles.cardBone} />
+          <Bone width="auto" height={116} style={styles.cardBone} />
+        </>
+      ) : isOwner ? (
         <PressableScale style={styles.banner} onPress={() => router.push('/(auth)/pro/offering/edit')} accessibilityRole="button">
           <Plus size={18} color={colors.textPrimary} strokeWidth={2.6} />
           <AppText style={styles.bannerText}>{t('pro.page.firstOuting', { defaultValue: 'Ajoute ta première sortie' })}</AppText>
@@ -288,6 +294,11 @@ export function ProPage({ pro, isOwner }: Props) {
             <StarRating rating={Number(reviewStats!.avg_rating)} size={16} />
             <AppText style={styles.sub}>{t('pro.page.reviewCount', { defaultValue: '{{count}} avis', count: reviewStats!.review_count })}</AppText>
           </View>
+        </View>
+      ) : statsLoading ? (
+        <View style={styles.ratingBlock}>
+          <Bone width={58} height={34} />
+          <View style={{ gap: 6 }}><Bone width={90} height={14} /><Bone width={50} height={12} /></View>
         </View>
       ) : (
         <AppText style={[styles.sub, styles.inset]}>{t('reviews.empty', { defaultValue: 'Aucun avis pour le moment.' })}</AppText>
@@ -328,6 +339,10 @@ export function ProPage({ pro, isOwner }: Props) {
           })}
           {/* Always three slots: one photo stays a thumbnail, not a full-width square. */}
           {Array.from({ length: Math.max(0, 3 - allPhotos.length) }, (_, i) => <View key={`slot-${i}`} style={styles.thumbSlot} />)}
+        </View>
+      ) : photosLoading || communityLoading ? (
+        <View style={styles.thumbs}>
+          {[0, 1, 2].map((i) => <Bone key={i} width="auto" style={styles.thumbBone} />)}
         </View>
       ) : (
         <View style={[styles.inset, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
@@ -448,6 +463,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   thumbWrap: { flex: 1, aspectRatio: 1, borderRadius: 10, overflow: 'hidden', backgroundColor: colors.surfaceAlt },
   thumb: { width: '100%', height: '100%' },
   thumbSlot: { flex: 1 },
+  thumbBone: { flex: 1, aspectRatio: 1, borderRadius: 10 },
+  cardBone: { marginHorizontal: spacing.md, marginBottom: spacing.sm + 2, borderRadius: 18 },
   thumbMore: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,12,9,0.5)', alignItems: 'center', justifyContent: 'center' },
   thumbMoreText: { color: WHITE, fontSize: fontSizes.sm, fontWeight: '800' },
   tagline: { color: colors.textPrimary, fontSize: fontSizes.sm + 1, fontWeight: '700', lineHeight: 21 },
