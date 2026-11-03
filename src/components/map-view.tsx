@@ -185,6 +185,9 @@ type FanState = { key: string; center: [number, number]; zoom: number; radiusPx:
 const LABEL_CAL_IMG = require('../../assets/label-cal.png');
 const LABEL_LVL_IMG = require('../../assets/label-level.png');
 const FAN_HALO_PAD = 28;
+// Share of the visible width/height added on EACH side when building pins
+// (see `clusters`): 0.5 = half a screen. Lower it if panning gets heavy.
+const CLUSTER_PAD = 0.5;
 // Below this zoom the fan would open among the neighbours: zoom in to it first.
 const FAN_MIN_ZOOM = 15;
 // Each pin stays INSIDE the halo and grazes its edge from within (Scott
@@ -430,7 +433,18 @@ export function JuntoMapView({
   const clusters = useMemo(
     // round (not floor) so declustering happens ~half a zoom level earlier
     // — floor made pins feel "stuck" clustered until a full level crossed.
-    () => cluster.getClusters(bounds, Math.round(currentZoom)),
+    // Bounds padded by half a screen on each side: pins are built only when
+    // the camera settles, so a pan or zoom used to reveal an empty edge for a
+    // second (Scott 2026-11-03). Pins just off-screen now already exist.
+    () => {
+      const [w, s, e, n] = bounds;
+      const padX = (e - w) * CLUSTER_PAD;
+      const padY = (n - s) * CLUSTER_PAD;
+      return cluster.getClusters(
+        [Math.max(-180, w - padX), Math.max(-90, s - padY), Math.min(180, e + padX), Math.min(90, n + padY)],
+        Math.round(currentZoom),
+      );
+    },
     [cluster, bounds, currentZoom],
   );
 
