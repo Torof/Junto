@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import QRCode from 'qrcode';
 
 async function qrFor(url: string): Promise<string> {
@@ -7,15 +8,18 @@ async function qrFor(url: string): Promise<string> {
 // « Télécharger » — the closing band, map echo behind. Play link when the
 // listing is public, the direct Android build meanwhile; iOS = announced only
 // (the waitlist form called an RPC that never existed — removed 2026-10-22).
-export default async function Download({ playUrl, isPlayStore }: { playUrl: string; isPlayStore: boolean }) {
+// `heading` / `lead` let the /pros page close on its own words.
+export default async function Download({ playUrl, isPlayStore, heading, lead }: {
+  playUrl: string; isPlayStore: boolean; heading?: ReactNode; lead?: string;
+}) {
   const qr = await qrFor(playUrl);
   return (
     <section id="telecharger" className="l-dl">
       <img className="l-dl-img" src="/hero-map-ecrins.jpg" alt="" />
       <div className="l-dl-wrap">
         <div style={{ flex: '1 1 420px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <h2 className="l-dl-h2">Fini le sport solo.<br /><em>Va sur askandgo.</em></h2>
-          <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: 'rgba(255,255,255,0.8)', maxWidth: '48ch' }}>Gratuit, sans publicité, sans revente de données. Pensé dans les Hautes-Alpes, pour partout.</p>
+          <h2 className="l-dl-h2">{heading ?? <>Fini le sport solo.<br /><em>Va sur askandgo.</em></>}</h2>
+          <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: 'rgba(255,255,255,0.8)', maxWidth: '48ch' }}>{lead ?? 'Gratuit, sans publicité, sans revente de données. Pensé dans les Hautes-Alpes, pour partout.'}</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
             <a href={playUrl} className="l-btn-play">{isPlayStore ? 'Télécharger sur Google Play' : 'Télécharger l’app Android'}</a>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Android 9 et plus</span>
