@@ -390,11 +390,18 @@ export function ActivityDetail({
   const selfPresence = participation?.self_presence ?? null;
   const fmtTime = (ms: number) => dayjs(ms).format('HH:mm');
   const fmtDate = (ms: number) => dayjs(ms).format('DD/MM');
+  // « dans 25 minutes » · « dans 5 heures » · « dans 3 jours et 6 heures »
+  // (was « dans 428 heures », Scott 2026-11-03).
   const relFuture = (ms: number) => {
     const mins = Math.max(1, Math.ceil((ms - nowMs) / 60000));
-    return mins >= 60
-      ? t('presence.inHours', { count: Math.round(mins / 60) })
-      : t('presence.inMinutes', { count: mins });
+    if (mins < 60) return t('presence.inMinutes', { count: mins });
+    if (mins < 24 * 60) return t('presence.inHours', { count: Math.round(mins / 60) });
+    let days = Math.floor(mins / (24 * 60));
+    let hours = Math.round((mins - days * 24 * 60) / 60);
+    if (hours === 24) { days += 1; hours = 0; }
+    return hours === 0
+      ? t('presence.inDays', { count: days })
+      : t('presence.inDaysHours', { days: t('presence.nDays', { count: days }), hours: t('presence.nHours', { count: hours }) });
   };
   const relPast = (ms: number) => {
     const mins = Math.max(1, Math.round((nowMs - ms) / 60000));
@@ -1074,18 +1081,24 @@ export function ActivityDetail({
                 a page with no mention of presence at all. */}
             {presenceNotYetOpen && (
               <View style={[styles.statusBannerTop, { flexDirection: 'column', alignItems: 'flex-start', backgroundColor: colors.surface }]}>
-                <AppText style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary }]}>
-                  {t('presence.opensAt', {
-                    time: fmtTime(geoOpenMs),
-                    countdown: relFuture(geoOpenMs),
-                    qrClose: fmtTime(qrCloseMs),
-                  })}
+                {/* Two short lines (Scott 2026-11-03): when it opens — with the
+                    day unless it's today — then how, with the QR deadline. */}
+                <AppText style={[styles.statusBannerText, { textAlign: 'left', color: colors.textSecondary, fontWeight: '500' }]}>
+                  <AppText style={[styles.statusBannerText, { color: colors.textPrimary, fontWeight: '800' }]}>
+                    {t('presence.notYetTitle')}
+                  </AppText>
+                  {' · '}
+                  {dayjs(geoOpenMs).isSame(dayjs(nowMs), 'day')
+                    ? t('presence.opensToday', { time: fmtTime(geoOpenMs), countdown: relFuture(geoOpenMs) })
+                    : t('presence.opensOn', { date: dayjs(geoOpenMs).format('ddd D MMM'), time: fmtTime(geoOpenMs), countdown: relFuture(geoOpenMs) })}
                 </AppText>
                 {/* Don't claim "geolocation validates you automatically" when it
                     can't: that needs the always-on location permission. This is
                     the last moment it's still fixable before the outing. */}
-                <AppText style={[styles.statusBannerText, { textAlign: 'left', marginTop: spacing.xs, color: bgLocationDenied ? colors.warning : colors.success }]}>
-                  {bgLocationDenied ? t('presence.autoArmedNo') : t('presence.autoArmedYes')}
+                <AppText style={[styles.statusBannerText, { textAlign: 'left', marginTop: spacing.xs, fontWeight: '600', color: bgLocationDenied ? colors.warning : colors.success }]}>
+                  {bgLocationDenied
+                    ? t('presence.autoArmedNo', { qrClose: fmtTime(qrCloseMs) })
+                    : t('presence.autoArmedYes', { qrClose: fmtTime(qrCloseMs) })}
                 </AppText>
                 {bgLocationDenied && (
                   <Pressable
