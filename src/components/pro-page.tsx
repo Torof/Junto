@@ -40,9 +40,9 @@ import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 
 const WHITE = '#FFFFFF';
 // 292 (was 250, Scott 2026-10-25): room between the top row and the avatar.
-const COVER_H = 340;
+const COVER_H = 350;
 const TOP_BTN = 34;
-const AVATAR = 72;
+const AVATAR = 80;
 const COLLAPSED_DESCRIPTION_CHARS = 280;
 
 function openLink(url: string): void {
@@ -177,13 +177,15 @@ export function ProPage({ pro, isOwner }: Props) {
           </Pressable>
         </View>
 
-        {/* The pro's title (name or company) heads the photo, under the top row. */}
-        <AppText style={[styles.name, { top: Math.max(10, insets.top - 14) + TOP_BTN + 14 }]} numberOfLines={2}>{pro.display_name}</AppText>
-
-        <View style={styles.identity}>
+        {/* The pro's title (name or company) heads the photo, the avatar centred under it. */}
+        <View style={[styles.coverHead, { top: Math.max(10, insets.top - 14) + TOP_BTN + 14 }]}>
+          <AppText style={styles.name} numberOfLines={2}>{pro.display_name}</AppText>
           <View style={styles.avatarRing}>
             <UserAvatar name={pro.display_name} avatarUrl={avatarUrl} size={AVATAR} />
           </View>
+        </View>
+
+        <View style={styles.identity}>
           {professionsLabel ? (
             <AppText style={styles.professions} numberOfLines={2}>{professionsLabel}</AppText>
           ) : null}
@@ -395,13 +397,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   proBadge: { backgroundColor: PRO_GOLD, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 4 },
   proBadgeText: { color: PRO_GOLD_INK, fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
   topBtn: { width: TOP_BTN, height: TOP_BTN, borderRadius: TOP_BTN / 2, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
-  identity: { position: 'absolute', left: 18, right: 18, bottom: 12, gap: 5 },
-  avatarRing: { alignSelf: 'flex-start', borderWidth: 3, borderColor: WHITE, borderRadius: AVATAR / 2 + 3, marginBottom: 3, ...shadows.card },
-  name: { position: 'absolute', left: 18, right: 18, color: WHITE, fontSize: 26, fontWeight: '800', lineHeight: 30, letterSpacing: -0.4, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8, textShadowOffset: { width: 0, height: 1 } },
-  professions: { color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
+  coverHead: { position: 'absolute', left: 18, right: 18, alignItems: 'center', gap: 10 },
+  identity: { position: 'absolute', left: 18, right: 18, bottom: 12, gap: 5, alignItems: 'center' },
+  avatarRing: { borderWidth: 3, borderColor: WHITE, borderRadius: AVATAR / 2 + 3, ...shadows.card },
+  name: { textAlign: 'center', color: WHITE, fontSize: 26, fontWeight: '800', lineHeight: 30, letterSpacing: -0.4, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8, textShadowOffset: { width: 0, height: 1 } },
+  professions: { textAlign: 'center', color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
   placeRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  place: { flex: 1, color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '600', opacity: 0.95, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
-  labels: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
+  place: { flexShrink: 1, color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '600', opacity: 0.95, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
+  labels: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6, marginTop: 2 },
   label: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 3 },
   labelText: { color: WHITE, fontSize: 11, fontWeight: '700' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 1 },
