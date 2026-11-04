@@ -40,7 +40,7 @@ import { ProIntro } from '@/components/pro-intro';
 
 // Register-or-update screen for the pro page (lot 2 pro, mockup validated
 // 2026-10-15):
-//   - becoming a pro asks FOUR things (name shown, legal name, identity,
+//   - becoming a pro asks FIVE things (name shown, professions, legal name, identity,
 //     place) — contact and about are folded away, optional;
 //   - the place is one gesture: a place search fills the town and drops the
 //     pin, the mini-map stays to adjust by hand;
@@ -456,7 +456,7 @@ export default function ProEditScreen() {
         </AppText>
         {!isApproved && (
           <AppText style={styles.subtitle}>
-            {t('pro.registerSubtitleShort', { defaultValue: 'Quatre infos suffisent. Le reste se complète plus tard, depuis ta page.' })}
+            {t('pro.registerSubtitleShort', { defaultValue: 'Cinq infos suffisent. Le reste se complète plus tard, depuis ta page.' })}
           </AppText>
         )}
 
