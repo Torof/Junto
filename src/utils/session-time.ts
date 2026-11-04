@@ -83,3 +83,13 @@ export function requestStarts(
   }
   return out;
 }
+
+// The pro's request window (Espace pro + agenda « Demandes »): 14 days back —
+// a multi-day outing begun earlier is still today's — to 6 months ahead, the
+// furthest a client can ask (create_booking, 00580). get_pro_agenda allows 12.
+export function requestsWindow(): { from: string; to: string } {
+  return {
+    from: dayjs().subtract(14, 'day').format('YYYY-MM-DD'),
+    to: dayjs().add(6, 'month').format('YYYY-MM-DD'),
+  };
+}

@@ -16,6 +16,7 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows, glow } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
+import { requestsWindow } from '@/utils/session-time';
 import { bookingService, type AgendaItem, type BookingPeriod } from '@/services/booking-service';
 import { proService } from '@/services/pro-service';
 import { UserAvatar } from '@/components/user-avatar';
@@ -65,11 +66,11 @@ export default function ProSpaceScreen() {
     enabled: proProfile?.status === 'rejected',
   });
 
-  // Fenêtre courte pour le dashboard (aujourd'hui + compteurs 7 j + demandes du
-  // mois), ouverte 14 jours en arrière : une sortie sur plusieurs jours
-  // commencée avant aujourd'hui fait partie d'aujourd'hui.
-  const from = dayjs().subtract(14, 'day').format('YYYY-MM-DD');
-  const to = dayjs().add(1, 'month').format('YYYY-MM-DD');
+  // Dashboard window: 14 days back (a multi-day outing begun before today is
+  // part of today) to 6 months ahead — a client can ask up to 6 months out
+  // (00580), and a request beyond the window was never shown (audit 2026-11-04).
+  // Same window as the agenda's request list, so they share one cache entry.
+  const { from, to } = requestsWindow();
   const { data: agenda, refetch: refetchAgenda } = useQuery({
     queryKey: ['pro-agenda', from, to],
     queryFn: () => bookingService.getAgenda(from, to),

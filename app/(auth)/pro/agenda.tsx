@@ -15,6 +15,7 @@ import { useColors } from '@/hooks/use-theme';
 import type { AppColors } from '@/constants/colors';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
+import { requestsWindow } from '@/utils/session-time';
 import { bookingService, type AgendaItem, type BookingPeriod } from '@/services/booking-service';
 import { proOfferingService } from '@/services/pro-offering-service';
 import { AvailabilityCalendar } from '@/components/availability-calendar';
@@ -79,6 +80,15 @@ export default function ProAgendaScreen() {
   const { data: agenda, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['pro-agenda', from, to],
     queryFn: () => bookingService.getAgenda(from, to),
+  });
+
+  // Requests are listed from today to 6 months ahead whatever month is shown —
+  // a far request used to stay invisible until the pro browsed to its month
+  // (audit 2026-11-04). Same window and key as the Espace pro.
+  const reqWin = requestsWindow();
+  const { data: wideAgenda } = useQuery({
+    queryKey: ['pro-agenda', reqWin.from, reqWin.to],
+    queryFn: () => bookingService.getAgenda(reqWin.from, reqWin.to),
   });
 
   const { data: offerings } = useQuery({
@@ -150,7 +160,8 @@ export default function ProAgendaScreen() {
 
   // Same count as the DB (00566, 00577): places ACCEPTED on every half-day of
   // the request, all outings.
-  const wouldOverflow = (b: AgendaItem) => overflowsOuting(b, agenda ?? []);
+  // Requests can sit beyond the shown months: count against the wide window.
+  const wouldOverflow = (b: AgendaItem) => overflowsOuting(b, wideAgenda ?? agenda ?? []);
   const placesLabel = (taken: number, max: number | null) =>
     max != null
       ? t('booking.placesTaken', { defaultValue: '{{taken}}/{{max}} places', taken, max })
@@ -285,7 +296,7 @@ export default function ProAgendaScreen() {
   };
 
   // ----- Demandes / à venir -----
-  const pendings = (agenda ?? []).filter((a) => a.kind === 'booking' && a.status === 'pending');
+  const pendings = (wideAgenda ?? []).filter((a) => a.kind === 'booking' && a.status === 'pending');
   // « À venir » = one row per outing session (day · half-day · outing), its
   // clients together — several clients often share one outing (Scott 2026-11-01).
   const upcoming = useMemo(() => {
@@ -351,7 +362,7 @@ export default function ProAgendaScreen() {
 
   // ----- Écrire / appeler / fiche réservation -----
   const [detailId, setDetailId] = useState<string | null>(null);
-  const detail = (agenda ?? []).find((a) => a.kind === 'booking' && a.id === detailId) ?? null;
+  const detail = [...(agenda ?? []), ...(wideAgenda ?? [])].find((a) => a.kind === 'booking' && a.id === detailId) ?? null;
   const [opening, setOpening] = useState(false);
   // 00565: the pro writes from a request too — the thread opens on demand.
   const handleWrite = async (b: AgendaItem) => {
