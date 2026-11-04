@@ -49,7 +49,9 @@ export default function SessionFormScreen() {
   const sourceId = editId ?? dupId ?? null;
   const { data: mine } = useQuery({
     queryKey: ['my-sessions', 'form'],
-    queryFn: () => sessionService.getMine(dayjs().subtract(1, 'day').format('YYYY-MM-DD'), dayjs().add(13, 'month').format('YYYY-MM-DD')),
+    // 14 days back: a multi-day date begun earlier can still be duplicated
+    // from the agenda (audit 2026-11-04 — the form opened empty).
+    queryFn: () => sessionService.getMine(dayjs().subtract(14, 'day').format('YYYY-MM-DD'), dayjs().add(13, 'month').format('YYYY-MM-DD')),
     enabled: !!sourceId,
   });
 
