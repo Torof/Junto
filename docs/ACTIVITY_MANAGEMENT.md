@@ -1,4 +1,4 @@
-# Junto — Gestion des activités
+# askandgo — Gestion des activités
 
 À jour au 10 juillet 2026 (migrations 00306-00311).
 

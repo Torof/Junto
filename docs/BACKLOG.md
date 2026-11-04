@@ -1,4 +1,4 @@
-# Junto — Backlog
+# askandgo — Backlog
 
 > Réécrit le 2026-04-26, refresh 2026-04-28, refresh 2026-06-11 (260 migrations). Le plan Sprint 1-8 d'origine a guidé le démarrage mais l'app a depuis dépassé largement ce cadre. Ce document reflète l'état réel et ce qu'il reste à faire. L'historique sprint complet est récupérable via `git log`.
 
@@ -96,7 +96,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 - [x] **Recadrage carré** de la photo de pin : déjà en place (`pickAndUploadProPinImage`, `allowsEditing` 1:1 + 240 px) — seule la photo démo avait été semée en paysage (constaté 2026-10-26).
 
 ### Matériel nécessaire (conçu 2026-07-09, PARKÉ — spec : `docs/GEAR_NEEDS.md` ; déclencheur : conversations « il manque X » observées sur les murs post-lancement)
-Besoins de matériel **collaboratifs** (tout participant, pas de rôle organisateur) + quantités absolues ou « /pers » → la page Matériel devient un tableau de couverture (✓ couvert · ◐ partiel · à prévoir + « Je l'apporte »). **Junto compte, ne juge jamais** — résout le blocage qui avait fait parker l'ancienne feature gear-requests (mig 00194). Opt-in de fait (zéro besoin = page actuelle). Avant dev : présenter la chaîne d'autorisation (`upsert_gear_need`/`remove_gear_need`, table `activity_gear_needs`) + compléter SECURITY.md.
+Besoins de matériel **collaboratifs** (tout participant, pas de rôle organisateur) + quantités absolues ou « /pers » → la page Matériel devient un tableau de couverture (✓ couvert · ◐ partiel · à prévoir + « Je l'apporte »). **askandgo compte, ne juge jamais** — résout le blocage qui avait fait parker l'ancienne feature gear-requests (mig 00194). Opt-in de fait (zéro besoin = page actuelle). Avant dev : présenter la chaîne d'autorisation (`upsert_gear_need`/`remove_gear_need`, table `activity_gear_needs`) + compléter SECURITY.md.
 
 ### Doc debt
 - [x] **SECURITY.md — classification des fonctions Pro V1** : vérifié 2026-10-26, le bloc « Fiche Pro » de la classification liste les RPC pro ; chaînes à jour via PRO_HARDENING.
@@ -155,7 +155,7 @@ Design **complet et validé sur mock** (session 2026-07-08). Règles verrouillé
 - [ ] Liste d'attente automatique quand activité complète
 - [ ] Vote d'annulation de groupe (2/3 pour annuler sans malus — voir ACTIVITY_MANAGEMENT.md)
 - [ ] Élargissement aux activités non sportives (théâtre, cinéma, jeux)
-- [ ] Tier Pro avancé — paiement intégré in-app avec commission Junto
+- [ ] Tier Pro avancé — paiement intégré in-app avec commission askandgo
 - [ ] Vérification d'identité avancée
 - [ ] API pour clubs et associations sportives
 - [ ] Tableau de bord analytics pour les Pros
@@ -178,4 +178,4 @@ Design **complet et validé sur mock** (session 2026-07-08). Règles verrouillé
 
 ## Décidé contre
 
-- **Liste de contacts / système d'amis explicite** — Junto = logistique, pas relationnel (cohérent avec mémoires `no_social_scoring` + anti-dating-drift). Une "liste d'amis" formelle = glissement vers réseau social. Les gens avec qui on a déjà fait une activité apparaissent naturellement dans l'historique de messagerie — suffisant.
+- **Liste de contacts / système d'amis explicite** — askandgo = logistique, pas relationnel (cohérent avec mémoires `no_social_scoring` + anti-dating-drift). Une "liste d'amis" formelle = glissement vers réseau social. Les gens avec qui on a déjà fait une activité apparaissent naturellement dans l'historique de messagerie — suffisant.

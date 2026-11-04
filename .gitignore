@@ -46,7 +46,7 @@ google-services.json
 play-service-account*.json
 .vercel
 
-# Local EAS dev credentials (Junto dev variant) — never commit keystores
+# Local EAS dev credentials (askandgo dev variant) — never commit keystores
 credentials.json
 credentials/
 

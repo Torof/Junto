@@ -7,11 +7,11 @@ Remplace conceptuellement l'ancienne feature « gear requests » (parkée, rési
 
 ## Le principe en une phrase
 
-**Junto ne juge jamais, Junto compte.** Le groupe déclare ses besoins ; Junto affiche la soustraction `besoin − apporté`.
+**askandgo ne juge jamais, askandgo compte.** Le groupe déclare ses besoins ; askandgo affiche la soustraction `besoin − apporté`.
 
 ## Pourquoi l'ancienne approche a échoué (et pourquoi celle-ci tient)
 
-L'ancienne posait le problème comme « le système doit savoir ce qui manque » → jugement métier impossible (corde 60m pour 6 ? 15 dégaines pour une L à 17 ? → IA, tables par sport, subjectivité). L'inversion : **le jugement reste dans le groupe** (qui le fait déjà sur WhatsApp : « il nous faut 2 cordes, qui prend ? ») ; Junto ne fait que rendre la liste persistante et comptable.
+L'ancienne posait le problème comme « le système doit savoir ce qui manque » → jugement métier impossible (corde 60m pour 6 ? 15 dégaines pour une L à 17 ? → IA, tables par sport, subjectivité). L'inversion : **le jugement reste dans le groupe** (qui le fait déjà sur WhatsApp : « il nous faut 2 cordes, qui prend ? ») ; askandgo ne fait que rendre la liste persistante et comptable.
 
 ## Règles du modèle
 

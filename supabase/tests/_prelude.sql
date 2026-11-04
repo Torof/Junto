@@ -1,4 +1,4 @@
--- Junto DB test harness — prelude (executed at the top of every test block).
+-- askandgo DB test harness — prelude (executed at the top of every test block).
 --
 -- Every test file runs inside ONE `DO` block that ALWAYS ends with an
 -- exception carrying the results: the whole block is rolled back, nothing is

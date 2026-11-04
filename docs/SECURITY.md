@@ -1,4 +1,4 @@
-# Junto — Modèle de Sécurité
+# askandgo — Modèle de Sécurité
 
 ## Table des matières — navigation rapide
 
@@ -210,7 +210,7 @@ Sans le check de suspension, un utilisateur suspendu peut toujours créer des ac
 - **Invalide = renvoyé, pas levé** (00578, DB-WP-1, comme `update_activity_trace` 00483) : retour `junto.trace_geojson_invalid`, l'appel reste compté dans la fréquence. Succès = NULL.
 
 **QR = connexion immédiate (mig 00456, 2026-10-16)** — amendement de l'invariant 00072 dans l'esprit de l'ancien `reply_to_request` (retiré en 00508) : jamais de DM actif sans le consentement des deux ; ici l'émission du jeton (afficher son QR) = consentement du propriétaire, le scan = celui du scanneur. Le lien partagé par message ne porte jamais de jeton et garde le flux demande → acceptation.
-- **`create_contact_qr_token()`** : auth · non suspendu · non démo · 120 jetons / heure glissante (advisory lock, `junto.rate_limited` ; jetons révoqués ou expirés comptés une heure) · jeton aléatoire 256 bits, **validité 2 min** (00469, l'écran le rafraîchit chaque minute), table interne `contact_qr_tokens` (aucun grant). **`revoke_contact_qr_tokens()`** (00469) : auth · expire ses propres jetons vivants — appelé à la fermeture de « Mon QR Junto » : une capture relayée est déjà morte. Pas d'usage unique (le scan à plusieurs en face à face doit marcher).
+- **`create_contact_qr_token()`** : auth · non suspendu · non démo · 120 jetons / heure glissante (advisory lock, `junto.rate_limited` ; jetons révoqués ou expirés comptés une heure) · jeton aléatoire 256 bits, **validité 2 min** (00469, l'écran le rafraîchit chaque minute), table interne `contact_qr_tokens` (aucun grant). **`revoke_contact_qr_tokens()`** (00469) : auth · expire ses propres jetons vivants — appelé à la fermeture de « Mon QR askandgo » : une capture relayée est déjà morte. Pas d'usage unique (le scan à plusieurs en face à face doit marcher).
 - **`connect_via_qr_token(p_token, p_expected_owner)`** (00469) : auth · non suspendu **et non démo** · 30 scans / heure glissante (table interne `contact_qr_scans`) — après l'insertion du quota, **tout échec renvoie NULL** sans exception, pour que les tentatives ratées comptent (même signal générique pour inconnu, expiré, autre propriétaire que celui imprimé dans le QR, propriétaire suspendu ou démo, blocage dans un sens ou l'autre) · propriétaire ≠ moi · lock de paire · DM existant actif → rendu tel quel ; pending/declined → activé, le message de demande n'est republié **que si la demande était en attente** (jamais un message refusé), `pending_activity_id` consommé ; aucun → créé **actif**, `initiated_from = 'profile'`, `request_sender_id = NULL`, lignes membres par `trg_dm_member_rows`. Pas de notification : le propriétaire est en face. Le jeton voyage dans le fragment d'URL (`#t=`), jamais envoyé au serveur web.
 
 **Edge Function `trace-elevation`** (2026-10-16) — proxy du service altimétrique IGN (Géoplateforme, RGE ALTI, gratuit, sans clé) qui donne leurs altitudes aux traces dessinées :
@@ -1185,7 +1185,7 @@ Altitudes (2026-10-16) : le parseur conserve `<ele>` en 3e coordonnée ; une tra
 
 ### Email
 - Changement d'email : nécessite vérification de l'ancien ET du nouvel email
-- Templates email customisés (Junto-branded) dans le dashboard Supabase
+- Templates email customisés (askandgo-branded) dans le dashboard Supabase
 
 ### Reset password
 - `requestPasswordReset(email)` envoie un email avec lien vers `https://askandgo.io/auth/reset-password?token_hash=...` (hôte `EXPO_PUBLIC_JUNTO_WEB_HOST`, askandgo.io depuis 2026-10-28)
@@ -1395,7 +1395,7 @@ Cron / lazy via `transition_statuses_only` :
 - [ ] Activer la confirmation email
 - [ ] Configurer le minimum mot de passe à 8 caractères
 - [ ] Verrouiller les redirect URIs (Supabase Site URL + Redirect URLs)
-- [ ] Customiser les templates email (welcome, reset password) — Junto-branded
+- [ ] Customiser les templates email (welcome, reset password) — askandgo-branded
 - [ ] Custom SMTP pour le sender (sinon "Supabase Auth" sender visible)
 - [ ] Statement timeout configuré
 - [ ] FCM V1 credentials chargés pour push Android
@@ -1502,7 +1502,7 @@ Toute question de sécurité se réfère à ce document. Mis à jour au fil du d
 
 ## Réservations pro (booking) — migs 00416-00422, 00443
 
-**Tables** : `pro_availabilities` (pro_id, day, period am/pm — présence = dispo ; UNIQUE(pro,day,period)) · `bookings` (offering_id CASCADE, pro_id/client_id CASCADE, client Junto XOR manuel (manual_name/phone, pro-only), day, period, party_size 1-50, message ≤500 strippé, status pending/accepted/declined/cancelled/cancelled_pro/expired, UNIQUE(offering,client,day,period)). ENABLE+FORCE RLS ; SELECT own (dispos) / parties (bookings) ; **zéro write policy** ; triggers whitelist (bookings : identité+créneau figés, status via RPC sous bypass) ; REVOKE SELECT anon (00417 — manual_phone).
+**Tables** : `pro_availabilities` (pro_id, day, period am/pm — présence = dispo ; UNIQUE(pro,day,period)) · `bookings` (offering_id CASCADE, pro_id/client_id CASCADE, client askandgo XOR manuel (manual_name/phone, pro-only), day, period, party_size 1-50, message ≤500 strippé, status pending/accepted/declined/cancelled/cancelled_pro/expired, UNIQUE(offering,client,day,period)). ENABLE+FORCE RLS ; SELECT own (dispos) / parties (bookings) ; **zéro write policy** ; triggers whitelist (bookings : identité+créneau figés, status via RPC sous bypass) ; REVOKE SELECT anon (00417 — manual_phone).
 
 **Chaînes d'autorisation** :
 - `private.assert_approved_pro(uid)` (interne, REVOKE all) : tier='pro' + pro_profiles existe + status='approved' + non suspendu.

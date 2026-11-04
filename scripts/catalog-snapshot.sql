@@ -1,4 +1,4 @@
--- Catalog snapshot of what Junto owns (migration proof, MIGRATION_PLAN v7 §C.2).
+-- Catalog snapshot of what askandgo owns (migration proof, MIGRATION_PLAN v7 §C.2).
 -- One row per object: (kind, name, fingerprint). Run on the old and the new
 -- project, then `node scripts/catalog-diff.mjs old.json new.json`.
 -- Values that differ by design between projects are left out: app_config

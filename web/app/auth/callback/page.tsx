@@ -8,7 +8,7 @@ import { APK_DOWNLOAD_URL } from '@/lib/download';
 // Signup email confirmation bridge — mirror of the reset-password bridge.
 // Supabase confirms the email, redirects here with the token, and we
 // forward it to the app via junto://auth-confirm so the confirmation link
-// logs the user straight into Junto (no re-entering credentials right
+// logs the user straight into askandgo (no re-entering credentials right
 // after signing up — Scott 2026-07-12).
 export default function EmailVerifiedPage() {
   const [deepLink, setDeepLink] = useState<string | null>(null);

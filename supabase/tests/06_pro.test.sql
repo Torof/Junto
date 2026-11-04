@@ -340,7 +340,7 @@ PERFORM pg_temp.denied('fiche : plus de participants que le groupe refusé', for
 PERFORM pg_temp.as_('cli2');
 PERFORM pg_temp.denied('un tiers ne remplit pas la fiche', format($$SELECT public.set_booking_participant_info(%L, '[{"shoe_size":"40"}]'::jsonb)::text$$, pg_temp.id('bk1')));
 PERFORM pg_temp.as_('pro');
-PERFORM pg_temp.denied('le pro ne remplit pas la fiche d''un client Junto', format($$SELECT public.set_booking_participant_info(%L, '[{"shoe_size":"40"}]'::jsonb)::text$$, pg_temp.id('bk1')));
+PERFORM pg_temp.denied('le pro ne remplit pas la fiche d''un client askandgo', format($$SELECT public.set_booking_participant_info(%L, '[{"shoe_size":"40"}]'::jsonb)::text$$, pg_temp.id('bk1')));
 PERFORM pg_temp.eq('le pro lit la fiche via son agenda', format($$SELECT participant_info->0->>'shoe_size' FROM public.get_pro_agenda(current_date, current_date + 30) WHERE id = %L$$, pg_temp.id('bk1')), '42');
 PERFORM pg_temp.denied('agenda sur plus de 12 mois refusé', $$SELECT count(*)::text FROM public.get_pro_agenda(current_date, current_date + 400)$$);
 PERFORM pg_temp.denied('suppression d''une offre avec réservation vivante refusée', format($$SELECT public.delete_pro_offering(%L)::text$$, pg_temp.id('off')), 'junto.offering_has_bookings');

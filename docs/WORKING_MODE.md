@@ -1,4 +1,4 @@
-# Junto — Mode de Fonctionnement
+# askandgo — Mode de Fonctionnement
 
 ## Rôles
 

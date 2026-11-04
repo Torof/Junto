@@ -20,8 +20,8 @@ Last reviewed: 2026-11-04 (Sentry removed 2026-10-23 — verification via app UI
 **Setup:** Create activity from account A with `starts_at = T+25min`, `requires_presence = TRUE`, location at the meetup point. From account B, request to join → A accepts.
 
 **Steps:**
-1. T-25 → T-15: B opens Junto, sees activity in calendar.
-2. T-15 → T+15: B walks to meetup point with Junto in foreground.
+1. T-25 → T-15: B opens askandgo, sees activity in calendar.
+2. T-15 → T+15: B walks to meetup point with askandgo in foreground.
 3. Cross the 300m geofence boundary.
 
 **Expected:**
@@ -34,10 +34,10 @@ Last reviewed: 2026-11-04 (Sentry removed 2026-10-23 — verification via app UI
 
 ## C2. Joiner happy path — foreground service (backgrounded mid-window)
 
-**Setup:** Same as C1 but B opens Junto at T-12min (inside the T-15..T+15 window), then minimizes (home button, NOT swipe-kill).
+**Setup:** Same as C1 but B opens askandgo at T-12min (inside the T-15..T+15 window), then minimizes (home button, NOT swipe-kill).
 
 **Expected:**
-- Orange persistent notif appears: "Junto valide ta présence — Détection automatique active pendant la fenêtre de présence".
+- Orange persistent notif appears: "askandgo valide ta présence — Détection automatique active pendant la fenêtre de présence".
 - Walk to meetup point.
 - Service detects in-zone → confirmée fires with sound.
 - Orange persistent notif disappears (service auto-stopped).
@@ -177,14 +177,14 @@ Last reviewed: 2026-11-04 (Sentry removed 2026-10-23 — verification via app UI
 
 ## C10. Closed-app behavior on aggressive Android (Samsung)
 
-**Known OEM ceiling.** Closed-app auto-validation (swipe-killed Junto, OS fires Enter, app wakes, validates) does **not** work on Samsung One UI 10 even with explicit battery-optimization opt-out. This is below our code layer.
+**Known OEM ceiling.** Closed-app auto-validation (swipe-killed askandgo, OS fires Enter, app wakes, validates) does **not** work on Samsung One UI 10 even with explicit battery-optimization opt-out. This is below our code layer.
 
 **What we ship for users in this scenario:**
 - The reminder spine catches them via push (assuming push delivery works — Samsung also kills FCM to apps in stopped state, so this is also OEM-bound).
 - QR scan as a manual fallback.
 - Peer testimony as a 24h fallback.
 
-**No test required for the closed-app auto-validation case.** Document in onboarding: "Open Junto on the day of the activity for automatic detection. Otherwise, scan the QR or let your peers vote you in."
+**No test required for the closed-app auto-validation case.** Document in onboarding: "Open askandgo on the day of the activity for automatic detection. Otherwise, scan the QR or let your peers vote you in."
 
 ---
 

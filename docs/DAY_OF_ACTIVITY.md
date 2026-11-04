@@ -1,4 +1,4 @@
-# Junto — Le jour de l'activité
+# askandgo — Le jour de l'activité
 
 Document de référence pour le flux de présence le jour J. À jour au 10 juillet 2026 (fenêtres 00292, RDV unique 00306, durcissement client juillet 2026).
 
@@ -25,7 +25,7 @@ Aucun utilisateur ne devrait être enregistré comme absent simplement parce qu'
 L'asymétrie est intentionnelle, et elle a été **élargie à 24 h en 00431**. Deux raisons distinctes :
 
 1. Donner au système le temps de détecter une transition « outside → inside ». Si on enregistrait à T-15min seulement et que l'utilisateur était déjà sur place, aucun event Enter ne se déclencherait jamais.
-2. **Surtout** : les zones ne sont transmises à l'OS que quand l'app passe au premier plan. À T-2h, il fallait donc ouvrir Junto dans un créneau de 2 h 15 pour que la détection app-fermée existe — rouler 1 h 30 jusqu'au départ sans ouvrir l'app suffisait à l'annuler entièrement. À 24 h, n'importe quelle ouverture la veille arme le système.
+2. **Surtout** : les zones ne sont transmises à l'OS que quand l'app passe au premier plan. À T-2h, il fallait donc ouvrir askandgo dans un créneau de 2 h 15 pour que la détection app-fermée existe — rouler 1 h 30 jusqu'au départ sans ouvrir l'app suffisait à l'annuler entièrement. À 24 h, n'importe quelle ouverture la veille arme le système.
 
 ⚠️ **C'est une fenêtre d'ARMEMENT, jamais de validité.** Une présence reste valide uniquement dans T±15min, borné indépendamment par la tâche de geofencing (qui diffère une notification si l'entrée se déclenche trop tôt) et par `confirm_presence_via_geo`. Les trois autres consommateurs de `get_my_active_presence_activities` (vérification à l'ouverture, veilleur au premier plan, service Android) filtrent eux aussi T±15min — ne jamais déduire « candidat ⇒ fenêtre ouverte ».
 
@@ -46,7 +46,7 @@ Pourquoi là et pas avant :
 - `Location.requestBackgroundPermissionsAsync` affiche la **vraie** boîte de dialogue système, et l'OS finit par ne plus l'afficher du tout après des refus (`canAskAgain`). C'est une ressource qui s'épuise : la dépenser à l'inscription pouvait rendre impossible la demande au bon moment.
 - À l'inscription la permission est **inerte** : `get_my_active_presence_activities` ne surveille que des sorties déjà rejointes, donc il n'y a aucune zone à armer tant que l'utilisateur n'a rejoint personne.
 
-Comportement : la demande ne **bloque jamais** le « Rejoindre » (on rejoint, puis on propose). Un « Plus tard » n'est plus définitif — cooldown de 30 jours au lieu d'un marqueur à vie, et les utilisateurs portant l'ancien marqueur `'1'` récupèrent une chance. Le texte dit explicitement ce que Junto fait de la position (24 h avant une sortie rejointe, uniquement pour constater l'arrivée, surveillance par l'OS, arrêt automatique) et rappelle que le QR reste disponible pour qui refuse.
+Comportement : la demande ne **bloque jamais** le « Rejoindre » (on rejoint, puis on propose). Un « Plus tard » n'est plus définitif — cooldown de 30 jours au lieu d'un marqueur à vie, et les utilisateurs portant l'ancien marqueur `'1'` récupèrent une chance. Le texte dit explicitement ce que askandgo fait de la position (24 h avant une sortie rejointe, uniquement pour constater l'arrivée, surveillance par l'OS, arrêt automatique) et rappelle que le QR reste disponible pour qui refuse.
 
 ⚠️ Une app **ne peut pas** rendre une permission accordée : il n'existe aucune API de révocation dans le SDK Expo (vérifié 2026-10-02). Android 13+ a bien une méthode native (`revokeSelfPermissionsOnKill`) mais elle n'est pas exposée par Expo, ne prend effet qu'à la mort du processus, et n'a pas d'équivalent iOS. Le seul recours offert à l'utilisateur est le raccourci « Ouvrir les réglages ».
 
@@ -105,7 +105,7 @@ Tous les paths automatiques GPS appellent `confirm_presence_via_geo` (server-gat
 
 ### 4. Foreground service location task (`presence-foreground-service` + `presence-location-task`)
 - Démarre quand l'app est foregroundée pendant T-15..T+15 (kické par `usePresenceGeofences`)
-- `Location.startLocationUpdatesAsync` avec `foregroundService` config (notif Android persistante "Junto valide ta présence")
+- `Location.startLocationUpdatesAsync` avec `foregroundService` config (notif Android persistante "askandgo valide ta présence")
 - Stream GPS Accuracy.High en continu — survit au backgrounding initial mais ne démarre pas si l'app n'a jamais été ouverte pendant la fenêtre (limite OEM, hors v1)
 - Sur succès RPC → schedule "Présence confirmée" + auto-stop le service
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Junto DB test runner.
+// askandgo DB test runner.
 //
 //   node scripts/db-test.mjs            run every supabase/tests/*.test.sql
 //   node scripts/db-test.mjs identite   run the files whose name contains "identite"

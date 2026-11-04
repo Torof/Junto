@@ -6,7 +6,7 @@
 //
 // Why a proxy (not a direct client call):
 //   - the ORS API key stays server-side (never in the app bundle);
-//   - only authenticated Junto users can spend our free quota (JWT gate);
+//   - only authenticated askandgo users can spend our free quota (JWT gate);
 //   - input is validated + size-capped before it ever reaches ORS.
 //
 // Contract:

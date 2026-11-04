@@ -2,21 +2,21 @@
 
 > Étude 4 segments (international · France · géants adjacents · booking pro), menée le
 > 2026-09-18 par recherche web multi-agents. Synthèse condensée ; chiffres sourcés au
-> moment de l'étude. Grille de comparaison = les piliers Junto : carte-canvas ·
+> moment de l'étude. Grille de comparaison = les piliers askandgo : carte-canvas ·
 > sorties entre pairs · dispos (matching disponibilités) · pros + booking sans
 > commission · fiabilité par présence VÉRIFIÉE · covoiturage intégré · ~40 sports avec
 > niveaux par sport.
 
 ## Verdict global
 
-**Personne, nulle part, ne combine les piliers de Junto.** Le marché se divise en :
+**Personne, nulle part, ne combine les piliers de askandgo.** Le marché se divise en :
 contenu/carte sans social (Whympr, AllTrails, Decathlon Outdoor, OnPiste) · social sans
 structure outdoor (Facebook, WhatsApp, OVS, Meetup) · offre structurée mais fermée (CAF
 Collectives) · petites apps partenaires sans densité (Summeet, Oak, Out Unity, Gora…).
 La combinaison carte + dispos + fiabilité vérifiée + pros sans commission + covoiturage
 n'existe dans aucun produit au monde à cette date.
 
-## Tableau maître (piliers Junto)
+## Tableau maître (piliers askandgo)
 
 | Concurrent | Carte-canvas | Sorties pairs | Dispos | Pros+booking | Fiabilité vérifiée | Covoit. |
 |---|---|---|---|---|---|---|
@@ -41,7 +41,7 @@ Monétisation = « Summeet Club » : formations payantes avec SES guides — pas
 marketplace ouverte. Verdict terrain (Camptocamp) : « des groupes WhatsApp locaux »,
 faible pour planifier à l'avance, **les guides spamment les canaux** (→ preuve de la
 demande pro que notre calendrier sans commission sert proprement).
-Flancs ouverts pour Junto : carte, dispos, fiabilité factuelle, pros servis (pas
+Flancs ouverts pour askandgo : carte, dispos, fiabilité factuelle, pros servis (pas
 exploités), covoiturage, largeur de sports.
 
 ## Les 6 choses que personne ne fait (terrain à prendre)
@@ -73,11 +73,11 @@ exploités), covoiturage, largeur de sports.
   (AtClub, Leets) et d'entrée (OVS) sont les patterns les plus détestés des avis FR →
   « gratuit pour les utilisateurs » VALIDÉ.
 - Le no-show est LE pain documenté partout (Meetup 30-50 %, OVS « lapins », groupes FB)
-  → la fiabilité vérifiée est un argument marketing central, pas un détail — Junto a
+  → la fiabilité vérifiée est un argument marketing central, pas un détail — askandgo a
   déjà LA solution (présence vérifiée + score). Trou restant : le no-show client→pro
   du booking (touriste, client manuel hors score) — la zone couverte ailleurs par les
   arrhes ; à traiter un jour sans paiement in-app. Idée liée à faible coût : montrer le
-  score de fiabilité du client Junto au pro sur la demande de réservation.
+  score de fiabilité du client askandgo au pro sur la demande de réservation.
 
 ## Côté pro — la position et la barre
 
@@ -94,7 +94,7 @@ d'arrhes = norme métier ; à traiter SANS paiement in-app) · report météo en
 créneaux à capacité (un canyon vend 8 places). Yoplanning = le concurrent de référence
 pour notre persona exacte.
 
-## Faiblesses honnêtes de Junto dans ce paysage (et mitigations, Scott 2026-09-18)
+## Faiblesses honnêtes de askandgo dans ce paysage (et mitigations, Scott 2026-09-18)
 
 1. Densité zéro au départ — la cause de mortalité n° 1 du segment.
    **Mitigation actée : 20-30 pros sur la carte AVANT le lancement** (tournée pro du

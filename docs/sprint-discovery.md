@@ -4,7 +4,7 @@
 > Réflexion 2026-07-28, design/maquettes 2026-07-29 (Scott). Maquettes de référence : voir « Design validé — maquettes ».
 >
 > ⚠️ Ce document **remplace** l'ancienne spec « Partenaires + Demandes » (annuaire de
-> profils, option A), **abandonnée** : elle inversait le but de Junto et glissait vers
+> profils, option A), **abandonnée** : elle inversait le but de askandgo et glissait vers
 > le dating / la chasse aux profils. L'historique reste dans `git log`.
 
 ---
@@ -15,7 +15,7 @@ La carte est faite pour de l'**épars et du précis** (des activités dispersée
 
 1. **Carte vide / faible densité** — nouvel arrivant dans une région peu active : rien sur la carte = cul-de-sac.
 2. **« Je serais partant si quelqu'un venait »** — le segment qui ne créera jamais une activité publique mais qui *est dans le coin* ce week-end.
-3. **Le voyage** — « j'arrive à Chamonix la semaine prochaine, qui est chaud ? » (le cœur du positionnement Junto : rejoindre l'outdoor *où que tu sois*).
+3. **Le voyage** — « j'arrive à Chamonix la semaine prochaine, qui est chaud ? » (le cœur du positionnement askandgo : rejoindre l'outdoor *où que tu sois*).
 
 **Propriété structurante :** la valeur de la Discovery est **inversement proportionnelle à la densité d'activités**. Elle pique au lancement et dans les zones creuses, et s'efface quand la carte se remplit. Ce n'est pas une baguette « zéro utilisateur » — elle résout le « quelques utilisateurs, activités trop éparses ».
 

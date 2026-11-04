@@ -27,10 +27,10 @@ Tout utilisateur connecté est à la fois potentiellement créateur et participa
 
 ### Pro (Professionnel vérifié)
 - Tout le Premium
-- Badge "Guide Professionnel Vérifié" — validation manuelle de Junto sur présentation de documents (SIRET, BPJEPS, etc.)
+- Badge "Guide Professionnel Vérifié" — validation manuelle de askandgo sur présentation de documents (SIRET, BPJEPS, etc.)
 - Vitrine professionnelle complète (liens externes, certifications, spécialités) + galerie photos + catalogue d'offerings (pins permanents sur la carte)
 - Avis style Google Maps sur la vitrine et chaque offering — non gated (tout utilisateur connecté, 1-5 étoiles + texte optionnel, un avis par cible, modifiable), avec une réponse du pro par avis. Exception cadrée au no-social-scoring : les avis ne concernent que la vitrine Pro, jamais les users ni les activités.
-- Paiement géré entièrement hors app — Junto est vitrine, pas intermédiaire financier
+- Paiement géré entièrement hors app — askandgo est vitrine, pas intermédiaire financier
 
 **Modèle clarifié (2026-06-10) :** un Pro est un utilisateur normal + le privilège vitrine. Le système Pro est une devanture (storefront) — pas de booking, pas de participation, pas de chat sur les offerings. Une activité normale créée par un pro est une activité normale, sans badge ni traitement particulier.
 
@@ -201,7 +201,7 @@ Quand une activité matchant l'alerte est créée, `check_alerts_for_activity` e
 
 ### Inscription
 1. Email + password (8 chars min)
-2. Vérification email obligatoire (template Junto-branded)
+2. Vérification email obligatoire (template askandgo-branded)
 3. Onboarding : date_of_birth (>=18), accept_tos
 4. Display name aléatoire généré (modifiable)
 5. Background location prompt à l'app open (pour la validation présence en arrière-plan)

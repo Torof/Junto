@@ -1,4 +1,4 @@
-# Junto — Réputation & Badges
+# askandgo — Réputation & Badges
 
 Document de référence pour le système de réputation et de badges. À jour au 28 avril 2026 (migrations 00134, 00135 + suivantes pour les notifs et flips de présence).
 

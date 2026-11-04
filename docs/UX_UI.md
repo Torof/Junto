@@ -135,7 +135,7 @@ L'utilisateur voit des activités sur la carte sans créer de compte. Pas d'écr
 - Voir → aucune friction
 - Rejoindre → créer un compte (email + password, vérification email)
 - Créer → reste accessible avec un compte standard (pas de vérification téléphone — disabled depuis mig 00050)
-- Tier Pro → validation manuelle Junto
+- Tier Pro → validation manuelle askandgo
 
 ### 3 niveaux d'information
 Pin → Pop-up → Page complète. Dévoilement progressif selon l'intérêt.
@@ -160,7 +160,7 @@ Ouverture app
 Login screen (topo SVG bg + tab pills sign-in/register)
     → Tab "Créer un compte"
     → Email + password + ToS checkbox + Créer
-    → Email vérification envoyé (template Junto-branded)
+    → Email vérification envoyé (template askandgo-branded)
     → Vérification → onboarding (date_of_birth + accept_tos)
     → Display name aléatoire
     → Background location prompt

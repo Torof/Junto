@@ -9,7 +9,7 @@ const CONTACT_EMAIL = 'contact@askandgo.io';
 
 // Éditeur non professionnel (personne physique) — LCEN art. 6-III-2 : identité
 // détenue par l'hébergeur, non publiée. À repasser en mentions "pro" complètes
-// si Junto devient commercial (offres payantes, monétisation des pros).
+// si askandgo devient commercial (offres payantes, monétisation des pros).
 export default function MentionsPage() {
   return (
     <article style={{ color: 'var(--ink)', lineHeight: 1.6 }}>

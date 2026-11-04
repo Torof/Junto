@@ -8,7 +8,7 @@
 // for every trace whatever its origin.
 //
 // Why a proxy (not a direct client call): IGN needs no key, but a per-user
-// quota keeps Junto from becoming an anonymous altimetry relay, and the input
+// quota keeps askandgo from becoming an anonymous altimetry relay, and the input
 // is validated + size-capped before it leaves us.
 //
 // Contract:

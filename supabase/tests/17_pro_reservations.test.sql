@@ -885,7 +885,7 @@ PERFORM pg_temp.as_('rs_cli');
 PERFORM pg_temp.denied('R15 un tiers ne remplit pas la fiche', pg_temp.pinfo('bk_f', '[{"shoe_size":"40"}]'), 'Operation not permitted');
 PERFORM pg_temp.denied('R15 offre sans fiche : refus', pg_temp.pinfo('bk_D', '[{"shoe_size":"40"}]'), 'Operation not permitted');
 PERFORM pg_temp.as_('rs_pro');
-PERFORM pg_temp.denied('R15 le pro ne remplit pas la fiche d''un client Junto', pg_temp.pinfo('bk_f', '[{"shoe_size":"40"}]'), 'Operation not permitted');
+PERFORM pg_temp.denied('R15 le pro ne remplit pas la fiche d''un client askandgo', pg_temp.pinfo('bk_f', '[{"shoe_size":"40"}]'), 'Operation not permitted');
 PERFORM pg_temp.ok('R15 le pro remplit la fiche d''une réservation manuelle', pg_temp.pinfo('bk_man_cap', '[{"shoe_size":"40"}]'));
 PERFORM pg_temp.as_('rs_cli5');
 PERFORM pg_temp.denied('R15 sortie passée : fiche figée', pg_temp.pinfo('bk_past_acc', '[{"shoe_size":"40"}]'), 'junto.booking_date');

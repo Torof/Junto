@@ -58,8 +58,8 @@ Petites étiquettes en capitales espacées.
 🌊 canyoning · 🤿 plongée · 🚣 rafting/canoë
 
 ## Fichiers fournis dans ce dossier
-- `junto_icon_square.png` — icône de l'app (marque).
-- `junto_icon_fg.png` — marque seule (foreground, sur transparent).
+- `askandgo_icon_square.png` — icône de l’app (bulle-flèche blanche sur bleu #1E7FD8).
+- `askandgo_icon_fg.png` — marque seule (blanche, sur transparent).
 - `ui-map.jpeg` — écran carte réel (pins + labels + terrain).
 - `ui-activity.jpeg` — tiroir d'activité entre passionnés (carte + infos).
 - `ui-pro-page.jpeg` — page pro (nom, note, actions, photos).

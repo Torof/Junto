@@ -1,6 +1,6 @@
-# Junto — Procédure de réponse aux incidents (violation de données)
+# askandgo — Procédure de réponse aux incidents (violation de données)
 
-> SOP RGPD Art. 33/34 — créé à l'audit prod 2026-06-11. Junto est opéré en solo : cette procédure est volontairement courte et exécutable par une seule personne sous stress. La relire une fois par trimestre.
+> SOP RGPD Art. 33/34 — créé à l'audit prod 2026-06-11. askandgo est opéré en solo : cette procédure est volontairement courte et exécutable par une seule personne sous stress. La relire une fois par trimestre.
 
 ## Contact
 
@@ -43,7 +43,7 @@ Selon le vecteur, dans l'ordre de brutalité croissante :
 ## 5. Notification des utilisateurs — si risque élevé
 
 - Canal : email (via Supabase Auth/SMTP) + bandeau in-app si pertinent
-- Contenu : ce qui s'est passé, quelles données, ce que Junto a fait, ce que l'utilisateur doit faire (changer son mot de passe…), contact
+- Contenu : ce qui s'est passé, quelles données, ce que askandgo a fait, ce que l'utilisateur doit faire (changer son mot de passe…), contact
 - Langage clair, pas de minimisation
 
 ## 6. Post-mortem (sous 2 semaines)

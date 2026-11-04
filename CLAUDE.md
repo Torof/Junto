@@ -1,4 +1,4 @@
-# Junto — Claude Code Instructions
+# askandgo — Claude Code Instructions
 
 ## Critical Rules
 - **Never code without Scott's explicit validation.** Propose first, code only after approval.

@@ -1,4 +1,4 @@
-# Junto — Rôle Admin (charte)
+# askandgo — Rôle Admin (charte)
 
 Statut : **charte validée par Scott (2026-07-13)**. Définit ce que l'admin peut, doit, et ne doit jamais pouvoir faire. Toute évolution du pouvoir admin doit respecter cette charte. Issu de l'audit admin du 2026-07-13.
 

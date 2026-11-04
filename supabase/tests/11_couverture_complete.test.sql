@@ -614,7 +614,7 @@ PERFORM pg_temp.as_('pro');
 PERFORM pg_temp.put('mbk', pg_temp.ok('create_manual_booking : le pro saisit une réservation hors appli',
   format($$SELECT public.create_manual_booking(%L, %L, 'pm', 2, 'Jean <b>Dehors</b>', '0601020304')::text$$, pg_temp.id('off'), pg_temp.get('d2'))));
 PERFORM pg_temp.as_('db');
-PERFORM pg_temp.eq('create_manual_booking : réservation acceptée, sans client Junto, nom nettoyé',
+PERFORM pg_temp.eq('create_manual_booking : réservation acceptée, sans client askandgo, nom nettoyé',
   format($$SELECT status || '|' || coalesce(client_id::text, 'null') || '|' || manual_name || '|' || party_size FROM public.bookings WHERE id = %L$$, pg_temp.id('mbk')), 'accepted|null|Jean Dehors|2');
 PERFORM pg_temp.as_('cli');
 PERFORM pg_temp.put('bk', pg_temp.ok('fixture : un membre réserve un créneau', format($$SELECT public.create_booking(%L, %L, 'am', 1)::text$$, pg_temp.id('off'), pg_temp.get('d1'))));
