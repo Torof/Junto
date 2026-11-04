@@ -2,7 +2,7 @@
 
 > **Statut : construit** (migs 00350-00367, durci depuis). Design validé en maquettes le 2026-08-04 ; ce document garde la spec d'origine — l'état live fait foi dans `docs/SECURITY.md` (« Conversations & messagerie », classification des fonctions).
 > **Nettoyage 00508** : les anciennes tables `wall_messages` / `private_messages` (et leurs triggers de miroir), la table `contacts` (répertoire one-way 00341, remplacé en 00372) et les fonctions sans appelant (`reply_to_request`, `hide_conversation`, `edit_wall_message`, `edit_private_message`, `invite_users_to_activity`) sont supprimées. Les colonnes `conversations.hidden_by_user_*` aussi.
-> C'est l'axe B du `docs/PLAN.md`. Refonte **interface ET fonctionnement**.
+> C'était l'axe B du plan d'août (PLAN.md, retiré le 2026-11-04 — historique git). Refonte **interface ET fonctionnement**.
 
 ## Pourquoi
 Le chat est aujourd'hui **sous-exposé** : l'onglet Messagerie ne contient que DM + demandes ; les **murs de sortie** (la conversation la plus vivante) vivent uniquement dans le **4ᵉ sous-onglet d'une activité** (`Info · Transport · Matériel · Chat`). Or la communication est **le point fort de Summeet** et un **table-stakes** de toute bonne app. Objectif : **remonter au standard attendu**, pas réinventer le chat — **simple, accessible, vivant** (Summeet = anti-exemple « on s'y perd »).

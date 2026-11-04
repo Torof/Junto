@@ -12,7 +12,7 @@ L'app est en **préparation Play Store**. La grande majorité des features V1 so
 
 **Ajouts du sprint 2026-06-10/11** : audit complet (4 reviewers parallèles) + fixes — assetlinks package name corrigé (`app.getjunto`), i18n badges EN, **audit RLS** : découverte du no-op des sous-requêtes `users` dans les policies → prédicat `private.user_is_suspended` + sweep policies + filtres vues (migs 00255-00257, cf. SECURITY.md "sous-requêtes cross-table") ; **expo-image** adopté (cache disque, 8 composants) ; **saga clavier** résolue → hook `useKeyboardDockPadding` (reanimated IME inset), KAV banni des chat docks et bottom sheets ; **avis Pro complet** (Phase 4B, migs 00258-00260) — modèle Google Maps non gated, pro_reviews + offering_reviews, réponse du pro, stats héros PP + RA, notifications `review_received`/`review_reply`, reportable ; **pin system v2** — grammaire universelle outline → frame → plaque ivoire → glyphe (teardrop UA / carte RA / cercle photo PP, frame = statut sur UA, indigo sur la famille pro) ; Sentry 8 ; Mapbox token migré `RNMAPBOX_MAPS_DOWNLOAD_TOKEN` ; runtime 0.1.3.
 
-**Ce qui reste avant launch public** : CGU finalisées (+ mentions légales entité), Play Store prep (cf. docs/PROD_READINESS.md), custom SMTP. Stripe et Discovery sont DESCOPÉS du launch (walk #1 + DECISIONS 2026-06-11) : lancement 100% gratuit via auto-premium, paiement plus tard.
+**Ce qui reste avant launch public** : CGU finalisées (+ mentions légales entité), Play Store prep, custom SMTP. *(Historique de juin — voir « Statut actuel » en tête et « Avant launch public » plus bas.)* Stripe et Discovery sont DESCOPÉS du launch (walk #1 + DECISIONS 2026-06-11) : lancement 100% gratuit via auto-premium, paiement plus tard.
 
 ---
 
@@ -61,6 +61,7 @@ La base est migrée, la production (version 14, tests internes Google Play) tour
 
 ## P1 — Polish & easy wins
 
+- [ ] **Retouches différées de l'audit UX de mai** (AUDIT_UX.md, retiré le 2026-11-04 — dans l'historique git) : œil du mot de passe ; ✕ et liens enregistrer/annuler du tiroir réglages ; zone de toucher de la poignée des onglets du tiroir ; voile de chargement des pins sur la carte ; indicateur de l'alerte dans les filtres ; sentinelle `OPEN_LEVEL = 'Tous niveaux'` de mes-activites (demande une clé de données, pas un texte) ; état vide de la messagerie ; refus de localisation sur la carte ; message du « Suivant » désactivé de l'étape 1 ; ⚠️ emoji → icône dans la modale de départ ; flèche ↑ → icône du bouton d'envoi ; restes de couleurs et tailles en dur hors thème.
 - [ ] **Éventail halo — finitions** (Scott 2026-10-27 : « il y aura des choses à modifier, on reviendra dessus ») : écriture des étiquettes, rayon / zoom mini (`FAN_MIN_ZOOM` 15), puis l'idée éventail + liste à 50 %.
 
 - [x] **In-app distance feedback** — déjà livré (constaté 2026-10-26) : le bloc présence de la page de sortie affiche « À N m du point de rendez-vous » (distance au plus proche de meeting / end / trace, comme le serveur) et passe « Tu y es » en vert dans la zone.
@@ -127,10 +128,13 @@ Design **complet et validé sur mock** (session 2026-07-08). Règles verrouillé
 - [x] **Clé Mapbox** (vérifié 2026-11-04 : c'est le « Default public token », permissions publiques seulement, pas de restriction d'URL — normal sur mobile ; le secret « Junto » reste dans EAS ; plus tard, éventuellement une clé publique dédiée à l'app : l'app n'embarque que la clé Supabase anon, publique par conception, et une clé Mapbox publique `pk.` ; plus de clé Google, le site n'en a aucune). Mapbox ne verrouille pas une clé publique sur un package Android : vérifier qu'elle n'a que les permissions publiques par défaut + alertes de consommation (Scott). Rotation possible par OTA.
 - [x] **Keystore backup sécurisé** (Scott, 2026-11-04, hors du dépôt).
 - [x] **Android App Links — cert Play App Signing** (ajouté le 2026-07-10, commit 65200d82 ; en ligne sur askandgo.io et getjunto.app, vérifié 2026-11-04 — reste le test réel d'un lien partagé depuis l'app Play). Le gros est fait (2026-06-11) : package name corrigé, fingerprint EAS réel extrait de l'APK signé et vérifié en ligne sur getjunto.app (Vercel auto-déploie sur push, le README web est obsolète sur ce point). Reste UNIQUEMENT : ajouter le fingerprint du cert **Play App Signing** à assetlinks.json avant la release store (Play Console → App integrity), sinon les builds store ne vérifieront pas.
-- [ ] **CGU + Politique de confidentialité finalisées** — textes hébergés sur `getjunto.app/legal/*` (web landing en place, FR + EN à compléter).
+- [ ] **CGU + Politique de confidentialité finalisées** — `askandgo.io/legal/*` ; réécrites le 2026-11-04 (pros, réservations, avis, classement ; fenêtre de géolocalisation exacte, fiches participants, aucun cookie), en attente de relecture par Scott avant publication.
 - [x] **Custom SMTP pour le sender email** (fait) — voir « Domaine askandgo.io », étape 2 (`askandgo <noreply@askandgo.io>`).
 - [ ] **Checklist de test de release manuelle** (`docs/RELEASE_TESTING.md`) à dérouler avant chaque release — rescopé au walk #1 : la suite automatisée (Detox/Maestro) passe en post-launch.
 - [ ] **Préparation Play Store** : screenshots refresh, description, content rating questionnaire, déclaration âge 18+.
+- [ ] **Compte de test pour la review Google** (pré-configuré) + instructions pour la validation de présence (repris de PROD_READINESS, 2026-11-04).
+- [ ] **Play Console → Sécurité des données** : retirer Sentry (supprimé le 2026-10-23) ; supprimer aussi `EXPO_PUBLIC_SENTRY_DSN` et `SENTRY_AUTH_TOKEN` des environnements EAS preview et production.
+- [ ] **Après publication** : `NEXT_PUBLIC_PLAY_STORE_URL` (Vercel) = l'adresse Play ; les pages `auth/callback` et `auth/reset-password` du site pointent encore vers l'APK (`web/lib/download.ts`, ancien APK preview) — à rebasculer vers Play.
 
 ---
 

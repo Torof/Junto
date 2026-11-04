@@ -584,3 +584,7 @@ Règles verrouillées :
 **Écarté pour l'instant :** connexion Google officielle (OAuth, scope sensible → validation Google de plusieurs semaines, jetons à stocker). À rouvrir si de vrais pros se plaignent du délai d'export. Synchro bidirectionnelle complète : non. Ponts suivants possibles : Yoplanning, puis Bókun / Regiondo (API).
 
 Mig 00568-00569, edge `calendar-feed` + `calendar-import`.
+
+## 2026-11-04 — Ménage des documents (avant la build 19)
+**Retirés du dépôt** (toujours dans l'historique git, `git log --diff-filter=D -- docs/<fichier>`) : les audits de mai à octobre (`AUDIT.md`, `AUDIT_SECURITY_2.md`, `AUDIT_UX.md`, `AUDIT_2026-09.md`, `AUDIT_2026-10.md` — les commentaires du code qui citent « AUDIT.md C1 » ou « AUDIT_SECURITY_2 M3 » renvoient à ces fichiers-là) ; `REBUILD_PLAN.md` (remplacé par MIGRATION_PLAN) ; `PLAN.md` (plan par axes d'août, axes livrés) ; `SPORTS_PLAN.md` (élargissement livré, mig 00276) ; `sprint-channels.md` (modèle v1 00381, remplacé par 00400) ; `sprint-unification-ui.md` (unification UI de septembre : quatre générations d'écrans ramenées à un canon, voir `constants/theme.ts`) ; `APP_BRIEFING.md`, `PROFILE_TRUST_DESIGN_BRIEF.md`, `PROJECT.md` (briefs d'avril-mai) ; `PROD_READINESS.md` (points ouverts repris dans BACKLOG « Avant launch public »).
+**Gardés** : `AUDIT_COMPLET_2026-10.md` et `AUDIT_PRO_2026-11.md` (les tests DB citent leurs identifiants) ; `MIGRATION_PLAN.md` (cité par `10_migration.test.sql` et `scripts/migration/`, à retirer avec eux quand l'ancien projet sera mis en pause).
