@@ -31,7 +31,6 @@ export default [
       '.expo/',
       'web-build/',
       'web/',
-      'claude_design/',
       '.nyc_output/',
       'supabase/functions/',
     ],
