@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Builds supabase/functions/send-push/templates.json from the app's own
 // translation files: the `notif` namespace (push titles/bodies per type and
-// variant) plus the two half-day labels used by booking params. ONE source of
-// truth for in-app and push text — run after editing any src/i18n/*.json, then
+// variant) plus the two half-day labels used by booking params and the
+// profession labels (pro_profession_* params, 00581). ONE source of truth for
+// in-app and push text — run after editing any src/i18n/*.json, then
 // redeploy the function:  npm run push:templates && npx supabase functions deploy send-push --no-verify-jwt
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -17,6 +18,7 @@ for (const lang of LANGS) {
   out.languages[lang] = {
     notif: json.notif,
     period: { am: json.booking?.am ?? 'am', pm: json.booking?.pm ?? 'pm' },
+    profession: json.pro?.profession ?? {},
   };
 }
 const target = resolve(root, 'supabase/functions/send-push/templates.json');

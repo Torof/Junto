@@ -1,6 +1,8 @@
 // Edge function: e-mail askandgo when a pro application is waiting for review.
 // Called by the pro_profiles trigger notify_pro_application (mig 00561) on a new
-// application and on a corrected one after a refusal.
+// application and on a corrected one after a refusal, and by
+// set_pro_professions (mig 00581, body.kind = 'professions') when an approved
+// pro asks for a new profession.
 // Deployment: supabase functions deploy notify-pro-application --no-verify-jwt
 //
 // Auth: same shared secret as send-push (`PUSH_WEBHOOK_SECRET`, header
@@ -59,10 +61,12 @@ Deno.serve(async (req) => {
 
   let userId: string;
   let resubmission = false;
+  let professionRequest = false;
   try {
     const body = await req.json();
     userId = String(body.user_id ?? '');
     resubmission = body.resubmission === true;
+    professionRequest = body.kind === 'professions';
   } catch {
     return new Response('Invalid JSON', { status: 400 });
   }
@@ -75,10 +79,33 @@ Deno.serve(async (req) => {
 
   const { data: pro, error } = await supabase
     .from('pro_profiles')
-    .select('display_name, company_name, real_name, profession, professions, tagline, description, email, phone, website, instagram, facebook, primary_location_name, status, created_at')
+    .select('display_name, company_name, real_name, profession, professions, pending_professions, tagline, description, email, phone, website, instagram, facebook, primary_location_name, status, created_at')
     .eq('user_id', userId)
     .maybeSingle();
   if (error) return new Response('Lookup failed', { status: 500 });
+
+  const label = (codes: string[] | null) => (codes ?? []).map((c) => PROFESSIONS[c] ?? c).join(' · ') || null;
+  if (professionRequest) {
+    // Only a request still waiting is mailed (an admin may have decided since).
+    if (!pro || pro.status !== 'approved' || !(pro.pending_professions?.length)) {
+      return new Response('Nothing to send', { status: 200 });
+    }
+    return send(
+      `Ajout de métier demandé : ${pro.company_name || pro.display_name}`,
+      'Un pro validé demande à ajouter un métier à sa page.',
+      [
+        ['Raison sociale', pro.company_name],
+        ['Nom de la page', pro.display_name],
+        ['Responsable', pro.real_name],
+        ['Métier demandé', label(pro.pending_professions)],
+        ['Métiers actuels', label(pro.professions)],
+        ['E-mail', pro.email],
+        ['Téléphone', pro.phone],
+        ['Site', pro.website],
+      ],
+      "À valider dans l'app : Paramètres › Administration › Demandes pro.",
+    );
+  }
   // Only a still-pending application is mailed (it may have moved since the trigger).
   if (!pro || pro.status !== 'pending') return new Response('Nothing to send', { status: 200 });
 
@@ -86,7 +113,7 @@ Deno.serve(async (req) => {
     ['Raison sociale', pro.company_name],
     ['Nom de la page', pro.display_name],
     ['Responsable', pro.real_name],
-    ['Métiers', ((pro.professions?.length ? pro.professions : pro.profession ? [pro.profession] : []) as string[]).map((c) => PROFESSIONS[c] ?? c).join(' · ') || null],
+    ['Métiers', label(pro.professions?.length ? pro.professions : pro.profession ? [pro.profession] : [])],
     ['Lieu', pro.primary_location_name],
     ['Accroche', pro.tagline],
     ['Description', pro.description],
@@ -96,27 +123,34 @@ Deno.serve(async (req) => {
     ['Instagram', pro.instagram],
     ['Facebook', pro.facebook],
   ];
+  const name = pro.company_name || pro.display_name;
+  return send(
+    `${resubmission ? 'Demande pro corrigée' : 'Nouvelle demande pro'} : ${name}`,
+    resubmission ? 'Une demande pro refusée a été corrigée et renvoyée.' : 'Une nouvelle demande pro attend ta validation.',
+    rows,
+    "À valider dans l'app : Paramètres › Administration › Demandes pro.",
+  );
+});
+
+async function send(subject: string, intro: string, rows: [string, unknown][], footer: string): Promise<Response> {
   const table = rows
     .filter(([, v]) => v != null && String(v).trim() !== '')
     .map(([k, v]) => `<tr><td style="padding:6px 12px 6px 0;color:#6B6259;vertical-align:top;white-space:nowrap">${esc(k)}</td><td style="padding:6px 0;white-space:pre-wrap">${esc(v)}</td></tr>`)
     .join('');
-
-  const name = pro.company_name || pro.display_name;
-  const subject = `${resubmission ? 'Demande pro corrigée' : 'Nouvelle demande pro'} : ${name}`.replace(/[\r\n]+/g, ' ');
   const html = `<div style="font-family:Helvetica,Arial,sans-serif;font-size:15px;color:#1F1A15;max-width:600px">
-<p>${resubmission ? 'Une demande pro refusée a été corrigée et renvoyée' : 'Une nouvelle demande pro attend ta validation'}.</p>
+<p>${esc(intro)}</p>
 <table style="border-collapse:collapse;font-size:14px">${table}</table>
-<p style="margin-top:20px">À valider dans l'app : Paramètres › Administration › Demandes pro.</p>
+<p style="margin-top:20px">${esc(footer)}</p>
 </div>`;
 
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: MAIL_FROM, to: [MAIL_TO], subject, html }),
+    body: JSON.stringify({ from: MAIL_FROM, to: [MAIL_TO], subject: subject.replace(/[\r\n]+/g, ' '), html }),
   });
   if (!res.ok) {
     console.error('resend', res.status, await res.text());
     return new Response('Mail failed', { status: 502 });
   }
   return new Response('ok', { status: 200 });
-});
+}

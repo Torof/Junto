@@ -144,7 +144,11 @@
     },
     "booking_declined": {
      "title": "Créneau indisponible",
-     "body": "{{name}} n’est pas disponible pour « {{title}} » le {{date}}. Essaie un autre créneau."
+     "body": "{{name}} n’est pas disponible pour « {{title}} » le {{date}}. Essaie un autre créneau.",
+     "neutral": {
+      "title": "Créneau indisponible",
+      "body": "Le créneau demandé pour « {{title}} » le {{date}} n’est pas disponible."
+     }
     },
     "booking_cancelled": {
      "auto_minimum": {
@@ -307,6 +311,14 @@
      "title": "Page pro validée",
      "body": "Ta page pro est en ligne. Tu peux maintenant publier tes sorties."
     },
+    "pro_profession_approved": {
+     "title": "Nouveau métier validé",
+     "body": "« {{profession}} » apparaît maintenant sur ta page pro."
+    },
+    "pro_profession_rejected": {
+     "title": "Nouveau métier refusé",
+     "body": "« {{profession}} » n’a pas été validé. Écris-nous à contact@askandgo.io pour en savoir plus."
+    },
     "pro_rejected": {
      "title": "Demande pro refusée",
      "body": "Ta demande de page pro n’a pas été validée. Corrige tes informations et renvoie-la.",
@@ -327,6 +339,21 @@
    "period": {
     "am": "matin",
     "pm": "après-midi"
+   },
+   "profession": {
+    "mountain_guide": "Guide de haute montagne",
+    "mountain_leader": "Accompagnateur en montagne",
+    "climbing_instructor": "Moniteur d'escalade",
+    "canyoning_instructor": "Moniteur de canyoning",
+    "whitewater_instructor": "Moniteur d'eau vive",
+    "diving_instructor": "Moniteur de plongée",
+    "surf_instructor": "Moniteur de surf / voile",
+    "paragliding_instructor": "Moniteur de parapente",
+    "ski_instructor": "Moniteur de ski",
+    "mtb_instructor": "Moniteur de VTT",
+    "wellness_instructor": "Professeur de yoga / bien-être",
+    "school_office": "Bureau / école",
+    "other": "Autre"
    }
   },
   "en": {
@@ -472,7 +499,11 @@
     },
     "booking_declined": {
      "title": "Slot unavailable",
-     "body": "{{name}} is not available for “{{title}}” on {{date}}. Try another slot."
+     "body": "{{name}} is not available for “{{title}}” on {{date}}. Try another slot.",
+     "neutral": {
+      "title": "Slot unavailable",
+      "body": "The slot you asked for “{{title}}” on {{date}} is not available."
+     }
     },
     "booking_cancelled": {
      "auto_minimum": {
@@ -635,6 +666,14 @@
      "title": "Pro page approved",
      "body": "Your pro page is live. You can now publish your outings."
     },
+    "pro_profession_approved": {
+     "title": "New profession approved",
+     "body": "“{{profession}}” now shows on your pro page."
+    },
+    "pro_profession_rejected": {
+     "title": "New profession declined",
+     "body": "“{{profession}}” was not approved. Write to contact@askandgo.io to find out more."
+    },
     "pro_rejected": {
      "title": "Pro application declined",
      "body": "Your pro page application was not approved. Fix your details and send it again.",
@@ -655,6 +694,21 @@
    "period": {
     "am": "morning",
     "pm": "afternoon"
+   },
+   "profession": {
+    "mountain_guide": "Mountain guide",
+    "mountain_leader": "Mountain leader",
+    "climbing_instructor": "Climbing instructor",
+    "canyoning_instructor": "Canyoning instructor",
+    "whitewater_instructor": "Whitewater instructor",
+    "diving_instructor": "Diving instructor",
+    "surf_instructor": "Surf / sailing instructor",
+    "paragliding_instructor": "Paragliding instructor",
+    "ski_instructor": "Ski instructor",
+    "mtb_instructor": "Mountain-bike instructor",
+    "wellness_instructor": "Yoga / wellness teacher",
+    "school_office": "Office / school",
+    "other": "Other"
    }
   },
   "it": {
@@ -800,7 +854,11 @@
     },
     "booking_declined": {
      "title": "Slot non disponibile",
-     "body": "{{name}} non è disponibile per « {{title}} » il {{date}}. Prova un altro slot."
+     "body": "{{name}} non è disponibile per « {{title}} » il {{date}}. Prova un altro slot.",
+     "neutral": {
+      "title": "Orario non disponibile",
+      "body": "L’orario richiesto per «{{title}}» il {{date}} non è disponibile."
+     }
     },
     "booking_cancelled": {
      "auto_minimum": {
@@ -963,6 +1021,14 @@
      "title": "Pagina pro approvata",
      "body": "La tua pagina pro è online. Ora puoi pubblicare le tue uscite."
     },
+    "pro_profession_approved": {
+     "title": "Nuova professione convalidata",
+     "body": "«{{profession}}» ora appare sulla tua pagina pro."
+    },
+    "pro_profession_rejected": {
+     "title": "Nuova professione rifiutata",
+     "body": "«{{profession}}» non è stata convalidata. Scrivici a contact@askandgo.io per saperne di più."
+    },
     "pro_rejected": {
      "title": "Richiesta pro rifiutata",
      "body": "La tua richiesta di pagina pro non è stata approvata. Correggi i dati e invia di nuovo.",
@@ -983,6 +1049,21 @@
    "period": {
     "am": "mattina",
     "pm": "pomeriggio"
+   },
+   "profession": {
+    "mountain_guide": "Guida alpina",
+    "mountain_leader": "Accompagnatore di media montagna",
+    "climbing_instructor": "Istruttore di arrampicata",
+    "canyoning_instructor": "Guida di canyoning",
+    "whitewater_instructor": "Guida di acque vive",
+    "diving_instructor": "Istruttore subacqueo",
+    "surf_instructor": "Istruttore di surf / vela",
+    "paragliding_instructor": "Istruttore di parapendio",
+    "ski_instructor": "Maestro di sci",
+    "mtb_instructor": "Guida di mountain bike",
+    "wellness_instructor": "Insegnante di yoga / benessere",
+    "school_office": "Ufficio / scuola",
+    "other": "Altro"
    }
   },
   "es": {
@@ -1128,7 +1209,11 @@
     },
     "booking_declined": {
      "title": "Franja no disponible",
-     "body": "{{name}} no está disponible para «{{title}}» el {{date}}. Prueba otra franja."
+     "body": "{{name}} no está disponible para «{{title}}» el {{date}}. Prueba otra franja.",
+     "neutral": {
+      "title": "Horario no disponible",
+      "body": "El horario solicitado para «{{title}}» el {{date}} no está disponible."
+     }
     },
     "booking_cancelled": {
      "auto_minimum": {
@@ -1291,6 +1376,14 @@
      "title": "Página pro validada",
      "body": "Tu página pro está en línea. Ya puedes publicar tus salidas."
     },
+    "pro_profession_approved": {
+     "title": "Nueva profesión validada",
+     "body": "«{{profession}}» aparece ahora en tu página pro."
+    },
+    "pro_profession_rejected": {
+     "title": "Nueva profesión rechazada",
+     "body": "«{{profession}}» no ha sido validada. Escríbenos a contact@askandgo.io para saber más."
+    },
     "pro_rejected": {
      "title": "Solicitud pro rechazada",
      "body": "Tu solicitud de página pro no ha sido validada. Corrige tus datos y envíala de nuevo.",
@@ -1311,6 +1404,21 @@
    "period": {
     "am": "mañana",
     "pm": "tarde"
+   },
+   "profession": {
+    "mountain_guide": "Guía de alta montaña",
+    "mountain_leader": "Guía de montaña",
+    "climbing_instructor": "Monitor de escalada",
+    "canyoning_instructor": "Monitor de barranquismo",
+    "whitewater_instructor": "Monitor de aguas bravas",
+    "diving_instructor": "Monitor de buceo",
+    "surf_instructor": "Monitor de surf / vela",
+    "paragliding_instructor": "Monitor de parapente",
+    "ski_instructor": "Monitor de esquí",
+    "mtb_instructor": "Monitor de BTT",
+    "wellness_instructor": "Profesor de yoga / bienestar",
+    "school_office": "Oficina / escuela",
+    "other": "Otro"
    }
   },
   "de": {
@@ -1456,7 +1564,11 @@
     },
     "booking_declined": {
      "title": "Termin nicht verfügbar",
-     "body": "{{name}} ist am {{date}} für „{{title}}“ nicht verfügbar. Versuch einen anderen Termin."
+     "body": "{{name}} ist am {{date}} für „{{title}}“ nicht verfügbar. Versuch einen anderen Termin.",
+     "neutral": {
+      "title": "Termin nicht verfügbar",
+      "body": "Der angefragte Termin für „{{title}}“ am {{date}} ist nicht verfügbar."
+     }
     },
     "booking_cancelled": {
      "auto_minimum": {
@@ -1619,6 +1731,14 @@
      "title": "Pro-Seite freigegeben",
      "body": "Deine Pro-Seite ist online. Du kannst jetzt deine Touren veröffentlichen."
     },
+    "pro_profession_approved": {
+     "title": "Neuer Beruf bestätigt",
+     "body": "„{{profession}}“ wird jetzt auf deiner Profi-Seite angezeigt."
+    },
+    "pro_profession_rejected": {
+     "title": "Neuer Beruf abgelehnt",
+     "body": "„{{profession}}“ wurde nicht bestätigt. Schreib uns an contact@askandgo.io, um mehr zu erfahren."
+    },
     "pro_rejected": {
      "title": "Pro-Antrag abgelehnt",
      "body": "Dein Antrag auf eine Pro-Seite wurde nicht freigegeben. Korrigiere deine Angaben und sende ihn erneut.",
@@ -1639,6 +1759,21 @@
    "period": {
     "am": "vormittags",
     "pm": "nachmittags"
+   },
+   "profession": {
+    "mountain_guide": "Bergführer:in",
+    "mountain_leader": "Wanderführer:in",
+    "climbing_instructor": "Kletterlehrer:in",
+    "canyoning_instructor": "Canyoning-Guide",
+    "whitewater_instructor": "Wildwasser-Guide",
+    "diving_instructor": "Tauchlehrer:in",
+    "surf_instructor": "Surf- / Segellehrer:in",
+    "paragliding_instructor": "Gleitschirmlehrer:in",
+    "ski_instructor": "Skilehrer:in",
+    "mtb_instructor": "Mountainbike-Guide",
+    "wellness_instructor": "Yoga- / Wellness-Lehrer:in",
+    "school_office": "Büro / Schule",
+    "other": "Andere"
    }
   },
   "nl": {
@@ -1784,7 +1919,11 @@
     },
     "booking_declined": {
      "title": "Tijdslot niet beschikbaar",
-     "body": "{{name}} is niet beschikbaar voor “{{title}}” op {{date}}. Probeer een ander tijdslot."
+     "body": "{{name}} is niet beschikbaar voor “{{title}}” op {{date}}. Probeer een ander tijdslot.",
+     "neutral": {
+      "title": "Tijdslot niet beschikbaar",
+      "body": "Het gevraagde tijdslot voor “{{title}}” op {{date}} is niet beschikbaar."
+     }
     },
     "booking_cancelled": {
      "title": "Activiteit geannuleerd",
@@ -1878,6 +2017,14 @@
      "title": "Pro-pagina goedgekeurd",
      "body": "Je pro-pagina staat online. Je kunt nu je activiteiten publiceren."
     },
+    "pro_profession_approved": {
+     "title": "Nieuw beroep goedgekeurd",
+     "body": "“{{profession}}” staat nu op je pro-pagina."
+    },
+    "pro_profession_rejected": {
+     "title": "Nieuw beroep afgewezen",
+     "body": "“{{profession}}” is niet goedgekeurd. Schrijf naar contact@askandgo.io voor meer informatie."
+    },
     "pro_rejected": {
      "title": "Pro-aanvraag afgewezen",
      "body": "Je aanvraag voor een pro-pagina is niet goedgekeurd. Pas je gegevens aan en dien hem opnieuw in.",
@@ -1967,6 +2114,21 @@
    "period": {
     "am": "ochtend",
     "pm": "middag"
+   },
+   "profession": {
+    "mountain_guide": "Berggids",
+    "mountain_leader": "Middengebergtegids",
+    "climbing_instructor": "Klimmonitor",
+    "canyoning_instructor": "Canyoningmonitor",
+    "whitewater_instructor": "Wildwatermonitor",
+    "diving_instructor": "Duikinstructeur",
+    "surf_instructor": "Surf- / zeilinstructeur",
+    "paragliding_instructor": "Paraglidinginstructeur",
+    "ski_instructor": "Skileraar",
+    "mtb_instructor": "Mountainbikemonitor",
+    "wellness_instructor": "Yoga- / wellnessdocent",
+    "school_office": "Bureau / school",
+    "other": "Anders"
    }
   },
   "pt": {
@@ -2112,7 +2274,11 @@
     },
     "booking_declined": {
      "title": "Horário indisponível",
-     "body": "{{name}} não está disponível para « {{title}} » a {{date}}. Experimenta outro horário."
+     "body": "{{name}} não está disponível para « {{title}} » a {{date}}. Experimenta outro horário.",
+     "neutral": {
+      "title": "Horário indisponível",
+      "body": "O horário pedido para «{{title}}» em {{date}} não está disponível."
+     }
     },
     "booking_cancelled": {
      "title": "Atividade cancelada",
@@ -2206,6 +2372,14 @@
      "title": "Página pro validada",
      "body": "A tua página pro está online. Já podes publicar as tuas atividades."
     },
+    "pro_profession_approved": {
+     "title": "Nova profissão validada",
+     "body": "«{{profession}}» aparece agora na tua página pro."
+    },
+    "pro_profession_rejected": {
+     "title": "Nova profissão recusada",
+     "body": "«{{profession}}» não foi validada. Escreve-nos para contact@askandgo.io para saberes mais."
+    },
     "pro_rejected": {
      "title": "Pedido pro recusado",
      "body": "O teu pedido de página pro não foi validado. Corrige as tuas informações e envia-o de novo.",
@@ -2295,6 +2469,21 @@
    "period": {
     "am": "manhã",
     "pm": "tarde"
+   },
+   "profession": {
+    "mountain_guide": "Guia de alta montanha",
+    "mountain_leader": "Acompanhante de montanha",
+    "climbing_instructor": "Monitor de escalada",
+    "canyoning_instructor": "Monitor de canyoning",
+    "whitewater_instructor": "Monitor de águas bravas",
+    "diving_instructor": "Instrutor de mergulho",
+    "surf_instructor": "Instrutor de surf / vela",
+    "paragliding_instructor": "Instrutor de parapente",
+    "ski_instructor": "Instrutor de esqui",
+    "mtb_instructor": "Monitor de BTT",
+    "wellness_instructor": "Professor de ioga / bem-estar",
+    "school_office": "Agência / escola",
+    "other": "Outro"
    }
   }
  }

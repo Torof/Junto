@@ -33,7 +33,7 @@ interface ExpoTicket {
 }
 
 type Tpl = string | { [k: string]: Tpl };
-interface LangBundle { notif: Record<string, Tpl>; period: { am: string; pm: string } }
+interface LangBundle { notif: Record<string, Tpl>; period: { am: string; pm: string }; profession: Record<string, string> }
 const BUNDLES = (templates as { languages: Record<string, LangBundle> }).languages;
 const DEFAULT_LANG = 'fr';
 
@@ -124,6 +124,8 @@ function compose(
   }
   if (vars.date) vars.date = formatDay(vars.date, lang);
   if (vars.period === 'am' || vars.period === 'pm') vars.period = bundle.period[vars.period];
+  // 00581: a profession travels as its code — shown with the app's label.
+  if (vars.profession) vars.profession = bundle.profession[vars.profession] ?? vars.profession;
 
   let body = lookup(bundle, `${key}.body`);
   if (body === null) {
