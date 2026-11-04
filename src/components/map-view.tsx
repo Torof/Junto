@@ -458,6 +458,7 @@ export function JuntoMapView({
       let rtext = '';       // « · N avis » after the stars, or ''
       let stars: [StarImage, StarImage, StarImage, StarImage, StarImage] = ['', '', '', '', ''];
       let color: string = colors.cta;
+      let mk = 0;           // 1 = the pin wears a « your outing » badge → label starts further right
       const kind = p.type;
       if (p.type === 'activity') {
         // UA: title (universe colour) · 📅 when · 📊 level signal.
@@ -470,6 +471,7 @@ export function JuntoMapView({
         lvl = formatDifficultySignal(a.sport_key, a.level, a.distance_km, a.elevation_gain_m, a.level_max);
         lvlicon = lvl ? 'lvl' : '';
         color = SPORT_CATEGORY_COLORS[a.sport_category] ?? colors.cta;
+        mk = activityMark?.(a) ? 1 : 0;
       } else if (p.type === 'pro') {
         // PP: name · ★rating (own line) · catch-phrase (tagline, truncated).
         const pr = proMap.get(p.id);
@@ -491,11 +493,11 @@ export function JuntoMapView({
       return [{
         type: 'Feature' as const,
         geometry: { type: 'Point' as const, coordinates: coords },
-        properties: { id: p.id, name, color, kind, rtext, s1: stars[0], s2: stars[1], s3: stars[2], s4: stars[3], s5: stars[4], d2, d2icon, lvl, lvlicon },
+        properties: { id: p.id, name, color, kind, rtext, s1: stars[0], s2: stars[1], s3: stars[2], s4: stars[3], s5: stars[4], d2, d2icon, lvl, lvlicon, mk },
       }];
     });
     return { type: 'FeatureCollection' as const, features };
-  }, [clusters, fan, activityMap, proMap, offeringMap, colors, proUniverse]);
+  }, [clusters, fan, activityMap, proMap, offeringMap, colors, proUniverse, activityMark]);
 
   useEffect(() => {
     if (flyTo && cameraRef.current) {
@@ -896,7 +898,9 @@ export function JuntoMapView({
             textOffset: ['match', ['get', 'kind'],
               'pro', ['literal', [1.4, -2.6]],
               'offering', ['literal', [1.4, -2.0]],
-              ['literal', [1.4, -1.6]],
+              // An outing whose pin wears a badge (top-right) starts its label
+              // past it — the badge sat on the title (Scott 2026-11-04).
+              ['case', ['==', ['get', 'mk'], 1], ['literal', [2.4, -1.6]], ['literal', [1.4, -1.6]]],
             ],
             textJustify: 'left',
             // Wide enough that the UA date+time never wraps; long RA schedules
