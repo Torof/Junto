@@ -1,9 +1,10 @@
 import json,os
 S=os.path.dirname(os.path.abspath(__file__))
 IC=json.load(open(f'{S}/icons.json'))
-MAP='file:///home/torof/Desktop/Junto/web/public/hero-map-ecrins.jpg'
+ROOT=os.path.abspath(os.path.join(S,'..','..','..'))  # repo root, wherever the folder lives
+MAP='file://'+os.path.join(ROOT,'web','public','hero-map-ecrins.jpg')
 PH=lambda k:f'photos/demo-channel-{k}.jpg'
-MARK=open('/home/torof/Desktop/Junto/assets/brand/askandgo-mark.svg').read().replace('#000000','currentColor')
+MARK=open(os.path.join(ROOT,'assets','brand','askandgo-mark.svg')).read().replace('#000000','currentColor')
 INK='#1F1A15'; GREEN='#246342'; DEEP='#246342'; SEC='#6F665A'; BRAND='#1E7FD8'  # askandgo identity 2026-10-30
 UNI={'ski-touring':'#4A7C59','climbing-sport':'#4A7C59','hiking':'#4A7C59','via-ferrata':'#4A7C59','trail-running':'#E11D48','paragliding':'#8B5CF6','canyoning':'#2563EB'}
 L={ # lucide-ish paths (24 grid)
