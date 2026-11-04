@@ -122,10 +122,10 @@ Voir `CLAUDE.md` → "Before Any Feature" pour le checklist complet (lecture doc
   /assets           — images, icônes, fonts
   /i18n             — fichiers de traduction (fr.json, en.json) — pluralization via _one/_other suffixes
 /supabase
-  /migrations       — fichiers SQL versionnés (currently 149)
-  /functions        — Edge Functions (send-push, delete-user)
-  /seed.sql         — données de test
-/web                — Next.js (marketing + deep link bridges, hosted on Vercel at getjunto.app)
+  /migrations       — fichiers SQL versionnés (base 00526 + suivantes)
+  /functions        — Edge Functions (send-push, delete-account, calendar-feed/import, …)
+  /tests            — suite de tests DB (`npm run test:db`)
+/web                — Next.js (site + passerelles de liens, Vercel, askandgo.io ; getjunto.app garde les anciens liens)
 ```
 
 ---

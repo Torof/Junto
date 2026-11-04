@@ -263,7 +263,7 @@ ON CONFLICT (version) DO NOTHING;
         parts.append(f'-- ===== {name} =====\n' + body)
     with open(os.path.join(WORK, f'{BASELINE}_baseline.sql'), 'w') as f:
         f.write(f'-- {BASELINE} baseline — the whole database as migrated (MIGRATION_PLAN v7).\n'
-                '-- Earlier migrations live in supabase/migrations_archive/ (history only, never replayed).\n\n'
+                '-- Earlier migrations: in git history (supabase/migrations_archive/, removed 2026-11-04), never replayed.\n\n'
                 + '\n'.join(parts))
     report.append(f'historique : une seule migration de base {BASELINE}, déjà marquée appliquée ; fichier {BASELINE}_baseline.sql prêt')
 

@@ -1,5 +1,5 @@
 -- 00526 baseline — the whole database as migrated (MIGRATION_PLAN v7).
--- Earlier migrations live in supabase/migrations_archive/ (history only, never replayed).
+-- Earlier migrations: in git history (supabase/migrations_archive/, removed 2026-11-04), never replayed.
 
 -- ===== 05_target_guard.sql =====
 DO $$ BEGIN

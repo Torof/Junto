@@ -174,7 +174,7 @@ Voir `docs/DAY_OF_ACTIVITY.md` pour le flux complet.
 - Contraintes sur chaque colonne (`NOT NULL`, `CHECK`, `UNIQUE`)
 - RLS sur chaque table, écrite à la création (`ENABLE` + `FORCE`)
 - Types auto-générés via `supabase gen types`
-- Seed data dans `supabase/seed.sql`
+- Données de démonstration : mode démo (comptes, sorties et pros `is_demo`, migrations 00558 et suivantes), visible des seuls admins
 
 ### Géospatial
 - Colonnes `geography(Point, 4326)` sur `activities.location_*`
