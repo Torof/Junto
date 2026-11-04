@@ -60,7 +60,7 @@ export interface SportLevelVotes {
   level_right: number;
 }
 
-// Aggregates fed into the data-driven Junto award definitions on the client.
+// Aggregates fed into the data-driven askandgo award definitions on the client.
 // Server returns one JSONB blob; client decides which awards earn which tier.
 export interface AwardAggregates {
   joined: number;

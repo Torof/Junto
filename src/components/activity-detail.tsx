@@ -35,7 +35,7 @@ import { participationService, type Participation } from '@/services/participati
 import { getActivityTimeStatus, getStatusColor, getRemainingPlaces } from '@/utils/activity-status';
 import { FavoriteButton } from '@/components/favorite-button';
 import { formatLevelRange } from '@/constants/sport-levels';
-import { JuntoMapView, type MapPin } from './map-view';
+import { AppMapView, type MapPin } from './map-view';
 import { MapStyleButton } from './map-style-button';
 import { MapLegend } from './map-legend';
 import { TraceDrawModal } from './trace-draw-modal';
@@ -924,11 +924,11 @@ export function ActivityDetail({
             <View style={styles.mapHero}>
               {showTabs ? (
                 <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowFullMap(true)}>
-                  <JuntoMapView center={heroCenter} zoom={heroZoom} pins={heroPins} routeLine={heroRoute} waypoints={heroRoute ? activity.trace_geojson?.waypoints : undefined} compassEnabled={false} />
+                  <AppMapView center={heroCenter} zoom={heroZoom} pins={heroPins} routeLine={heroRoute} waypoints={heroRoute ? activity.trace_geojson?.waypoints : undefined} compassEnabled={false} />
                 </Pressable>
               ) : (
                 <View style={StyleSheet.absoluteFill} pointerEvents="none">
-                  <JuntoMapView center={heroCenter} zoom={heroZoom} pins={heroPins} routeLine={heroRoute} waypoints={heroRoute ? activity.trace_geojson?.waypoints : undefined} compassEnabled={false} />
+                  <AppMapView center={heroCenter} zoom={heroZoom} pins={heroPins} routeLine={heroRoute} waypoints={heroRoute ? activity.trace_geojson?.waypoints : undefined} compassEnabled={false} />
                 </View>
               )}
               {/* Poster grammar: sport flag alone top-left; scrim + meta line +
@@ -1577,7 +1577,7 @@ export function ActivityDetail({
 
       <Modal visible={showFullMap} animationType="slide" statusBarTranslucent onRequestClose={() => setShowFullMap(false)}>
         <View style={styles.fullMapContainer}>
-          <JuntoMapView
+          <AppMapView
             center={mapCenter}
             zoom={mapZoom}
             pins={mapPins}

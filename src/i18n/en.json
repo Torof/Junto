@@ -2299,7 +2299,7 @@
     "manualMissing": "Pick an offer and a name",
     "manualAdded": "Booking added",
     "manualTag": "manual",
-    "viaJunto": "via the app",
+    "viaApp": "via the app",
     "bookingGone": "Booking not found.",
     "noSlotsYet": "No slot open yet — check back soon.",
     "presetSlotGone": "This slot is no longer available — pick another one.",

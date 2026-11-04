@@ -1,4 +1,4 @@
-// Junto visual canon (Sept 2026 unification — supersedes the May 2026
+// askandgo visual canon (Sept 2026 unification — supersedes the May 2026
 // brutalist charter; validated by Scott, see DECISIONS.md « unification UI » (sprint 2026-09)):
 //
 //   - Surfaces: borderless cards on the page canvas, `radius.card` (16),

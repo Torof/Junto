@@ -2514,7 +2514,7 @@
     "manualMissing": "Escolhe uma oferta e um nome",
     "manualAdded": "Reserva adicionada",
     "manualTag": "manual",
-    "viaJunto": "pela app",
+    "viaApp": "pela app",
     "bookingGone": "Reserva não encontrada.",
     "noSlotsYet": "Ainda não há horários abertos — volta em breve.",
     "presetSlotGone": "Este horário já não está disponível — escolhe outro.",

@@ -150,7 +150,7 @@ interface MapViewProps {
   // Freehand-draw support (trace-draw-modal): expose the underlying MapView so
   // the caller can convert screen px → geo (getCoordinateFromView), and let it
   // lock the map gestures while drawing. All optional/backward-compatible.
-  mapViewRef?: RefObject<JuntoMapRef | null>;
+  mapViewRef?: RefObject<AppMapRef | null>;
   scrollEnabled?: boolean;
   zoomEnabled?: boolean;
   rotateEnabled?: boolean;
@@ -162,7 +162,7 @@ interface MapViewProps {
 }
 
 // Underlying rnmapbox MapView instance type — carries getCoordinateFromView.
-export type JuntoMapRef = ComponentRef<typeof Mapbox.MapView>;
+export type AppMapRef = ComponentRef<typeof Mapbox.MapView>;
 
 // Single point shape with a type discriminator. The unified Supercluster
 // groups activities, pros, and offerings by spatial proximity regardless
@@ -227,7 +227,7 @@ function fanLeaves(points: PinPoint[], center: [number, number], zoomLevel: numb
 // Fixed slice order so a cluster's ring reads the same everywhere.
 const UNIVERSE_ORDER = ['mountain', 'water', 'air', 'cycling', 'on-foot', 'wellness', ''];
 
-export function JuntoMapView({
+export function AppMapView({
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
   activities = [],

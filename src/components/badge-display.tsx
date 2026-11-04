@@ -101,7 +101,7 @@ const SPORT_THRESHOLD = 3;
 // Cap voter avatars surfaced in the Vouched popup. Beyond this we render
 // a "+N" overflow indicator instead of more rounded portraits.
 const MAX_VISIBLE_VOTER_AVATARS = 7;
-// Peer-vouched tier — same color palette as Junto so the eye learns one
+// Peer-vouched tier — same color palette as askandgo so the eye learns one
 // rank language across the card. Visibility threshold is 5 so the bronze
 // floor is never "missing".
 function vouchedTier(count: number): 'bronze' | 'silver' | 'gold' {
@@ -153,7 +153,7 @@ interface WarningItem {
   count: number;
   severity: 'amber' | 'red';
 }
-interface JuntoAward {
+interface AppAward {
   id: string;
   Icon: LucideIcon;
   count: number;
@@ -169,7 +169,7 @@ interface JuntoAward {
   nounObject: string;
 }
 
-// Data-driven Junto award definitions. Adding / removing / tuning a badge
+// Data-driven askandgo award definitions. Adding / removing / tuning a badge
 // is just an entry change here + an i18n entry under badges.awardLabel.{id}.
 //
 // `outings` — main count threshold (joined / created / multi-day / outings in category)
@@ -293,7 +293,7 @@ type DetailTarget =
   | { kind: 'vouched'; item: VouchedItem }
   | { kind: 'warning'; item: WarningItem }
   | { kind: 'sport'; item: SportItem }
-  | { kind: 'award'; item: JuntoAward };
+  | { kind: 'award'; item: AppAward };
 
 export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], sportLevelVotes = [], awardAggregates, declaredSports = [], declaredLevels = null, editable = false, onEditSports }: BadgeDisplayProps) {
   const { t } = useTranslation();
@@ -392,11 +392,11 @@ export function BadgeDisplay({ userId, reputation, trophies, sportLevels = [], s
       });
     }
 
-    // Junto awards — iterate the data-driven AWARDS list, surface only the
+    // askandgo awards — iterate the data-driven AWARDS list, surface only the
     // ones the user has earned at least bronze on. Carry the def's
     // thresholds + distinctSports onto the item so the popover can compute
     // a "next tier" hint.
-    const awardsList: JuntoAward[] = [];
+    const awardsList: AppAward[] = [];
     if (awardAggregates) {
       for (const def of AWARDS) {
         const evald = evaluateAward(def, awardAggregates);
@@ -997,7 +997,7 @@ function WarningDetail({
 
 // ---------------------------------------------------------------------------
 // Award popup (A3) — gradient hero card with tier-color border, icon disk,
-// "Décerné par Junto" caption, tier-specific French label, sentence-stat
+// "Décerné par askandgo" caption, tier-specific French label, sentence-stat
 // with big count. Below: progression list with three tier rows + footer
 // "X de plus pour {next}". Spec: §4.3.
 // ---------------------------------------------------------------------------
@@ -1007,7 +1007,7 @@ function AwardDetail({
   colors,
   t,
 }: {
-  item: JuntoAward;
+  item: AppAward;
   styles: ReturnType<typeof createStyles>;
   colors: AppColors;
   t: (k: string, opts?: Record<string, unknown>) => string;

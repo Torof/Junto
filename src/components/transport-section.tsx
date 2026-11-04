@@ -13,7 +13,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { transportService } from '@/services/transport-service';
 import { PlaceSearchBar } from '@/components/place-search-bar';
-import { JuntoMapView } from '@/components/map-view';
+import { AppMapView } from '@/components/map-view';
 import { MapStyleButton } from '@/components/map-style-button';
 import { geocodeService } from '@/services/geocode-service';
 import { useInitialLocation } from '@/hooks/use-initial-location';
@@ -415,7 +415,7 @@ export const TransportSection = forwardRef<TransportSectionHandle, Props>(functi
           departure. Reverse-geocoding names it; the pin's coords are kept. */}
       <Modal visible={showMapPicker} animationType="slide" onRequestClose={() => setShowMapPicker(false)}>
         <View style={styles.mapPickerWrap}>
-          <JuntoMapView
+          <AppMapView
             center={mapPickedPoint ? [mapPickedPoint.lng, mapPickedPoint.lat] : (initialCenter ?? undefined)}
             onMapPress={(lng, lat) => setMapPickedPoint({ lat, lng })}
             pins={mapPickedPoint ? [{ id: 'dep', coordinate: [mapPickedPoint.lng, mapPickedPoint.lat], color: colors.cta }] : []}

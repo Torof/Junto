@@ -22,7 +22,7 @@ interface Props {
   onExternalShare?: () => void;
 }
 
-// Sends a GPX trace into a Junto conversation (reuses shareTrace), with an
+// Sends a GPX trace into a askandgo conversation (reuses shareTrace), with an
 // optional "share externally" row (native GPX file). Mirrors ShareActivitySheet.
 export function TraceShareSheet({ visible, geojson, name, onClose, onExternalShare }: Props) {
   const { t } = useTranslation();

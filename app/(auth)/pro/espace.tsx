@@ -264,7 +264,7 @@ export default function ProSpaceScreen() {
                 <AppText style={styles.todaySub} numberOfLines={1}>
                   {b.offering_title} · {b.is_manual
                     ? t('booking.manualTag', { defaultValue: 'manuel' })
-                    : t('booking.viaJunto', { defaultValue: 'via l’app' })}
+                    : t('booking.viaApp', { defaultValue: 'via l’app' })}
                 </AppText>
               </View>
               {b.is_manual && b.manual_phone ? (

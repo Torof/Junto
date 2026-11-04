@@ -18,7 +18,7 @@ import {
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
-import { JuntoMapView } from '@/components/map-view';
+import { AppMapView } from '@/components/map-view';
 import { MapStyleButton } from '@/components/map-style-button';
 import { useCreateStore } from '@/store/create-store';
 import { useSports } from '@/hooks/use-sports';
@@ -174,7 +174,7 @@ export default function CreateStep2() {
   return (
     <View style={styles.container}>
       <View style={styles.mapContainer}>
-        <JuntoMapView
+        <AppMapView
           center={form.location_meeting ? [form.location_meeting.lng, form.location_meeting.lat] : center}
           zoom={12}
           onMapPress={handleMapPress}

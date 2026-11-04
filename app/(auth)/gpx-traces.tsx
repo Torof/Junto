@@ -12,7 +12,7 @@ import 'dayjs/locale/fr';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
-import { JuntoMapView } from '@/components/map-view';
+import { AppMapView } from '@/components/map-view';
 import { MapStyleButton } from '@/components/map-style-button';
 import { TraceDrawModal } from '@/components/trace-draw-modal';
 import { TraceShareSheet } from '@/components/trace-share-sheet';
@@ -198,7 +198,7 @@ export default function GpxTracesScreen() {
       <Modal visible={preview !== null} animationType="slide" statusBarTranslucent onRequestClose={() => setPreview(null)}>
         <View style={styles.previewContainer}>
           {preview ? (
-            <JuntoMapView
+            <AppMapView
               center={midpoint(preview.geojson.coordinates)}
               zoom={11}
               routeLine={preview.geojson.coordinates as [number, number][]}

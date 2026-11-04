@@ -10,7 +10,7 @@ import * as Burnt from 'burnt';
 import { WaypointDraftPanel, commitDraft, draftFromTap, draftFromWaypoint, type WaypointDraft } from './waypoint-draft-panel';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
 import { MAX_WAYPOINTS, snapToLine, withWaypoints } from '@/utils/trace-waypoints';
-import { JuntoMapView, type MapPin, type JuntoMapRef } from './map-view';
+import { AppMapView, type MapPin, type AppMapRef } from './map-view';
 import { MapStyleButton } from './map-style-button';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
@@ -124,7 +124,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
   // is locked and the finger traces a line.
   // 'stops' = the trace is there, a tap on it places a stop (refuge, water…).
   const [mode, setMode] = useState<'nav' | 'draw' | 'stops'>('nav');
-  const mapRef = useRef<JuntoMapRef>(null);
+  const mapRef = useRef<AppMapRef>(null);
   const livePtsRef = useRef<Pt[]>([]);        // current stroke, in screen px
   const [, setLiveTick] = useState(0);         // forces re-render of the live SVG
 
@@ -301,7 +301,7 @@ export function TraceDrawModal({ visible, saving = false, askName = true, onClos
   return (
     <Modal visible={visible} animationType="slide" statusBarTranslucent onRequestClose={onClose}>
       <View style={styles.container}>
-        <JuntoMapView
+        <AppMapView
           center={center}
           pins={pins}
           routeLine={routeLine}

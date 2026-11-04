@@ -6,7 +6,7 @@ import { AppText } from '@/components/app-text';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, MapPin, Trophy } from 'lucide-react-native';
-import { JuntoMapView, type MapBounds } from '@/components/map-view';
+import { AppMapView, type MapBounds } from '@/components/map-view';
 import { ActivitySheet } from '@/components/activity-sheet';
 import { ActivitiesBottomSheet, type ActivitiesBottomSheetHandle } from '@/components/activities-bottom-sheet';
 import { FilterButton, EntityTypeToggles } from '@/components/filter-bar';
@@ -413,7 +413,7 @@ export default function CarteScreen() {
 
         <>
             {mapReady && (
-            <JuntoMapView
+            <AppMapView
               styleScope="main"
               center={center}
               zoom={initialZoom}

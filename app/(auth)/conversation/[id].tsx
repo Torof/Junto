@@ -36,7 +36,7 @@ import { parseGpxToGeoJson, GpxParseError } from '@/utils/parse-gpx';
 import { geoJsonLineStringToGpx } from '@/utils/geojson-to-gpx';
 import { useCreateStore } from '@/store/create-store';
 import { LogoSpinner } from '@/components/logo-spinner';
-import { JuntoMapView } from '@/components/map-view';
+import { AppMapView } from '@/components/map-view';
 import { MapStyleButton } from '@/components/map-style-button';
 import { ActivityUnavailable } from '@/components/activity-unavailable';
 import { PickActivitySheet } from '@/components/pick-activity-sheet';
@@ -1148,7 +1148,7 @@ export default function ConversationScreen() {
             const zoom = spread > 0.5 ? 8 : spread > 0.1 ? 10 : spread > 0.01 ? 12 : 14;
             return (
               <>
-                <JuntoMapView center={center} zoom={zoom} routeLine={tracePreview.coords} />
+                <AppMapView center={center} zoom={zoom} routeLine={tracePreview.coords} />
                 <View style={styles.tracePreviewHeader}>
                   <Pressable
                     style={styles.tracePreviewClose}

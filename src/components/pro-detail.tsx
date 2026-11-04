@@ -29,7 +29,7 @@ import { StarRating } from './star-rating';
 import { pickAndUploadProPhotos, removeProPhoto, pickAndUploadCommunityPhotos, removeProCommunityPhoto } from '@/utils/pro-photo-upload';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { sportCategoryColor } from '@/utils/sport-category-color';
-import { JuntoMapView } from './map-view';
+import { AppMapView } from './map-view';
 import { MapStyleButton } from './map-style-button';
 import { PhotoGallery } from './photo-gallery';
 import { ReportModal } from './report-modal';
@@ -143,7 +143,7 @@ function openLink(url: string): void {
 const MIN_TAB_CONTENT_H = Dimensions.get('window').height;
 
 // Display form of a URL — drops the protocol, a leading www., and any trailing
-// slash so the row reads "getjunto.app" instead of "https://www.getjunto.app/".
+// slash so the row reads "askandgo.io" instead of "https://www.askandgo.io/".
 function prettyUrl(url: string): string {
   return url.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/+$/, '');
 }
@@ -944,7 +944,7 @@ export function ProDetail({ pro, isOwner, initialTab, soloTab, onEdit, inSheet =
       </Modal>
       <Modal visible={showFullMap} animationType="slide" onRequestClose={() => setShowFullMap(false)}>
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
-          <JuntoMapView center={mapCenter} zoom={14} pins={mapPins} />
+          <AppMapView center={mapCenter} zoom={14} pins={mapPins} />
           <Pressable style={styles.closeMapButton} onPress={() => setShowFullMap(false)} hitSlop={8}>
             <X size={18} color={colors.textPrimary} strokeWidth={2.4} />
           </Pressable>

@@ -1,5 +1,5 @@
 // Pictos of the pro pin that are not sports (Scott 2026-10-26, planche
-// « Les treize métiers »): drawn for Junto as flat 24-box shapes, in the
+// « Les treize métiers »): drawn for askandgo as flat 24-box shapes, in the
 // currentColor format of the sport set so the same renderer paints them.
 //   lotus      — wellness professions (the simple lotus, not a yoga posture)
 //   school     — school / office (a building with a pennant, not a house)

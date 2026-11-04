@@ -7,7 +7,7 @@
 //   - Material Design Icons (Apache 2.0) — pickaxe
 //   - Font Awesome 6 Solid (CC BY 4.0) — person-skiing-nordic
 //   - Temaki (CC0) — rafting · Map Icons (OFL) — swimming · Fontisto (MIT) — freediving
-//   - paraglider (redrawn 2026-10-23), canyoning (abseil, 2026-10-23) + windsurfing: custom (drawn for Junto)
+//   - paraglider (redrawn 2026-10-23), canyoning (abseil, 2026-10-23) + windsurfing: custom (drawn for askandgo)
 //   - Bien-être + 3 sports (2026-10-19): MingCute (Apache 2.0) — yoga ;
 //     Solar Icons (CC BY 4.0) — meditation ; MDI (Apache 2.0) — qi-gong,
 //     nordic-walking, kitesurfing ; tai-chi « pousser les mains » (2026-10-23) + wingfoil: custom

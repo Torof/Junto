@@ -1,4 +1,4 @@
-// Centralized accent palette per sport_category — the 6 Junto universes
+// Centralized accent palette per sport_category — the 6 askandgo universes
 // (pin system v4 / taxonomy v2.1, migrations 00281 + 00282 + 00461). Used both as the
 // activity accent (cards/popups/detail/offerings) and as the pro pushpin disc
 // color. Retired-sport categories fall back to the CTA color.

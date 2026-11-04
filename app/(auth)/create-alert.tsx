@@ -15,7 +15,7 @@ import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { alertService } from '@/services/alert-service';
 import { SportDropdown } from '@/components/sport-dropdown';
-import { JuntoMapView } from '@/components/map-view';
+import { AppMapView } from '@/components/map-view';
 import { MapStyleButton } from '@/components/map-style-button';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { getFriendlyError } from '@/utils/friendly-error';
@@ -106,7 +106,7 @@ export default function CreateAlertScreen() {
         </View>
 
         <Pressable style={styles.mapPreview} onPress={() => setShowMap(true)}>
-          <JuntoMapView
+          <AppMapView
             center={location ? [location.lng, location.lat] : center}
             zoom={10}
             pins={location ? [{ id: 'alert-center', coordinate: [location.lng, location.lat], color: colors.cta }] : []}
@@ -230,7 +230,7 @@ export default function CreateAlertScreen() {
 
       <Modal visible={showMap} animationType="slide">
         <SafeAreaView style={styles.mapContainer} edges={['top', 'bottom']}>
-          <JuntoMapView
+          <AppMapView
             center={location ? [location.lng, location.lat] : center}
             zoom={10}
             pins={location ? [{ id: 'alert-center', coordinate: [location.lng, location.lat], color: colors.cta }] : []}

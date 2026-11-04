@@ -23,7 +23,7 @@ import { proService } from '@/services/pro-service';
 import { useSports } from '@/hooks/use-sports';
 import { getFriendlyError } from '@/utils/friendly-error';
 import { LogoSpinner } from '@/components/logo-spinner';
-import { JuntoMapView } from '@/components/map-view';
+import { AppMapView } from '@/components/map-view';
 import { MapStyleButton } from '@/components/map-style-button';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { PressableScale } from '@/components/pressable-scale';
@@ -859,7 +859,7 @@ export default function ProOfferingEditScreen() {
 
       <Modal visible={showMapPicker} animationType="slide" onRequestClose={() => setShowMapPicker(false)}>
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
-          <JuntoMapView
+          <AppMapView
             center={
               pickerPinLng !== null && pickerPinLat !== null
                 ? [pickerPinLng, pickerPinLat]

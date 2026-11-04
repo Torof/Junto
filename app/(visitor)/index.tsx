@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
-import { JuntoMapView, type MapBounds } from '@/components/map-view';
+import { AppMapView, type MapBounds } from '@/components/map-view';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { useNearbyActivities, type MapBounds as QueryBounds } from '@/hooks/use-nearby-activities';
 import { useNearbyProOfferings } from '@/hooks/use-nearby-pro-offerings';
@@ -143,7 +143,7 @@ export default function VisitorMapScreen() {
         onLayout={(e) => onContentLayout(e.nativeEvent.layout.height)}
       >
         {mapMounted && (
-          <JuntoMapView
+          <AppMapView
             styleScope="main"
             center={center}
             zoom={initialZoom}

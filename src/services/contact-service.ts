@@ -48,7 +48,7 @@ export const contactService = {
     return data ?? null;
   },
 
-  // Owner side: kills every live QR token when « Mon QR Junto » closes, so a
+  // Owner side: kills every live QR token when « Mon QR askandgo » closes, so a
   // screenshot relayed elsewhere is already dead (mig 00469).
   revokeQrTokens: async (token: string): Promise<void> => {
     const { error } = await supabase.rpc('revoke_contact_qr_tokens',

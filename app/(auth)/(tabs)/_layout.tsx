@@ -39,7 +39,7 @@ function TabIcon({ icon: IconComponent, focused }: { icon: LucideIcon; focused: 
   );
 }
 
-// Notifications is Junto's action center (requests, presence, transport) —
+// Notifications is askandgo's action center (requests, presence, transport) —
 // Scott's call (2026-07-06): it stays a first-class tab, bell + count badge
 function MessageTabIcon({ focused }: { focused: boolean }) {
   const colors = useColors();

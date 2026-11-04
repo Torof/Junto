@@ -17,7 +17,7 @@ interface ThemeStore {
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set) => ({
-      // Light is Junto's primary theme (2026-06-11) — outdoor sunlight
+      // Light is askandgo's primary theme (2026-06-11) — outdoor sunlight
       // readability. Dark is an explicit opt-in via settings.
       preference: 'light',
       setPreference: (preference) => set({ preference }),

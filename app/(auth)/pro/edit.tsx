@@ -30,7 +30,7 @@ import { CoverPicker, type CoverChange } from '@/components/cover-picker';
 import { uploadProCover } from '@/utils/pro-photo-upload';
 import { pickAndUploadProPinImage } from '@/utils/pro-pin-image-upload';
 import { LogoSpinner } from '@/components/logo-spinner';
-import { JuntoMapView } from '@/components/map-view';
+import { AppMapView } from '@/components/map-view';
 import { MapStyleButton } from '@/components/map-style-button';
 import { PlaceSearchBar } from '@/components/place-search-bar';
 import { PressableScale } from '@/components/pressable-scale';
@@ -342,7 +342,7 @@ export default function ProEditScreen() {
         onPress={openMapPicker}
         disabled={locationLocked}
       >
-        <JuntoMapView
+        <AppMapView
           center={pinLng !== null && pinLat !== null ? [pinLng, pinLat] : center}
           zoom={12}
           pins={
@@ -396,7 +396,7 @@ export default function ProEditScreen() {
         <AppTextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="contact@..." placeholderTextColor={colors.textSecondary} autoCapitalize="none" keyboardType="email-address" maxLength={200} />
       </Field>
       <Field label={t('pro.fieldInstagram', { defaultValue: 'Instagram' })} styles={styles}>
-        <AppTextInput style={styles.input} value={instagram} onChangeText={setInstagram} placeholder="@junto.alpine" placeholderTextColor={colors.textSecondary} autoCapitalize="none" maxLength={100} />
+        <AppTextInput style={styles.input} value={instagram} onChangeText={setInstagram} placeholder="@ecole.alpine" placeholderTextColor={colors.textSecondary} autoCapitalize="none" maxLength={100} />
       </Field>
       <Field label={t('pro.fieldFacebook', { defaultValue: 'Facebook' })} styles={styles}>
         <AppTextInput style={styles.input} value={facebook} onChangeText={setFacebook} placeholder="page-ou-url" placeholderTextColor={colors.textSecondary} autoCapitalize="none" maxLength={200} />
@@ -722,7 +722,7 @@ export default function ProEditScreen() {
 
       <Modal visible={showMapPicker} animationType="slide" onRequestClose={() => setShowMapPicker(false)}>
         <SafeAreaView style={styles.fullMapContainer} edges={['top']}>
-          <JuntoMapView
+          <AppMapView
             center={
               pickerPinLng !== null && pickerPinLat !== null
                 ? [pickerPinLng, pickerPinLat]

@@ -9,7 +9,7 @@ import { X } from 'lucide-react-native';
 import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
-import { JuntoMapView } from '@/components/map-view';
+import { AppMapView } from '@/components/map-view';
 import { MapStyleButton } from '@/components/map-style-button';
 import { LogoSpinner } from '@/components/logo-spinner';
 import { discoveryService } from '@/services/discovery-service';
@@ -58,7 +58,7 @@ export default function DiscoveryZoneScreen() {
         </View>
       ) : (
         <View style={styles.mapWrap}>
-          <JuntoMapView
+          <AppMapView
             center={[coords.lng, coords.lat]}
             zoom={10}
             radiusKm={coords.radius}

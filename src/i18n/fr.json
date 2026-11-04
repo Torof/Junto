@@ -2299,7 +2299,7 @@
     "manualMissing": "Choisis une offre et un nom",
     "manualAdded": "Réservation ajoutée",
     "manualTag": "manuel",
-    "viaJunto": "via l’app",
+    "viaApp": "via l’app",
     "bookingGone": "Réservation introuvable.",
     "noSlotsYet": "Pas encore de créneau ouvert — reviens bientôt.",
     "presetSlotGone": "Ce créneau n’est plus disponible — choisis-en un autre.",

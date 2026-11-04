@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
 import { X as XIcon } from 'lucide-react-native';
 import { AppText } from '@/components/app-text';
-import { JuntoMapView } from '@/components/map-view';
+import { AppMapView } from '@/components/map-view';
 import { WaypointDraftPanel, commitDraft, draftFromTap, draftFromWaypoint, type WaypointDraft } from '@/components/waypoint-draft-panel';
 import { useColors } from '@/hooks/use-theme';
 import { useKeyboardDockPadding } from '@/hooks/use-keyboard-dock-padding';
@@ -74,7 +74,7 @@ export function WaypointEditorModal({ visible, trace, saving = false, onClose, o
   return (
     <Modal visible={visible} animationType="slide" statusBarTranslucent onRequestClose={onClose}>
       <View style={styles.container}>
-        <JuntoMapView
+        <AppMapView
           center={center}
           zoom={zoom}
           routeLine={routeLine}
