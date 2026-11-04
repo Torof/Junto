@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Pressable, Modal, StyleSheet } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,8 +37,13 @@ export function WaypointEditorModal({ visible, trace, saving = false, onClose, o
   const [wps, setWps] = useState<TraceWaypoint[]>([]);
   const [draft, setDraft] = useState<WaypointDraft | null>(null);
 
+  // Seed from the trace only when the editor OPENS: a refetch or the async
+  // elevation enrichment hands a new `trace` object mid-edit, and resetting on
+  // it wiped the stops being placed (audit 2026-11-04).
+  const wasVisible = useRef(false);
   useEffect(() => {
-    if (visible) { setWps(trace?.waypoints ?? []); setDraft(null); }
+    if (visible && !wasVisible.current) { setWps(trace?.waypoints ?? []); setDraft(null); }
+    wasVisible.current = visible;
   }, [visible, trace]);
 
   const coords = useMemo(() => trace?.coordinates ?? [], [trace]);
