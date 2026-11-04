@@ -1,8 +1,7 @@
 # Discovery — Spécification (modèle « dispos »)
 
-> **Statut : modèle + design décidés, non construits.** Réflexion 2026-07-28, design/maquettes 2026-07-29 (Scott).
-> Prochaine étape = **décider go / no-go** (la feature est-elle utile ?), puis valider les chaînes d'autorisation, puis build.
-> Aucune migration ni code à ce jour. Maquettes de référence : voir « Design validé — maquettes ».
+> **Statut : construit (août 2026)** — v1 + « Inviter » + multi-intent + carte de zone (`get_dispo_zone`).
+> Réflexion 2026-07-28, design/maquettes 2026-07-29 (Scott). Maquettes de référence : voir « Design validé — maquettes ».
 >
 > ⚠️ Ce document **remplace** l'ancienne spec « Partenaires + Demandes » (annuaire de
 > profils, option A), **abandonnée** : elle inversait le but de Junto et glissait vers

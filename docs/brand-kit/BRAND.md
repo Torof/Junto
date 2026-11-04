@@ -1,10 +1,10 @@
-# Junto — Kit de marque (pour Claude Design / visuels Play Store)
+# askandgo — Kit de marque (pour Claude Design / visuels Play Store)
 
 Ce dossier réunit tout le nécessaire pour composer des **images de fiche Play Store**
-fidèles à l'identité Junto — sans reproduire un écran, mais en réutilisant les
+fidèles à l'identité askandgo — sans reproduire un écran, mais en réutilisant les
 **éléments** de l'app (pins, cartes d'activité, couleurs, ton).
 
-## Ce qu'est Junto (en une phrase)
+## Ce qu'est askandgo (en une phrase)
 Une app pour **voir les sorties outdoor en cours autour de soi, où que l'on aille, et
 les rejoindre** — entre passionnés ou encadré par un pro. Positionnement : *destination
 d'abord* (« là où tu vas, là où tu veux »), **jamais** « près de chez toi ». Ton positif,
@@ -13,13 +13,13 @@ naturel, montagne, jamais négatif.
 ## Palette (thème clair = référence)
 | Rôle | Hex |
 |---|---|
-| Fond (cream) | `#F5EEDF` |
-| Surface / carte | `#EDE4D2` |
-| Surface alt | `#E3D9C4` |
+| Fond | `#FFFFFF` |
+| Surface / carte | `#FFFFFF` |
+| Surface alt | `#F1EFEA` |
 | Encre (texte principal) | `#1F1A15` |
 | Texte secondaire | `#6F665A` |
-| **Accent (CTA) — vert vif** | `#2FA46A` |
-| Vert montagne (logo) | `#3F7A56` |
+| **Accent (CTA) — vert identité** | `#246342` (`#45A06D` en thème sombre) |
+| **Bleu marque** (action principale de chaque écran, logo) | `#1E7FD8` |
 | Bordure brutaliste | `#1F1A15` |
 | Étoile / note | `#FBBF24` |
 
@@ -40,7 +40,7 @@ Petites étiquettes en capitales espacées.
 ## Style visuel
 - **Brutaliste doux** : bordures 1–2px encre franches, coins arrondis modérés (14–24px),
   pas d'ombres lourdes (préférer un bord net). Thème clair par défaut, calme, naturel.
-- **Cartes d'activité** : fond cream `#EDE4D2`/`#F5EEDF`, pastille sport (contour de la
+- **Cartes d'activité** : fond blanc `#FFFFFF`, pastille sport (contour de la
   couleur de catégorie), titre encre gras, lignes d'info avec **icônes en trait vert**
   (calendrier, horloge, niveau, participants, lieu), CTA texte vert.
 - **Fond de carte** : Mapbox Outdoors — terrain vert, courbes de niveau, villages.

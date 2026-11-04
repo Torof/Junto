@@ -1,8 +1,8 @@
 # Presence — v1 Test Plan
 
-Hand-runnable test matrix for the presence subsystem before signing off pre-launch. Tick each box on real devices. Each scenario lists setup, expected user-visible behavior, and where to verify (Sentry breadcrumbs, in-app notif row, DB column).
+Hand-runnable test matrix for the presence subsystem before signing off pre-launch. Tick each box on real devices. Each scenario lists setup, expected user-visible behavior, and where to verify (app UI / in-app notif row, DB column `participations.confirmed_present`).
 
-Last reviewed: 2026-05-03 (post mig 00167 + 00168).
+Last reviewed: 2026-11-04 (Sentry removed 2026-10-23 — verification via app UI + DB).
 
 ---
 
@@ -11,7 +11,7 @@ Last reviewed: 2026-05-03 (post mig 00167 + 00168).
 - Two test accounts (e.g. `scottpanam` and `scottintrip`) — both opted in to background location, push permission granted.
 - One real device per account ideally (or one device + account-switch).
 - A way to fast-forward time isn't needed — set `starts_at` to a fresh value per test.
-- Sentry dashboard open in another tab. Filter to `environment: preview`.
+- Read-only DB access to check `participations.confirmed_present` (and `notifications` rows of type `presence_confirmed`) for the test accounts.
 
 ---
 
@@ -29,7 +29,6 @@ Last reviewed: 2026-05-03 (post mig 00167 + 00168).
 - ~3-5s later, local notif "Présence confirmée" fires (sound, distinct identifier).
 - In-app notification list shows `presence_confirmed` row.
 - DB: B's `participations.confirmed_present = TRUE`.
-- Sentry: `[presence.location] in zone, calling RPC` event with `accuracy_m` ≤ 100, `distance_m` ≤ 300.
 
 ---
 
@@ -42,7 +41,7 @@ Last reviewed: 2026-05-03 (post mig 00167 + 00168).
 - Walk to meetup point.
 - Service detects in-zone → confirmée fires with sound.
 - Orange persistent notif disappears (service auto-stopped).
-- Sentry: `[presence.fgservice] started` then `[presence.location] all validated, stopping service` (or equivalent).
+- In-app notification list shows `presence_confirmed` row; DB: B's `participations.confirmed_present = TRUE`.
 
 ---
 
@@ -201,4 +200,4 @@ Before pre-launch sign-off, confirm:
 - [ ] C8 — at least cancelled-at-T-5min and withdrawn-at-T-1min explicitly tested.
 - [ ] C9 — QR button visibility transitions verified at T-15min and T+duration+1h.
 
-Anything that fails: open an issue, link the Sentry trace, treat as v1-blocker.
+Anything that fails: open an issue, note the participation row state (`confirmed_present`) and device/OS, treat as v1-blocker.

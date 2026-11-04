@@ -1,6 +1,6 @@
-# Junto — Stack Technique
+# askandgo — Stack Technique
 
-À jour au 28 avril 2026. Stack orientée MVP rapide, maintenable et évolutive.
+À jour au 4 novembre 2026. Stack orientée MVP rapide, maintenable et évolutive.
 
 ## Frontend
 
@@ -14,7 +14,7 @@
 
 ### Expo Router
 - File-based, deep linking automatique, routes typées
-- Custom scheme `junto://` + universal links sur `getjunto.app` (`/activity/*`, `/invite/*`)
+- Custom scheme `junto://` + App Links sur `askandgo.io` (hôte principal) et `getjunto.app` (gardé pour les liens partagés avant le renommage)
 
 ---
 

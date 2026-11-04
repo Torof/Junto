@@ -193,12 +193,7 @@ Vu publiquement comme un tier (label) ; vu en clair (%) uniquement par l'utilisa
 
 ## Diagnostic
 
-Sentry breadcrumbs sur chaque leg (`lib/sentry.trace`) :
-- `presence.geofence` — Enter event, RPC outcome, enqueue
-- `presence.watcher` — in-zone detection, RPC outcome, accuracy rejects
-- `presence.offline` — enqueue, flush start, replay outcomes
-
-Les coordonnées exactes ne sont jamais incluses (lat/lng dans la liste sensible de `lib/sentry`). Seules les distances arrondies, les codes de raison, et les timestamps.
+Pas de télémétrie client (Sentry retiré le 2026-10-23). Un problème de présence se diagnostique côté données : `participations.confirmed_present` (et `self_presence` / `self_presence_at` pour l'auto-déclaration, mig 00543) et la notification `presence_confirmed` dans `notifications`. Les crashs du client se lisent dans la console Google Play (Android vitals).
 
 ## Backlog post-launch
 

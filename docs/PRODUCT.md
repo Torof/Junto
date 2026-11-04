@@ -1,6 +1,6 @@
-# Junto — Définition Produit
+# askandgo — Définition Produit
 
-À jour au 28 avril 2026.
+À jour au 4 novembre 2026.
 
 ## Les deux rôles utilisateur
 
@@ -208,7 +208,7 @@ Quand une activité matchant l'alerte est créée, `check_alerts_for_activity` e
 
 ### Reset password
 1. Bouton "Mot de passe oublié" sur le login
-2. `requestPasswordReset(email)` envoie un email avec lien `getjunto.app/auth/reset-password`
+2. `requestPasswordReset(email)` envoie un email avec lien `askandgo.io/auth/reset-password` (getjunto.app reste accepté pour les anciens liens)
 3. Web bridge → deep link `junto://reset-password`
 4. App ouvre l'écran reset, vérifie le token, demande nouveau password
 5. Sign out + redirect login avec nouveau password

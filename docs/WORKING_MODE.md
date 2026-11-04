@@ -94,11 +94,8 @@ Voir `CLAUDE.md` → "Before Any Feature" pour le checklist complet (lecture doc
 - Scott teste sur son téléphone Android via dev build (preview channel)
 - Native rebuild requis quand `app.config.ts` ou les permissions natives changent (background location, etc.)
 
-### Sentry
-- Auto-consent en preview channel uniquement (lib/sentry.ts)
-- Production attend une UI de consentement explicite (settings toggle + ToS)
-- DSN public via `EXPO_PUBLIC_SENTRY_DSN`
-- 50 events max par session ; lat/lng / tokens auto-redacted
+### Crashs
+- Pas de SDK de crash reporting (Sentry retiré le 2026-10-23) : crashs et ANR se lisent dans la console Google Play (Android vitals)
 
 ---
 
@@ -115,7 +112,7 @@ Voir `CLAUDE.md` → "Before Any Feature" pour le checklist complet (lecture doc
   /store            — Zustand stores (UI state uniquement)
   /services         — appels Supabase et APIs externes (un service par domaine)
   /hooks            — custom hooks (use-auth, use-presence-*, etc.)
-  /lib              — modules side-effect / non-React (sentry, presence-geofence-task, presence-offline-cache, haptics)
+  /lib              — modules side-effect / non-React (haptics, notification-bg-task, permissions, presence-foreground-service, presence-geofence-task, presence-location-task, presence-offline-cache, push-token)
   /types            — types TypeScript (activity-form schema + supabase auto-generated)
   /utils            — fonctions utilitaires pures (geo distanceMeters, friendly-error, parse-gpx, etc.)
   /constants        — couleurs, tailles, design tokens

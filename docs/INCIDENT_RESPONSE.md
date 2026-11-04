@@ -11,7 +11,7 @@
 
 | Source | Quoi | Où |
 |---|---|---|
-| Sentry | erreurs anormales, patterns d'abus | sentry.io (ingest DE) |
+| Console Google Play | crashs et ANR (pics anormaux) | Play Console → Android vitals |
 | Supabase Logs | requêtes anormales, erreurs auth, volumétrie | Dashboard → Logs (vérifier la rétention du plan : Free = 1 jour, Pro = 7 jours, à confirmer) |
 | Supabase Auth | connexions suspectes, vagues de signups | Dashboard → Authentication |
 | Signalement externe | email d'un utilisateur / chercheur | contact@askandgo.io |

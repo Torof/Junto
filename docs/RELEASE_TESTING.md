@@ -1,4 +1,4 @@
-# Junto — Checklist de test de release manuelle
+# askandgo — Checklist de test de release manuelle
 
 > Rescopé au walk #1 (2026-06-11) : remplace les "tests e2e automatisés" comme gate pré-launch ; la suite automatisée (Maestro/Detox) viendra post-launch. À dérouler sur un device Android réel avant chaque release store (build production) — ~30 minutes. Cocher ou noter l'échec + commit de fix.
 
@@ -7,7 +7,8 @@
 - [ ] Signup avec DOB < 18 ans → refusé
 - [ ] Logout → login → session persiste après kill de l'app
 - [ ] Reset password : demande → email → lien → nouveau mot de passe → re-login
-- [ ] Lien invite (`getjunto.app/invite/...`) depuis un chat externe → ouvre l'app directement (App Links)
+- [ ] Lien invite (`askandgo.io/invite/...`) depuis un chat externe → ouvre l'app directement (App Links)
+- [ ] Régression : un ancien lien `getjunto.app/invite/...` ouvre toujours l'app
 
 ## Carte & découverte
 - [ ] Mode visiteur (sans compte) : carte + pins activités visibles
@@ -45,7 +46,6 @@
 - [ ] Signaler un avis → visible dans la modération admin
 
 ## RGPD & compte
-- [ ] Toggle "Partager les rapports de plantage" : ON → event arrive dans Sentry ; OFF → plus rien
 - [ ] Suppression de compte : profil/photos/messages purgés, messages de mur anonymisés, retour à l'écran visiteur
 - [ ] askandgo.io : /legal/privacy, /legal/terms, /legal/mentions (infos entité remplies), /legal/account-deletion répondent
 

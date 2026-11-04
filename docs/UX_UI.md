@@ -1,6 +1,6 @@
-# Junto — UX / UI
+# askandgo — UX / UI
 
-À jour au 28 avril 2026.
+À jour au 4 novembre 2026.
 
 ## Identité visuelle
 
@@ -22,13 +22,14 @@ Génère un sentiment outdoor sans surcharger.
 
 ## Palette de couleurs (`src/constants/colors.ts`)
 
-### Dark theme (par défaut)
+### Dark theme (opt-in)
 | Rôle | Hex |
 |---|---|
 | Fond principal | `#0D1B2A` |
 | Surface (cards) | `#1B3A5C` |
 | Surface alt (chips, segments) | varie selon contraste |
-| CTA / Accents | `#F4642A` |
+| CTA / Accents (vert identité) | `#45A06D` |
+| Action principale de chaque écran (bleu marque) | `#1E7FD8` |
 | Texte primaire | `#F5F5F0` |
 | Texte secondaire | `#8A9BB0` |
 | Texte muted | gris foncé |
@@ -38,14 +39,15 @@ Génère un sentiment outdoor sans surcharger.
 | Warning | `#F39C12` |
 
 ### Light theme
-Background `#F5F5F0`, surfaces blanches, mêmes accents (CTA orange invariant).
+**Thème par défaut** (le sombre est opt-in). Background `#FFFFFF`, surfaces blanches, surface alt `#F1EFEA`. CTA vert identité `#246342` ; bleu marque `#1E7FD8` pour l'action principale de chaque écran. Plus de CTA orange ni de crème.
 
 ### Pins de découverte (carte principale) — système v3.1, clos 2026-06-11 (« simple, powerful & intuitive » — validé Scott)
 Grammaire universelle : **contour sombre → frame colorée → plaque ivoire → glyphe**. La silhouette dit la nature, la couleur du frame est LE canal sémantique unique :
-- **Teardrop = quelque chose à faire.** Frame : beige `pinFrame` (à venir) / vert `success` (en cours) / ambre `#FBBF24` (dans <2h) / **bleu `pinProBackground` #3b82f6 (offre pro permanente — RA)**. RA = géométrie pixel-identique aux UA, seul le frame diffère.
-- **Punaise = un pro (PP).** Tête ronde photo full-bleed (ou initiale) cerclée de bleu pro, sur une aiguille fine sombre — « épinglé sur la carte » = établissement permanent. (Le cercle + queue triangulaire v2/v3 lisait comme une bulle de message — rejeté.)
-- Le bleu = la couleur du badge pro sur les profils — une couleur, un sens, partout.
-- Propriété émergente voulue : les couleurs de statut sont RARES en proportion (ambre 2h, vert pendant l'activité) → la carte au repos est calme (beige + bleu), la densité de couleurs chaudes EST la carte de chaleur du "maintenant".
+- **Teardrop = quelque chose à faire.** Corps : couleur de l'univers du sport (à venir) ; le statut la remplace — vert `success` (en cours) / orange franc `#F97316` (dans <2h). Les RA prennent aussi la couleur de l'univers. (Le token `pinFrame` `#F6E05E` existe encore dans `colors.ts` mais n'est plus utilisé par les pins.)
+- **Écusson = un pro (PP)** (depuis 2026-10-26, `pro-pin.tsx`) : contour or `#F2B705` + fin bord encre, capsule « PRO » or sous la pointe ; dedans la photo du pro, sinon le picto du métier / de l'univers / du sport en encre sur une teinte à 30 %. Les sorties pro (RA) gardent la goutte, contour or.
+- L'or = la couleur pro, partout (contour, capsule, badges de page) ; aucun univers sportif n'est or.
+- Pastilles en haut du pin : cadenas jaune à gauche (sortie privée), à droite « tes sorties » (2026-11-03) — coche blanche sur vert plein `pinJoined` (rejoint), drapeau vert sur blanc (ta sortie), sablier gris sur blanc (demande envoyée) ; l'étiquette d'un pin badgé démarre après la pastille.
+- Propriété émergente voulue : les couleurs de statut sont RARES en proportion (orange <2h, vert pendant l'activité) → la carte au repos est calme, la densité de couleurs chaudes EST la carte de chaleur du "maintenant".
 - Historique des rejets (ne pas re-proposer) : hexagone/octogone (sans sémantique), carte-avec-tail (désunifiait), orange (urgence), navy + indigo saturé (trop sombre), indigo clair #8B93F8 (bonne sensation, mauvaise teinte).
 
 ### Pins de localisation (carte de détail d'activité)
@@ -170,7 +172,7 @@ Login screen (topo SVG bg + tab pills sign-in/register)
 Login screen
     → Tab "Mot de passe oublié"
     → Email + Envoyer
-    → Email avec lien getjunto.app/auth/reset-password
+    → Email avec lien askandgo.io/auth/reset-password (getjunto.app reste accepté pour les anciens liens)
     → Web bridge auto-redirige vers junto://reset-password
     → App ouvre l'écran reset-password (pinned, ne bouge pas même si recovery session active)
     → Nouveau password + confirme + Mettre à jour
@@ -229,7 +231,7 @@ Voir `docs/DAY_OF_ACTIVITY.md`.
 3. Messagerie (`messagerie`)
 4. Profil (`profil`)
 
-Icône active en orange, inactive en text-secondary. Notif badge sur l'onglet messagerie + notifications.
+Icône active en text-primary, inactive en text-secondary. Notif badge sur l'onglet messagerie + notifications.
 
 ### Stack screens (auth)
 - `activity/[id]` — page événement
