@@ -2737,6 +2737,7 @@
     "error": {
       "link_invalid": "Deze link werkt niet meer (verwijderd of opnieuw ingesteld in je agenda). Ontkoppel en plak het nieuwe adres.",
       "unreachable": "Je agenda kon niet worden gelezen. We proberen het elke 15 min opnieuw.",
+      "invalid_file": "Deze link leidt niet naar een agenda (.ics-bestand). Controleer het adres dat je uit je agenda hebt gekopieerd.",
       "too_large": "Je agenda is te groot om te lezen (meer dan 2 MB).",
       "internal": "Fout aan onze kant, we proberen het elke 15 min opnieuw."
     }

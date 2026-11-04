@@ -2490,6 +2490,7 @@
     "error": {
       "link_invalid": "This link no longer works (deleted or reset in your calendar). Disconnect, then paste the new address.",
       "unreachable": "Your calendar couldn’t be read. We retry every 15 min.",
+      "invalid_file": "This link does not lead to a calendar (.ics file). Check the address you copied from your calendar.",
       "too_large": "Your calendar is too large to read (over 2 MB).",
       "internal": "Error on our side, we retry every 15 min."
     }

@@ -2490,6 +2490,7 @@
     "error": {
       "link_invalid": "Questo link non funziona più (eliminato o rigenerato nel tuo calendario). Scollega e incolla il nuovo indirizzo.",
       "unreachable": "Non è stato possibile leggere il tuo calendario. Riproviamo ogni 15 min.",
+      "invalid_file": "Questo link non porta a un calendario (file .ics). Controlla l’indirizzo copiato dal tuo calendario.",
       "too_large": "Il tuo calendario è troppo grande da leggere (oltre 2 MB).",
       "internal": "Errore da parte nostra, riproviamo ogni 15 min."
     }

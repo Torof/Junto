@@ -2737,6 +2737,7 @@
     "error": {
       "link_invalid": "Este link já não funciona (eliminado ou reposto na tua agenda). Desliga e cola o novo endereço.",
       "unreachable": "Não foi possível ler a tua agenda. Tentamos de novo a cada 15 min.",
+      "invalid_file": "Este link não leva a um calendário (ficheiro .ics). Verifica o endereço que copiaste do teu calendário.",
       "too_large": "A tua agenda é demasiado grande para ser lida (mais de 2 MB).",
       "internal": "Erro do nosso lado, tentamos de novo a cada 15 min."
     }

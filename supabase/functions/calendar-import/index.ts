@@ -95,7 +95,10 @@ function zoneOk(tz: IcalComponent): boolean {
 function busySlots(ics: string, today: string): Slot[] {
   const t0 = performance.now();
   const overTime = () => { if (performance.now() - t0 > MAX_MS) throw new Error('too large'); };
-  const comp = new ICAL.Component(ICAL.parse(ics));
+  // Not an iCalendar file (an HTML page, a typo'd link): say so, not « unreachable ».
+  let parsed: ReturnType<typeof ICAL.parse>;
+  try { parsed = ICAL.parse(ics); } catch { throw new Error('invalid'); }
+  const comp = new ICAL.Component(parsed);
   // The timezone registry is global to the worker: start clean, and never let
   // a feed redefine UTC (one pro's file must not shift another's hours).
   ICAL.TimezoneService.reset();
@@ -168,6 +171,12 @@ function busySlots(ics: string, today: string): Slot[] {
     overTime();
     if (skip(m)) continue;
     const ev = new ICAL.Event(m);
+    // An event repeating every second or minute is no agenda: refused before
+    // iterating (the budgets above would stop it, after burning them).
+    for (const rule of m.getAllProperties('rrule')) {
+      const freq = String((rule.getFirstValue() as { freq?: string } | null)?.freq ?? '').toUpperCase();
+      if (freq === 'SECONDLY' || freq === 'MINUTELY') throw new Error('too large');
+    }
     if (ev.isRecurring() && !m.hasProperty('recurrence-id')) {
       for (const x of exceptions.get(ev.uid) ?? []) ev.relateException(x);
       const it = ev.iterator();
@@ -230,7 +239,8 @@ Deno.serve(async (req) => {
       const msg = e instanceof Error ? e.message : 'error';
       const reason = msg.startsWith('http 404') || msg.startsWith('http 403') || msg.startsWith('http 401')
         ? 'link_invalid'
-        : msg === 'too large' ? 'too_large' : msg === 'apply' ? 'internal' : 'unreachable';
+        : msg === 'too large' ? 'too_large' : msg === 'invalid' ? 'invalid_file'
+        : msg === 'apply' ? 'internal' : 'unreachable';
       await supabase.rpc('calendar_import_apply', { p_pro: t.pro_id, p_slots: null, p_error: reason, p_url: t.import_url });
     }
   }

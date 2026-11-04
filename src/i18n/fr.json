@@ -2490,6 +2490,7 @@
     "error": {
       "link_invalid": "Ce lien ne fonctionne plus (supprimé ou régénéré dans ton agenda). Débranche puis colle la nouvelle adresse.",
       "unreachable": "Ton agenda n’a pas pu être lu. On réessaie toutes les 15 min.",
+      "invalid_file": "Ce lien ne mène pas à un agenda (fichier .ics). Vérifie l’adresse copiée depuis ton agenda.",
       "too_large": "Ton agenda est trop volumineux pour être lu (plus de 2 Mo).",
       "internal": "Erreur de notre côté, on réessaie toutes les 15 min."
     }
