@@ -37,7 +37,7 @@
     "join_request_blocked": { "title": "Anfrage zurückgezogen", "body": "Die Anfrage von {{name}} für „{{title}}“ wurde zurückgezogen: Zwischen dieser Person und einem Teilnehmer besteht eine Blockierung." },
     "booking_request": {"title": "Neue Buchungsanfrage", "body_one": "{{name}} · „{{title}}“ · {{date}}, {{period}} · 1 Pers.", "body_other": "{{name}} · „{{title}}“ · {{date}}, {{period}} · {{count}} Pers.", "day": {"title": "Neue Buchungsanfrage", "body_one": "{{name}} · „{{title}}“ · {{date}}, ganzer Tag · 1 Pers.", "body_other": "{{name}} · „{{title}}“ · {{date}}, ganzer Tag · {{count}} Pers."}, "multi": {"title": "Neue Buchungsanfrage", "body_one": "{{name}} · „{{title}}“ · {{days}} Tage ab {{date}} · 1 Pers.", "body_other": "{{name}} · „{{title}}“ · {{days}} Tage ab {{date}} · {{count}} Pers."}},
     "booking_accepted": {"title": "Buchung bestätigt!", "body": "{{name}} hat „{{title}}“ am {{date}}, {{period}} bestätigt. Bezahlung vor Ort.", "day": {"title": "Buchung bestätigt!", "body": "{{name}} hat „{{title}}“ am {{date}}, ganzer Tag, bestätigt. Bezahlung vor Ort."}, "multi": {"title": "Buchung bestätigt!", "body": "{{name}} hat „{{title}}“ bestätigt: {{days}} Tage ab {{date}}. Bezahlung vor Ort."}},
-    "booking_declined": { "title": "Termin nicht verfügbar", "body": "{{name}} ist am {{date}} für „{{title}}“ nicht verfügbar. Versuch einen anderen Termin." },
+    "booking_declined": { "title": "Termin nicht verfügbar", "body": "{{name}} ist am {{date}} für „{{title}}“ nicht verfügbar. Versuch einen anderen Termin.", "neutral": { "title": "Termin nicht verfügbar", "body": "Der angefragte Termin für „{{title}}“ am {{date}} ist nicht verfügbar." } },
     "booking_cancelled": {
       "auto_minimum": {"title": "Tour abgesagt", "body": "„{{title}}“ am {{date}} ist abgesagt: zu wenige Teilnehmer."},
       "title": "Tour abgesagt", "body": "„{{title}}“ am {{date}} wurde abgesagt.",
@@ -75,6 +75,8 @@
     "pro_renamed": { "title": "Profi-Seite umbenannt", "body": "{{old}} → {{new}}" },
     "badge_unlocked": { "title": "Neues Abzeichen!", "body": "Du bist jetzt {{label}}" },
     "pro_approved": { "title": "Pro-Seite freigegeben", "body": "Deine Pro-Seite ist online. Du kannst jetzt deine Touren veröffentlichen." },
+    "pro_profession_approved": { "title": "Neuer Beruf bestätigt", "body": "„{{profession}}“ wird jetzt auf deiner Profi-Seite angezeigt." },
+    "pro_profession_rejected": { "title": "Neuer Beruf abgelehnt", "body": "„{{profession}}“ wurde nicht bestätigt. Schreib uns an contact@askandgo.io, um mehr zu erfahren." },
     "pro_rejected": {
       "title": "Pro-Antrag abgelehnt", "body": "Dein Antrag auf eine Pro-Seite wurde nicht freigegeben. Korrigiere deine Angaben und sende ihn erneut.",
       "reason": { "title": "Pro-Antrag abgelehnt", "body": "{{reason}}" }
@@ -688,6 +690,7 @@
       "pro_identity_locked": "Dein Betrieb und deine Identität wurden geprüft: Schreib uns, um sie zu ändern.",
       "pro_location_cooldown": "Dein Standort wurde vor weniger als 30 Tagen verschoben — versuch es später noch mal.",
       "pro_profession_invalid": "Wähle einen Beruf aus der Liste.",
+      "profession_keep_one": "Behalte mindestens einen deiner bereits bestätigten Berufe.",
       "review_requires_booking": "Eine Bewertung ist möglich, sobald die Tour stattgefunden hat (angenommene Buchung, Datum vorbei).",
       "pro_profession_invalid": "Wähle einen Beruf aus der Liste.",
       "review_requires_booking": "Eine Bewertung ist möglich, sobald die Tour stattgefunden hat (angenommene Buchung, Datum vorbei).",
@@ -2063,6 +2066,11 @@
     "fieldProfessions": "Deine Berufe",
     "professionsPlaceholder": "Einen oder mehrere Berufe wählen…",
     "professionsHint": "Hake alle Berufe an, die du ausübst: Deine Seite zeigt sie alle.",
+    "professionsReviewHint": "Ein neuer Beruf wird vom Team geprüft, bevor er auf deiner Seite erscheint.",
+    "professionKeepOne": "Behalte mindestens einen deiner bereits bestätigten Berufe.",
+    "professionPending": "wartet auf Bestätigung",
+    "professionPendingLong": "Wartet auf Bestätigung durch das Team",
+    "professionRequested": "Seite gespeichert · neuer Beruf zur Bestätigung gesendet",
     "professionFeatured": "Hervorgehoben",
     "professionFeaturedHint": "Der Beruf, den man zuerst auf deiner Seite und deinem Pin sieht. Tippe auf einen Beruf, um ihn hervorzuheben.",
     "professionsPick": "Deine Berufe",

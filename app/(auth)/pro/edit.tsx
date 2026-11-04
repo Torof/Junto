@@ -64,6 +64,12 @@ export default function ProEditScreen() {
 
   const isUpdate = !!existing;
   const isApproved = existing?.status === 'approved';
+  // 00581: an approved pro's NEW professions wait for an admin (pending).
+  const { data: pendingProfessions } = useQuery({
+    queryKey: ['pro-pending-professions'],
+    queryFn: () => proService.getMyPendingProfessions(),
+    enabled: isApproved,
+  });
   const { data: myOfferings } = useQuery({
     queryKey: ['pro-offerings', existing?.user_id],
     queryFn: () => proOfferingService.getByProId(existing!.user_id),
@@ -98,7 +104,12 @@ export default function ProEditScreen() {
   // 00562: every profession the pro holds (at least one); the FIRST is the
   // one put forward (pin, page) and the pro can change it at any time.
   const [professions, setProfessions] = useState<ProProfession[]>([]);
-  const profession: ProProfession | null = professions[0] ?? null;
+  // 00581: for an approved pro, a profession not yet on the page is a request
+  // (shown « en attente », never featured). The featured one = first acquired.
+  const acquired = useMemo(() => new Set<string>(isApproved ? existing?.professions ?? [] : []), [isApproved, existing]);
+  const isPendingProfession = (code: ProProfession) => isApproved && !acquired.has(code);
+  const featurable = professions.filter((c) => !isPendingProfession(c));
+  const profession: ProProfession | null = featurable[0] ?? null;
   const toggleProfession = (code: ProProfession) =>
     setProfessions((list) => (list.includes(code) ? list.filter((c) => c !== code) : [...list, code]));
   const featureProfession = (code: ProProfession) =>
@@ -136,6 +147,12 @@ export default function ProEditScreen() {
     setShowContact(!!(existing.website || existing.email || existing.phone || existing.instagram || existing.facebook) && existing.status !== 'approved');
     setShowLocation(existing.status !== 'approved');
   }, [existing]);
+
+  // 00581: requests already sent show up ticked, « en attente ».
+  useEffect(() => {
+    if (!pendingProfessions?.length) return;
+    setProfessions((list) => [...list, ...pendingProfessions.filter(isProProfession).filter((c) => !list.includes(c))]);
+  }, [pendingProfessions]);
 
   // Pin icon / photo: local state only — applied with « Enregistrer ».
   const handlePickPinImage = async () => {
@@ -198,6 +215,7 @@ export default function ProEditScreen() {
   const handleSubmit = async () => {
     if (!canSubmit || pinLng === null || pinLat === null) return;
     setSaving(true);
+    let requested = false;
     try {
       const payload = {
         display_name: displayName.trim(),
@@ -251,8 +269,11 @@ export default function ProEditScreen() {
           if (pinImageUrl !== existing.pin_image_url) await proService.setPinImage(pinImageUrl);
           if (pinIcon !== existing.pin_icon) await proService.setPinIcon(pinIcon);
         }
-        if (professions.join() !== (existing?.professions ?? []).join()) {
-          await proService.setProfessions(professions);
+        const pendingBefore = pendingProfessions ?? [];
+        if (professions.join() !== [...(existing?.professions ?? []), ...pendingBefore].join()) {
+          const pendingNow = await proService.setProfessions(professions);
+          requested = pendingNow.some((c) => !pendingBefore.includes(c));
+          await queryClient.invalidateQueries({ queryKey: ['pro-pending-professions'] });
         }
         if (isApproved && coverChange.kind !== 'unchanged') {
           if (coverChange.kind === 'asset') await uploadProCover(coverChange.asset);
@@ -273,7 +294,9 @@ export default function ProEditScreen() {
       }
       await queryClient.invalidateQueries({ queryKey: ['pros'] });
       Burnt.toast({
-        title: isUpdate
+        title: requested
+          ? t('pro.professionRequested', { defaultValue: 'Page enregistrée · nouveau métier envoyé pour validation' })
+          : isUpdate
           ? t('pro.saved', { defaultValue: 'Page pro enregistrée' })
           : t('pro.submitted', { defaultValue: 'Demande envoyée — en attente de validation' }),
         preset: 'done',
@@ -463,7 +486,8 @@ export default function ProEditScreen() {
           <Pressable style={styles.pickRow} onPress={() => setShowProfessionPicker(true)} accessibilityRole="button">
             <AppText style={[styles.pickRowText, professions.length === 0 && styles.pickRowPlaceholder]} numberOfLines={2}>
               {professions.length > 0
-                ? professions.map((c) => t(`pro.profession.${c}`, { defaultValue: c })).join(' · ')
+                ? professions.map((c) => t(`pro.profession.${c}`, { defaultValue: c })
+                    + (isPendingProfession(c) ? ` (${t('pro.professionPending', { defaultValue: 'en attente de validation' })})` : '')).join(' · ')
                 : t('pro.professionsPlaceholder', { defaultValue: 'Choisir un ou plusieurs métiers…' })}
             </AppText>
             <ChevronDown size={18} color={colors.textMuted} strokeWidth={2.2} />
@@ -471,14 +495,24 @@ export default function ProEditScreen() {
           <AppText style={styles.helper}>
             {t('pro.professionsHint', { defaultValue: 'Coche tous les métiers que tu exerces : ta page les affiche tous.' })}
           </AppText>
-          {professions.length >= 2 && (
+          {isApproved ? (
+            <AppText style={styles.helper}>
+              {t('pro.professionsReviewHint', { defaultValue: 'Un nouveau métier est vérifié par l’équipe avant d’apparaître sur ta page.' })}
+            </AppText>
+          ) : null}
+          {isApproved && professions.length > 0 && profession === null ? (
+            <AppText style={[styles.helper, { color: colors.error }]}>
+              {t('pro.professionKeepOne', { defaultValue: 'Garde au moins un de tes métiers déjà validés.' })}
+            </AppText>
+          ) : null}
+          {featurable.length >= 2 && (
             <View style={styles.featuredBox}>
               <AppText style={styles.featuredTitle}>{t('pro.professionFeatured', { defaultValue: 'Mis en avant' })}</AppText>
               <AppText style={styles.helper}>
                 {t('pro.professionFeaturedHint', { defaultValue: 'Celui qu’on voit en premier sur ta page et sur ton pin. Touche un métier pour le mettre en avant.' })}
               </AppText>
               <View style={[styles.chipWrap, { marginTop: spacing.sm }]}>
-                {professions.map((code, i) => (
+                {featurable.map((code, i) => (
                   <Pressable
                     key={code}
                     style={[styles.choiceChip, i === 0 && styles.featuredChip]}
@@ -664,9 +698,14 @@ export default function ProEditScreen() {
                     accessibilityRole="checkbox"
                     accessibilityState={{ checked: selected }}
                   >
-                    <AppText style={[styles.sheetRowText, selected && styles.sheetRowTextSelected]}>
-                      {t(`pro.profession.${code}`, { defaultValue: code })}
-                    </AppText>
+                    <View style={styles.sheetRowLabel}>
+                      <AppText style={[styles.sheetRowText, selected && styles.sheetRowTextSelected]}>
+                        {t(`pro.profession.${code}`, { defaultValue: code })}
+                      </AppText>
+                      {selected && isPendingProfession(code) ? (
+                        <AppText style={styles.helper}>{t('pro.professionPendingLong', { defaultValue: 'En attente de validation par l’équipe' })}</AppText>
+                      ) : null}
+                    </View>
                     <View style={[styles.checkBox, selected && styles.checkBoxOn]}>
                       {selected ? <Check size={14} color={colors.onCta} strokeWidth={3} /> : null}
                     </View>
@@ -809,7 +848,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   sheetTitle: { color: colors.textPrimary, fontSize: fontSizes.lg, fontWeight: '800', marginBottom: spacing.sm },
   sheetList: { flexGrow: 0 },
   sheetRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm + 4, borderBottomWidth: 1, borderBottomColor: colors.surfaceAlt },
-  sheetRowText: { flex: 1, color: colors.textPrimary, fontSize: fontSizes.md },
+  sheetRowLabel: { flex: 1 },
+  sheetRowText: { color: colors.textPrimary, fontSize: fontSizes.md },
   sheetRowTextSelected: { color: colors.cta, fontWeight: '700' },
   fieldLabel: {
     color: colors.textPrimary,

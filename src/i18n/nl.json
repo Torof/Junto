@@ -141,7 +141,11 @@
     },
     "booking_declined": {
       "title": "Tijdslot niet beschikbaar",
-      "body": "{{name}} is niet beschikbaar voor “{{title}}” op {{date}}. Probeer een ander tijdslot."
+      "body": "{{name}} is niet beschikbaar voor “{{title}}” op {{date}}. Probeer een ander tijdslot.",
+      "neutral": {
+        "title": "Tijdslot niet beschikbaar",
+        "body": "Het gevraagde tijdslot voor “{{title}}” op {{date}} is niet beschikbaar."
+      }
     },
     "booking_cancelled": {
       "title": "Activiteit geannuleerd",
@@ -234,6 +238,14 @@
     "pro_approved": {
       "title": "Pro-pagina goedgekeurd",
       "body": "Je pro-pagina staat online. Je kunt nu je activiteiten publiceren."
+    },
+    "pro_profession_approved": {
+      "title": "Nieuw beroep goedgekeurd",
+      "body": "“{{profession}}” staat nu op je pro-pagina."
+    },
+    "pro_profession_rejected": {
+      "title": "Nieuw beroep afgewezen",
+      "body": "“{{profession}}” is niet goedgekeurd. Schrijf naar contact@askandgo.io voor meer informatie."
     },
     "pro_rejected": {
       "title": "Pro-aanvraag afgewezen",
@@ -910,6 +922,7 @@
       "pro_identity_locked": "Je organisatie en identiteit zijn geverifieerd: stuur ons een bericht om ze te wijzigen.",
       "pro_location_cooldown": "Je locatie is minder dan 30 dagen geleden verplaatst — probeer het later opnieuw.",
       "pro_profession_invalid": "Kies een beroep uit de lijst.",
+      "profession_keep_one": "Houd minstens één van je al goedgekeurde beroepen.",
       "review_requires_booking": "Je kunt een review achterlaten zodra de activiteit heeft plaatsgevonden (boeking geaccepteerd, datum verstreken).",
       "booking_cooldown": "Aanvraag is net opnieuw verstuurd — probeer het over een uur nog eens.",
       "activity_ended_no_remove": "Dit activiteit is afgelopen — je kunt geen deelnemers meer verwijderen.",
@@ -2300,6 +2313,11 @@
     "fieldProfessions": "Je beroepen",
     "professionsPlaceholder": "Kies een of meer beroepen…",
     "professionsHint": "Vink alle beroepen aan die je uitoefent: je pagina toont ze allemaal.",
+    "professionsReviewHint": "Een nieuw beroep wordt door het team gecontroleerd voordat het op je pagina verschijnt.",
+    "professionKeepOne": "Houd minstens één van je al goedgekeurde beroepen.",
+    "professionPending": "wacht op goedkeuring",
+    "professionPendingLong": "Wacht op goedkeuring door het team",
+    "professionRequested": "Pagina opgeslagen · nieuw beroep ter goedkeuring verstuurd",
     "professionFeatured": "Uitgelicht",
     "professionFeaturedHint": "Het beroep dat als eerste te zien is op je pagina en op je pin. Tik op een beroep om het uit te lichten.",
     "professionsPick": "Je beroepen",

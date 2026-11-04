@@ -12,7 +12,7 @@ import { useColors } from '@/hooks/use-theme';
 import { fontSizes, spacing, radius, shadows } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 import { reportService, type Report } from '@/services/report-service';
-import { proService, type PendingProApplication } from '@/services/pro-service';
+import { proService, type PendingProApplication, type ProfessionRequest } from '@/services/pro-service';
 import { Check, X, BadgeCheck, Trash2 } from 'lucide-react-native';
 import { useIsAdmin } from '@/hooks/use-is-admin';
 import { adminService, type AdminUserInfo } from '@/services/admin-service';
@@ -63,7 +63,42 @@ export default function ModerationScreen() {
     queryFn: () => proService.getPendingApplications(),
   });
 
+  // 00581: an approved pro asking for a new profession — one card per profession.
+  const { data: professionRequests, isLoading: requestsLoading } = useQuery({
+    queryKey: ['admin-profession-requests'],
+    queryFn: () => proService.getProfessionRequests(),
+  });
+  const requestItems = (professionRequests ?? []).flatMap((r) => r.pending_professions.map((code) => ({ r, code })));
+  const prosCount = (pendingPros ?? []).length + requestItems.length;
+
   const [proBusyId, setProBusyId] = useState<string | null>(null);
+
+  const handleDecideProfession = (r: ProfessionRequest, code: string, approve: boolean) => {
+    const label = t(`pro.profession.${code}`, { defaultValue: code });
+    Alert.alert(
+      approve ? `Valider « ${label} » ?` : `Refuser « ${label} » ?`,
+      r.company_name ?? r.display_name,
+      [
+        { text: t('activity.no'), style: 'cancel' },
+        {
+          text: approve ? 'Valider' : 'Refuser',
+          style: approve ? 'default' : 'destructive',
+          onPress: async () => {
+            setProBusyId(`${r.user_id}:${code}`);
+            try {
+              await proService.decideProfession(r.user_id, code, approve);
+              await queryClient.invalidateQueries({ queryKey: ['admin-profession-requests'] });
+              Burnt.toast({ title: approve ? 'Métier validé' : 'Métier refusé', preset: approve ? 'done' : undefined });
+            } catch (e) {
+              Alert.alert(t('auth.error'), getFriendlyError(e));
+            } finally {
+              setProBusyId(null);
+            }
+          },
+        },
+      ],
+    );
+  };
   const [rejectApp, setRejectApp] = useState<PendingProApplication | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
@@ -184,21 +219,56 @@ export default function ModerationScreen() {
         </Pressable>
         <Pressable style={[styles.tab, tab === 'pros' && styles.tabActive]} onPress={() => setTab('pros')}>
           <AppText style={[styles.tabText, tab === 'pros' && styles.tabTextActive]}>
-            {t('admin.prosTab', { defaultValue: 'Pros' })} ({(pendingPros ?? []).length})
+            {t('admin.prosTab', { defaultValue: 'Pros' })} ({prosCount})
           </AppText>
         </Pressable>
       </View>
 
       {/* List */}
       {tab === 'pros' ? (
-        prosLoading ? (
+        prosLoading || requestsLoading ? (
           <View style={styles.center}><AppText style={styles.loadingText}>...</AppText></View>
-        ) : (pendingPros ?? []).length === 0 ? (
+        ) : prosCount === 0 ? (
           <View style={styles.center}><AppText style={styles.emptyText}>{t('admin.noPendingPros', { defaultValue: 'Aucune demande en attente' })}</AppText></View>
         ) : (
           <FlatList
             data={pendingPros}
             keyExtractor={(item) => item.user_id}
+            ListHeaderComponent={requestItems.length > 0 ? (
+              <View style={{ gap: spacing.md, marginBottom: spacing.md }}>
+                {requestItems.map(({ r, code }) => {
+                  const busy = proBusyId === `${r.user_id}:${code}`;
+                  return (
+                    <View key={`${r.user_id}:${code}`} style={styles.card}>
+                      <View style={styles.cardHeader}>
+                        <View style={styles.proTitleRow}>
+                          <BadgeCheck size={16} color={colors.cta} strokeWidth={2.4} />
+                          <AppText style={styles.targetType} numberOfLines={1}>Ajout de métier · {r.company_name ?? r.display_name}</AppText>
+                        </View>
+                        <AppText style={styles.time}>{dayjs(r.updated_at).locale(i18n.language).fromNow()}</AppText>
+                      </View>
+                      <View style={styles.proDetails}>
+                        <ProRow label="Demandé" value={t(`pro.profession.${code}`, { defaultValue: code })} styles={styles} />
+                        <ProRow label="Actuels" value={r.professions.map((c) => t(`pro.profession.${c}`, { defaultValue: c })).join(' · ') || '—'} styles={styles} />
+                        <ProRow label="Responsable" value={r.real_name} styles={styles} />
+                        <ProRow label="Page" value={`${r.display_name} · voir la page`} styles={styles}
+                          onPress={() => router.push(`/(auth)/pro/${r.user_id}`)} />
+                      </View>
+                      <View style={styles.actionRow}>
+                        <Pressable style={[styles.dismissButton, busy && styles.disabled]} onPress={() => handleDecideProfession(r, code, false)} disabled={busy}>
+                          <X size={15} color={colors.error} strokeWidth={2.6} />
+                          <AppText style={styles.dismissText}>{t('admin.proReject', { defaultValue: 'Refuser' })}</AppText>
+                        </Pressable>
+                        <Pressable style={[styles.approveButton, busy && styles.disabled]} onPress={() => handleDecideProfession(r, code, true)} disabled={busy}>
+                          <Check size={15} color="#FFFFFF" strokeWidth={2.6} />
+                          <AppText style={styles.approveText}>{t('admin.proApprove', { defaultValue: 'Valider' })}</AppText>
+                        </Pressable>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : null}
             renderItem={({ item }) => (
               <View style={styles.card}>
                 <View style={styles.cardHeader}>

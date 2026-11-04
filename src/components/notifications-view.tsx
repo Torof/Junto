@@ -46,6 +46,8 @@ const getNotificationIcons = (colors: AppColors): Record<string, IconMeta> => ({
   badge_unlocked: { icon: Trophy, color: colors.cta },
   pro_approved: { icon: BadgeCheck, color: colors.success },
   pro_rejected: { icon: BadgeCheck, color: colors.error },
+  pro_profession_approved: { icon: BadgeCheck, color: colors.success },
+  pro_profession_rejected: { icon: BadgeCheck, color: colors.error },
   qr_create_reminder: { icon: QrCode, color: colors.cta },
   alert_match: { icon: Bell, color: colors.cta },
   new_message: { icon: MessageCircle, color: colors.textPrimary },
@@ -118,6 +120,10 @@ export function NotificationsView() {
     if (notification.type === 'pro_approved' || notification.type === 'pro_rejected') {
       await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
+    }
+    if (notification.type === 'pro_profession_approved' || notification.type === 'pro_profession_rejected') {
+      await queryClient.invalidateQueries({ queryKey: ['pro-profile-mine'] });
+      await queryClient.invalidateQueries({ queryKey: ['pro-pending-professions'] });
     }
 
     if (notification.type === 'rate_participants' && notification.data?.activity_id) {

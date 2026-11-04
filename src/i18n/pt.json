@@ -141,7 +141,11 @@
     },
     "booking_declined": {
       "title": "Horário indisponível",
-      "body": "{{name}} não está disponível para « {{title}} » a {{date}}. Experimenta outro horário."
+      "body": "{{name}} não está disponível para « {{title}} » a {{date}}. Experimenta outro horário.",
+      "neutral": {
+        "title": "Horário indisponível",
+        "body": "O horário pedido para «{{title}}» em {{date}} não está disponível."
+      }
     },
     "booking_cancelled": {
       "title": "Atividade cancelada",
@@ -234,6 +238,14 @@
     "pro_approved": {
       "title": "Página pro validada",
       "body": "A tua página pro está online. Já podes publicar as tuas atividades."
+    },
+    "pro_profession_approved": {
+      "title": "Nova profissão validada",
+      "body": "«{{profession}}» aparece agora na tua página pro."
+    },
+    "pro_profession_rejected": {
+      "title": "Nova profissão recusada",
+      "body": "«{{profession}}» não foi validada. Escreve-nos para contact@askandgo.io para saberes mais."
     },
     "pro_rejected": {
       "title": "Pedido pro recusado",
@@ -910,6 +922,7 @@
       "pro_identity_locked": "A tua empresa e a tua identidade foram verificadas: escreve-nos para as alterar.",
       "pro_location_cooldown": "A tua localização foi alterada há menos de 30 dias — tenta outra vez mais tarde.",
       "pro_profession_invalid": "Escolhe uma profissão da lista.",
+      "profession_keep_one": "Mantém pelo menos uma das tuas profissões já validadas.",
       "review_requires_booking": "Vais poder deixar uma avaliação depois de fazeres a atividade (reserva aceite, data passada).",
       "booking_cooldown": "Pedido reenviado há pouco — tenta outra vez daqui a uma hora.",
       "activity_ended_no_remove": "Esta atividade terminou — já não podes remover participantes.",
@@ -2300,6 +2313,11 @@
     "fieldProfessions": "As tuas profissões",
     "professionsPlaceholder": "Escolher uma ou várias profissões…",
     "professionsHint": "Marca todas as profissões que exerces: a tua página mostra-as todas.",
+    "professionsReviewHint": "Cada nova profissão é verificada pela equipa antes de aparecer na tua página.",
+    "professionKeepOne": "Mantém pelo menos uma das tuas profissões já validadas.",
+    "professionPending": "a aguardar validação",
+    "professionPendingLong": "A aguardar validação pela equipa",
+    "professionRequested": "Página guardada · nova profissão enviada para validação",
     "professionFeatured": "Em destaque",
     "professionFeaturedHint": "A que se vê primeiro na tua página e no teu pin. Toca numa profissão para a destacar.",
     "professionsPick": "As tuas profissões",

@@ -37,7 +37,7 @@
     "join_request_blocked": { "title": "Demande retirée", "body": "La demande de {{name}} pour « {{title}} » a été retirée : un blocage l'oppose à un participant." },
     "booking_request": {"title": "Nouvelle demande de réservation", "body_one": "{{name}} · « {{title}} » · {{date}}, {{period}} · 1 pers.", "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pers.", "day": {"title": "Nouvelle demande de réservation", "body_one": "{{name}} · « {{title}} » · {{date}}, journée · 1 pers.", "body_other": "{{name}} · « {{title}} » · {{date}}, journée · {{count}} pers."}, "multi": {"title": "Nouvelle demande de réservation", "body_one": "{{name}} · « {{title}} » · {{days}} jours dès le {{date}} · 1 pers.", "body_other": "{{name}} · « {{title}} » · {{days}} jours dès le {{date}} · {{count}} pers."}},
     "booking_accepted": {"title": "Réservation confirmée !", "body": "{{name}} a confirmé « {{title}} » le {{date}}, {{period}}. Paiement sur place.", "day": {"title": "Réservation confirmée !", "body": "{{name}} a confirmé « {{title}} » le {{date}}, journée. Paiement sur place."}, "multi": {"title": "Réservation confirmée !", "body": "{{name}} a confirmé « {{title}} » : {{days}} jours dès le {{date}}. Paiement sur place."}},
-    "booking_declined": { "title": "Créneau indisponible", "body": "{{name}} n’est pas disponible pour « {{title}} » le {{date}}. Essaie un autre créneau." },
+    "booking_declined": { "title": "Créneau indisponible", "body": "{{name}} n’est pas disponible pour « {{title}} » le {{date}}. Essaie un autre créneau.", "neutral": { "title": "Créneau indisponible", "body": "Le créneau demandé pour « {{title}} » le {{date}} n’est pas disponible." } },
     "booking_cancelled": {
       "auto_minimum": {"title": "Sortie annulée", "body": "« {{title}} » du {{date}} est annulée : pas assez de participants."},
       "title": "Sortie annulée", "body": "« {{title}} » du {{date}} a été annulée.",
@@ -75,6 +75,8 @@
     "pro_renamed": { "title": "Vitrine pro renommée", "body": "{{old}} → {{new}}" },
     "badge_unlocked": { "title": "Nouveau badge !", "body": "Tu es maintenant {{label}}" },
     "pro_approved": { "title": "Page pro validée", "body": "Ta page pro est en ligne. Tu peux maintenant publier tes sorties." },
+    "pro_profession_approved": { "title": "Nouveau métier validé", "body": "« {{profession}} » apparaît maintenant sur ta page pro." },
+    "pro_profession_rejected": { "title": "Nouveau métier refusé", "body": "« {{profession}} » n’a pas été validé. Écris-nous à contact@askandgo.io pour en savoir plus." },
     "pro_rejected": {
       "title": "Demande pro refusée", "body": "Ta demande de page pro n’a pas été validée. Corrige tes informations et renvoie-la.",
       "reason": { "title": "Demande pro refusée", "body": "{{reason}}" }
@@ -688,6 +690,7 @@
       "pro_identity_locked": "Ta structure et ton identité ont été vérifiées : écris-nous pour les modifier.",
       "pro_location_cooldown": "Ton emplacement a été déplacé il y a moins de 30 jours — réessaie plus tard.",
       "pro_profession_invalid": "Choisis un métier dans la liste.",
+      "profession_keep_one": "Garde au moins un de tes métiers déjà validés.",
       "review_requires_booking": "Tu pourras laisser un avis une fois la sortie faite (réservation acceptée, date passée).",
       "pro_profession_invalid": "Choisis un métier dans la liste.",
       "review_requires_booking": "Tu pourras laisser un avis une fois la sortie faite (réservation acceptée, date passée).",
@@ -2063,6 +2066,11 @@
     "fieldProfessions": "Tes métiers",
     "professionsPlaceholder": "Choisir un ou plusieurs métiers…",
     "professionsHint": "Coche tous les métiers que tu exerces : ta page les affiche tous.",
+    "professionsReviewHint": "Un nouveau métier est vérifié par l’équipe avant d’apparaître sur ta page.",
+    "professionKeepOne": "Garde au moins un de tes métiers déjà validés.",
+    "professionPending": "en attente de validation",
+    "professionPendingLong": "En attente de validation par l’équipe",
+    "professionRequested": "Page enregistrée · nouveau métier envoyé pour validation",
     "professionFeatured": "Mis en avant",
     "professionFeaturedHint": "Celui qu’on voit en premier sur ta page et sur ton pin. Touche un métier pour le mettre en avant.",
     "professionsPick": "Tes métiers",

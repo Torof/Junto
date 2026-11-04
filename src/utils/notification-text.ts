@@ -60,6 +60,8 @@ export function renderNotification(
     vars[k] = String(v);
   }
   if (vars.date) vars.date = dayjs(vars.date).format('ddd D MMM');
+  // 00581: a profession travels as its code — shown with the app's label.
+  if (vars.profession) vars.profession = i18n.t(`pro.profession.${vars.profession}`, { defaultValue: vars.profession });
   if (vars.period === 'am' || vars.period === 'pm') {
     vars.period = i18n.t(`booking.${vars.period}`, { defaultValue: vars.period });
   }

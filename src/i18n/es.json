@@ -37,7 +37,7 @@
     "join_request_blocked": { "title": "Solicitud retirada", "body": "La solicitud de {{name}} para « {{title}} » se ha retirado: un bloqueo lo separa de un participante." },
     "booking_request": {"title": "Nueva solicitud de reserva", "body_one": "{{name}} · «{{title}}» · {{date}}, {{period}} · 1 pers.", "body_other": "{{name}} · «{{title}}» · {{date}}, {{period}} · {{count}} pers.", "day": {"title": "Nueva solicitud de reserva", "body_one": "{{name}} · «{{title}}» · {{date}}, día completo · 1 pers.", "body_other": "{{name}} · «{{title}}» · {{date}}, día completo · {{count}} pers."}, "multi": {"title": "Nueva solicitud de reserva", "body_one": "{{name}} · «{{title}}» · {{days}} días desde el {{date}} · 1 pers.", "body_other": "{{name}} · «{{title}}» · {{days}} días desde el {{date}} · {{count}} pers."}},
     "booking_accepted": {"title": "¡Reserva confirmada!", "body": "{{name}} ha confirmado «{{title}}» el {{date}}, {{period}}. Pago in situ.", "day": {"title": "¡Reserva confirmada!", "body": "{{name}} ha confirmado «{{title}}» el {{date}}, día completo. Pago in situ."}, "multi": {"title": "¡Reserva confirmada!", "body": "{{name}} ha confirmado «{{title}}»: {{days}} días desde el {{date}}. Pago in situ."}},
-    "booking_declined": { "title": "Franja no disponible", "body": "{{name}} no está disponible para «{{title}}» el {{date}}. Prueba otra franja." },
+    "booking_declined": { "title": "Franja no disponible", "body": "{{name}} no está disponible para «{{title}}» el {{date}}. Prueba otra franja.", "neutral": { "title": "Horario no disponible", "body": "El horario solicitado para «{{title}}» el {{date}} no está disponible." } },
     "booking_cancelled": {
       "auto_minimum": {"title": "Salida cancelada", "body": "«{{title}}» del {{date}} se cancela: no hay suficientes participantes."},
       "title": "Salida cancelada", "body": "«{{title}}» del {{date}} ha sido cancelada.",
@@ -75,6 +75,8 @@
     "pro_renamed": { "title": "Página pro renombrada", "body": "{{old}} → {{new}}" },
     "badge_unlocked": { "title": "¡Nueva insignia!", "body": "Ahora eres {{label}}" },
     "pro_approved": { "title": "Página pro validada", "body": "Tu página pro está en línea. Ya puedes publicar tus salidas." },
+    "pro_profession_approved": { "title": "Nueva profesión validada", "body": "«{{profession}}» aparece ahora en tu página pro." },
+    "pro_profession_rejected": { "title": "Nueva profesión rechazada", "body": "«{{profession}}» no ha sido validada. Escríbenos a contact@askandgo.io para saber más." },
     "pro_rejected": {
       "title": "Solicitud pro rechazada", "body": "Tu solicitud de página pro no ha sido validada. Corrige tus datos y envíala de nuevo.",
       "reason": { "title": "Solicitud pro rechazada", "body": "{{reason}}" }
@@ -688,6 +690,7 @@
       "pro_identity_locked": "Tu estructura y tu identidad ya han sido verificadas: escríbenos para modificarlas.",
       "pro_location_cooldown": "Tu ubicación se movió hace menos de 30 días — vuelve a intentarlo más tarde.",
       "pro_profession_invalid": "Elige una profesión de la lista.",
+      "profession_keep_one": "Conserva al menos una de tus profesiones ya validadas.",
       "review_requires_booking": "Podrás dejar una opinión cuando la salida se haya hecho (reserva aceptada, fecha pasada).",
       "pro_profession_invalid": "Elige una profesión de la lista.",
       "review_requires_booking": "Podrás dejar una opinión cuando la salida se haya hecho (reserva aceptada, fecha pasada).",
@@ -2063,6 +2066,11 @@
     "fieldProfessions": "Tus oficios",
     "professionsPlaceholder": "Elige uno o varios oficios…",
     "professionsHint": "Marca todos los oficios que ejerces: tu página los muestra todos.",
+    "professionsReviewHint": "El equipo revisa cada nueva profesión antes de que aparezca en tu página.",
+    "professionKeepOne": "Conserva al menos una de tus profesiones ya validadas.",
+    "professionPending": "pendiente de validación",
+    "professionPendingLong": "Pendiente de validación por el equipo",
+    "professionRequested": "Página guardada · nueva profesión enviada para validación",
     "professionFeatured": "Destacado",
     "professionFeaturedHint": "El que se ve primero en tu página y en tu pin. Toca un oficio para destacarlo.",
     "professionsPick": "Tus oficios",

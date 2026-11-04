@@ -64,6 +64,16 @@ export type UpdateProProfileInput = Partial<RegisterAsProInput> & {
   clear?: ClearableProField[];
 };
 
+export interface ProfessionRequest {
+  user_id: string;
+  display_name: string;
+  company_name: string | null;
+  real_name: string | null;
+  professions: string[];
+  pending_professions: string[];
+  updated_at: string;
+}
+
 export interface PendingProApplication {
   user_id: string;
   display_name: string;
@@ -224,8 +234,32 @@ export const proService = {
 
   // 00562: the professions, first = featured (pin, page). Any status — the
   // application form sets them right after register_as_pro.
-  setProfessions: async (professions: string[]): Promise<void> => {
-    const { error } = await supabase.rpc('set_pro_professions', { p_professions: professions });
+  // 00581: for an APPROVED pro a new profession is only requested — returns
+  // the professions waiting for an admin (empty for a pending application).
+  setProfessions: async (professions: string[]): Promise<string[]> => {
+    const { data, error } = await supabase.rpc('set_pro_professions', { p_professions: professions });
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  // 00581: the approved pro's professions waiting for an admin.
+  getMyPendingProfessions: async (): Promise<string[]> => {
+    const { data, error } = await supabase.rpc('get_my_pending_professions');
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  // 00581 (admin): profession requests of approved pros, and the decision.
+  getProfessionRequests: async (): Promise<ProfessionRequest[]> => {
+    const { data, error } = await supabase.rpc('admin_get_pro_profession_requests');
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  decideProfession: async (proId: string, profession: string, approve: boolean): Promise<void> => {
+    const { error } = await supabase.rpc('admin_decide_pro_profession', {
+      p_pro: proId, p_profession: profession, p_approve: approve,
+    });
     if (error) throw error;
   },
 

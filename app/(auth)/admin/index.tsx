@@ -23,6 +23,7 @@ export default function AdminHubScreen() {
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { data: reports } = useQuery({ queryKey: ['admin-reports'], queryFn: () => reportService.getAll(), enabled: isAdmin });
   const { data: pendingPros } = useQuery({ queryKey: ['admin-pending-pros'], queryFn: () => proService.getPendingApplications(), enabled: isAdmin });
+  const { data: professionRequests } = useQuery({ queryKey: ['admin-profession-requests'], queryFn: () => proService.getProfessionRequests(), enabled: isAdmin });
   const queryClient = useQueryClient();
   const { data: demoOn } = useQuery({ queryKey: ['admin-demo-mode'], queryFn: () => adminService.getDemoMode(), enabled: isAdmin });
   const demoMutation = useMutation({
@@ -31,7 +32,8 @@ export default function AdminHubScreen() {
   });
 
   const pendingReports = (reports ?? []).filter((r) => r.status === 'pending').length;
-  const pendingProsCount = (pendingPros ?? []).length;
+  const pendingProsCount = (pendingPros ?? []).length
+    + (professionRequests ?? []).reduce((n, r) => n + r.pending_professions.length, 0);
 
   const Row = ({ icon: Icon, label, sublabel, count, onPress, last }: {
     icon: LucideIcon; label: string; sublabel: string; count: number; onPress: () => void; last?: boolean;

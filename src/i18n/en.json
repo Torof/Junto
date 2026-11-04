@@ -37,7 +37,7 @@
     "join_request_blocked": { "title": "Request withdrawn", "body": "{{name}}’s request for “{{title}}” was withdrawn: a block stands between them and a participant." },
     "booking_request": {"title": "New booking request", "body_one": "{{name}} · “{{title}}” · {{date}}, {{period}} · 1 person", "body_other": "{{name}} · “{{title}}” · {{date}}, {{period}} · {{count}} people", "day": {"title": "New booking request", "body_one": "{{name}} · “{{title}}” · {{date}}, whole day · 1 person", "body_other": "{{name}} · “{{title}}” · {{date}}, whole day · {{count}} people"}, "multi": {"title": "New booking request", "body_one": "{{name}} · “{{title}}” · {{days}} days from {{date}} · 1 person", "body_other": "{{name}} · “{{title}}” · {{days}} days from {{date}} · {{count}} people"}},
     "booking_accepted": {"title": "Booking confirmed!", "body": "{{name}} confirmed “{{title}}” on {{date}}, {{period}}. Pay on site.", "day": {"title": "Booking confirmed!", "body": "{{name}} confirmed “{{title}}” on {{date}}, whole day. Pay on site."}, "multi": {"title": "Booking confirmed!", "body": "{{name}} confirmed “{{title}}”: {{days}} days from {{date}}. Pay on site."}},
-    "booking_declined": { "title": "Slot unavailable", "body": "{{name}} is not available for “{{title}}” on {{date}}. Try another slot." },
+    "booking_declined": { "title": "Slot unavailable", "body": "{{name}} is not available for “{{title}}” on {{date}}. Try another slot.", "neutral": { "title": "Slot unavailable", "body": "The slot you asked for “{{title}}” on {{date}} is not available." } },
     "booking_cancelled": {
       "auto_minimum": {"title": "Outing cancelled", "body": "“{{title}}” on {{date}} is cancelled: not enough participants."},
       "title": "Outing cancelled", "body": "“{{title}}” on {{date}} was cancelled.",
@@ -75,6 +75,8 @@
     "pro_renamed": { "title": "Pro page renamed", "body": "{{old}} → {{new}}" },
     "badge_unlocked": { "title": "New badge!", "body": "You are now {{label}}" },
     "pro_approved": { "title": "Pro page approved", "body": "Your pro page is live. You can now publish your outings." },
+    "pro_profession_approved": { "title": "New profession approved", "body": "“{{profession}}” now shows on your pro page." },
+    "pro_profession_rejected": { "title": "New profession declined", "body": "“{{profession}}” was not approved. Write to contact@askandgo.io to find out more." },
     "pro_rejected": {
       "title": "Pro application declined", "body": "Your pro page application was not approved. Fix your details and send it again.",
       "reason": { "title": "Pro application declined", "body": "{{reason}}" }
@@ -684,6 +686,7 @@
       "pro_identity_locked": "Your company and identity were verified: contact us to change them.",
       "pro_location_cooldown": "Your location was moved less than 30 days ago — try again later.",
       "pro_profession_invalid": "Pick a profession from the list.",
+      "profession_keep_one": "Keep at least one of your already approved professions.",
       "review_requires_booking": "You can leave a review once the outing is done (accepted booking, date passed).",
       "pro_profession_invalid": "Pick a profession from the list.",
       "review_requires_booking": "You can leave a review once the outing is done (accepted booking, date passed).",
@@ -2063,6 +2066,11 @@
     "fieldProfessions": "Your professions",
     "professionsPlaceholder": "Choose one or more professions…",
     "professionsHint": "Tick every profession you practise: your page shows them all.",
+    "professionsReviewHint": "A new profession is checked by the team before it shows on your page.",
+    "professionKeepOne": "Keep at least one of your already approved professions.",
+    "professionPending": "awaiting approval",
+    "professionPendingLong": "Awaiting approval by the team",
+    "professionRequested": "Page saved · new profession sent for approval",
     "professionFeatured": "Featured",
     "professionFeaturedHint": "The one shown first on your page and on your pin. Tap a profession to feature it.",
     "professionsPick": "Your professions",

@@ -37,7 +37,7 @@
     "join_request_blocked": { "title": "Richiesta ritirata", "body": "La richiesta di {{name}} per « {{title}} » è stata ritirata: un blocco lo separa da un partecipante." },
     "booking_request": {"title": "Nuova richiesta di prenotazione", "body_one": "{{name}} · « {{title}} » · {{date}}, {{period}} · 1 pers.", "body_other": "{{name}} · « {{title}} » · {{date}}, {{period}} · {{count}} pers.", "day": {"title": "Nuova richiesta di prenotazione", "body_one": "{{name}} · « {{title}} » · {{date}}, giornata · 1 pers.", "body_other": "{{name}} · « {{title}} » · {{date}}, giornata · {{count}} pers."}, "multi": {"title": "Nuova richiesta di prenotazione", "body_one": "{{name}} · « {{title}} » · {{days}} giorni dal {{date}} · 1 pers.", "body_other": "{{name}} · « {{title}} » · {{days}} giorni dal {{date}} · {{count}} pers."}},
     "booking_accepted": {"title": "Prenotazione confermata!", "body": "{{name}} ha confermato « {{title}} » il {{date}}, {{period}}. Pagamento sul posto.", "day": {"title": "Prenotazione confermata!", "body": "{{name}} ha confermato « {{title}} » il {{date}}, giornata. Pagamento sul posto."}, "multi": {"title": "Prenotazione confermata!", "body": "{{name}} ha confermato « {{title}} »: {{days}} giorni dal {{date}}. Pagamento sul posto."}},
-    "booking_declined": { "title": "Slot non disponibile", "body": "{{name}} non è disponibile per « {{title}} » il {{date}}. Prova un altro slot." },
+    "booking_declined": { "title": "Slot non disponibile", "body": "{{name}} non è disponibile per « {{title}} » il {{date}}. Prova un altro slot.", "neutral": { "title": "Orario non disponibile", "body": "L’orario richiesto per «{{title}}» il {{date}} non è disponibile." } },
     "booking_cancelled": {
       "auto_minimum": {"title": "Uscita annullata", "body": "« {{title}} » del {{date}} è annullata: partecipanti insufficienti."},
       "title": "Uscita annullata", "body": "« {{title}} » del {{date}} è stata annullata.",
@@ -75,6 +75,8 @@
     "pro_renamed": { "title": "Pagina pro rinominata", "body": "{{old}} → {{new}}" },
     "badge_unlocked": { "title": "Nuovo badge!", "body": "Ora sei {{label}}" },
     "pro_approved": { "title": "Pagina pro approvata", "body": "La tua pagina pro è online. Ora puoi pubblicare le tue uscite." },
+    "pro_profession_approved": { "title": "Nuova professione convalidata", "body": "«{{profession}}» ora appare sulla tua pagina pro." },
+    "pro_profession_rejected": { "title": "Nuova professione rifiutata", "body": "«{{profession}}» non è stata convalidata. Scrivici a contact@askandgo.io per saperne di più." },
     "pro_rejected": {
       "title": "Richiesta pro rifiutata", "body": "La tua richiesta di pagina pro non è stata approvata. Correggi i dati e invia di nuovo.",
       "reason": { "title": "Richiesta pro rifiutata", "body": "{{reason}}" }
@@ -688,6 +690,7 @@
       "pro_identity_locked": "La tua struttura e la tua identità sono state verificate: scrivici per modificarle.",
       "pro_location_cooldown": "La tua posizione è stata spostata meno di 30 giorni fa — riprova più tardi.",
       "pro_profession_invalid": "Scegli una professione dall'elenco.",
+      "profession_keep_one": "Mantieni almeno una delle tue professioni già convalidate.",
       "review_requires_booking": "Potrai lasciare una recensione a uscita fatta (prenotazione accettata, data passata).",
       "pro_profession_invalid": "Scegli una professione dall'elenco.",
       "review_requires_booking": "Potrai lasciare una recensione a uscita fatta (prenotazione accettata, data passata).",
@@ -2063,6 +2066,11 @@
     "fieldProfessions": "I tuoi mestieri",
     "professionsPlaceholder": "Scegli uno o più mestieri…",
     "professionsHint": "Spunta tutti i mestieri che eserciti: la tua pagina li mostra tutti.",
+    "professionsReviewHint": "Una nuova professione viene verificata dal team prima di apparire sulla tua pagina.",
+    "professionKeepOne": "Mantieni almeno una delle tue professioni già convalidate.",
+    "professionPending": "in attesa di convalida",
+    "professionPendingLong": "In attesa di convalida da parte del team",
+    "professionRequested": "Pagina salvata · nuova professione inviata per la convalida",
     "professionFeatured": "In evidenza",
     "professionFeaturedHint": "Quello che si vede per primo sulla tua pagina e sul tuo pin. Tocca un mestiere per metterlo in evidenza.",
     "professionsPick": "I tuoi mestieri",
