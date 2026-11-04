@@ -2618,5 +2618,26 @@
     "meetingShort": "Treffpunkt: {{text}}",
     "wholeDay": "ganzer Tag",
     "daysCount": "{{count}} Tage"
+  },
+  "proIntro": {
+    "eyebrow": "Bergführer · Lehrer · Begleiter",
+    "title": "Dein Schaufenster. Und dein Organisationswerkzeug.",
+    "subtitle": "Stell deine Touren online, erhalte Buchungen, schreib mit deinen Kunden — alles an einem Ort.",
+    "mapTitle": "Deine Touren auf der Karte",
+    "mapBody": "Dort, wo Sportler ihre nächste Tour suchen, mit Fotos, Preisen und Bewertungen.",
+    "agendaTitle": "Kalender und Buchungen",
+    "agendaBody": "Mit einem Tipp annehmen: Der Termin wird geblockt, der Kunde benachrichtigt. Dein Google- oder Apple-Kalender kann mitziehen.",
+    "formsTitle": "Gruppenformulare",
+    "formsBody": "Schuhgrößen, Körpergrößen, Gewichte: Du bekommst sie vor der Tour.",
+    "chatTitle": "Kundennachrichten",
+    "chatBody": "Eine Frage vor der Buchung, ein Detail am Vortag: Alles läuft über die App.",
+    "howTitle": "So funktioniert’s",
+    "step1Strong": "Ein paar Angaben",
+    "step1": ": Name deiner Seite, deine Berufe, dein Ort, dein Firmenname und dein Name.",
+    "step2Strong": "Unser Team prüft",
+    "step2": " deine Anfrage. Du bekommst eine Benachrichtigung, sobald sie freigegeben ist.",
+    "step3Strong": "Dein Pro-Bereich öffnet sich",
+    "step3": " im Menü: Füge deine Touren und Termine hinzu.",
+    "cta": "Meine Pro-Seite erstellen"
   }
 }

@@ -2618,5 +2618,26 @@
     "meetingShort": "Ritrovo: {{text}}",
     "wholeDay": "giornata",
     "daysCount": "{{count}} giorni"
+  },
+  "proIntro": {
+    "eyebrow": "Guide · istruttori · accompagnatori",
+    "title": "La tua vetrina. E il tuo strumento di organizzazione.",
+    "subtitle": "Metti online le tue uscite, ricevi prenotazioni, parla con i tuoi clienti — tutto in un unico posto.",
+    "mapTitle": "Le tue uscite sulla mappa",
+    "mapBody": "Dove si cerca la prossima uscita, con foto, prezzi e recensioni.",
+    "agendaTitle": "Agenda e prenotazioni",
+    "agendaBody": "Accetti con un tocco: la data si blocca e il cliente viene avvisato. Il tuo calendario Google o Apple può seguire.",
+    "formsTitle": "Schede del gruppo",
+    "formsBody": "Numeri di scarpe, altezze, pesi: li ricevi prima dell’uscita.",
+    "chatTitle": "Messaggi con i clienti",
+    "chatBody": "Una domanda prima di prenotare, un dettaglio il giorno prima: tutto passa dall’app.",
+    "howTitle": "Come funziona",
+    "step1Strong": "Qualche dato",
+    "step1": ": il nome della tua pagina, i tuoi mestieri, il tuo luogo, la ragione sociale e il tuo nome.",
+    "step2Strong": "Il nostro team verifica",
+    "step2": " la tua richiesta. Ricevi una notifica appena viene approvata.",
+    "step3Strong": "Il tuo spazio pro si apre",
+    "step3": " nel Menu: aggiungi le tue uscite e le tue date.",
+    "cta": "Crea la mia pagina pro"
   }
 }

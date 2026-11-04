@@ -2618,5 +2618,26 @@
     "meetingShort": "RDV : {{text}}",
     "wholeDay": "journée",
     "daysCount": "{{count}} jours"
+  },
+  "proIntro": {
+    "eyebrow": "Guides · moniteurs · accompagnateurs",
+    "title": "Ta vitrine. Et ton outil d’organisation.",
+    "subtitle": "Mets tes sorties en ligne, reçois tes réservations, échange avec tes clients — au même endroit.",
+    "mapTitle": "Tes sorties sur la carte",
+    "mapBody": "Là où les pratiquants cherchent leur prochaine sortie, avec photos, tarifs et avis.",
+    "agendaTitle": "Agenda et réservations",
+    "agendaBody": "Tu acceptes d’un geste, la date se bloque, le client est prévenu. Ton agenda Google ou Apple peut suivre.",
+    "formsTitle": "Fiches du groupe",
+    "formsBody": "Pointures, tailles, poids : tu les reçois avant la sortie.",
+    "chatTitle": "Échanges clients",
+    "chatBody": "Une question avant de réserver, un détail la veille : tout se dit dans l’app.",
+    "howTitle": "Comment ça marche",
+    "step1Strong": "Quelques infos",
+    "step1": " : le nom de ta page, tes métiers, ton lieu, ta raison sociale et ton nom.",
+    "step2Strong": "Notre équipe vérifie",
+    "step2": " ta demande. Tu reçois une notification dès qu’elle est validée.",
+    "step3Strong": "Ton espace pro s’ouvre",
+    "step3": " dans le Menu : tu ajoutes tes sorties et tes dates.",
+    "cta": "Créer ma page pro"
   }
 }

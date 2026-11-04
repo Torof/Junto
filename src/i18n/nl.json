@@ -2865,5 +2865,26 @@
     "wholeDay": "hele dag",
     "daysCount": "{{count}} dagen",
     "groupCap": "Maximaal 6 personen per inschrijving — voor meer, neem contact op met de pro."
+  },
+  "proIntro": {
+    "eyebrow": "Gidsen · instructeurs · begeleiders",
+    "title": "Jouw etalage. En je organisatietool.",
+    "subtitle": "Zet je tochten online, ontvang boekingen, praat met je klanten — alles op één plek.",
+    "mapTitle": "Je tochten op de kaart",
+    "mapBody": "Waar mensen hun volgende tocht zoeken, met foto’s, prijzen en reviews.",
+    "agendaTitle": "Agenda en boekingen",
+    "agendaBody": "Accepteer met één tik: de datum wordt geblokkeerd en de klant krijgt bericht. Je Google- of Apple-agenda kan meelopen.",
+    "formsTitle": "Groepsformulieren",
+    "formsBody": "Schoenmaten, lengtes, gewichten: je krijgt ze vóór de tocht.",
+    "chatTitle": "Berichten met klanten",
+    "chatBody": "Een vraag vóór het boeken, een detail de dag ervoor: alles gaat via de app.",
+    "howTitle": "Zo werkt het",
+    "step1Strong": "Een paar gegevens",
+    "step1": ": de naam van je pagina, je beroepen, je locatie, je bedrijfsnaam en je naam.",
+    "step2Strong": "Ons team controleert",
+    "step2": " je aanvraag. Je krijgt een melding zodra die is goedgekeurd.",
+    "step3Strong": "Je pro-ruimte gaat open",
+    "step3": " in het Menu: voeg je tochten en data toe.",
+    "cta": "Mijn pro-pagina maken"
   }
 }

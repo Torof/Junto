@@ -2618,5 +2618,26 @@
     "meetingShort": "Encuentro: {{text}}",
     "wholeDay": "día completo",
     "daysCount": "{{count}} días"
+  },
+  "proIntro": {
+    "eyebrow": "Guías · monitores · acompañantes",
+    "title": "Tu escaparate. Y tu herramienta de organización.",
+    "subtitle": "Publica tus salidas, recibe reservas, habla con tus clientes — todo en un mismo lugar.",
+    "mapTitle": "Tus salidas en el mapa",
+    "mapBody": "Donde la gente busca su próxima salida, con fotos, precios y opiniones.",
+    "agendaTitle": "Agenda y reservas",
+    "agendaBody": "Aceptas con un toque: la fecha se bloquea y el cliente recibe el aviso. Tu calendario de Google o Apple puede seguirlo.",
+    "formsTitle": "Fichas del grupo",
+    "formsBody": "Tallas de pie, estaturas, pesos: los recibes antes de la salida.",
+    "chatTitle": "Mensajes con clientes",
+    "chatBody": "Una pregunta antes de reservar, un detalle la víspera: todo pasa por la app.",
+    "howTitle": "Cómo funciona",
+    "step1Strong": "Unos datos",
+    "step1": ": el nombre de tu página, tus profesiones, tu ubicación, tu razón social y tu nombre.",
+    "step2Strong": "Nuestro equipo revisa",
+    "step2": " tu solicitud. Recibes una notificación en cuanto se valida.",
+    "step3Strong": "Tu espacio pro se abre",
+    "step3": " en el Menú: añades tus salidas y tus fechas.",
+    "cta": "Crear mi página pro"
   }
 }

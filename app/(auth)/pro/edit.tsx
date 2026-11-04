@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Pressable,
@@ -11,7 +11,7 @@ import { AppText, AppTextInput } from '@/components/app-text';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 import { KeyboardDoneBar } from '@/components/keyboard-done-bar';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Burnt from 'burnt';
@@ -36,6 +36,7 @@ import { PlaceSearchBar } from '@/components/place-search-bar';
 import { PressableScale } from '@/components/pressable-scale';
 import { useInitialLocation } from '@/hooks/use-initial-location';
 import { ProPinPicker } from '@/components/pro-pin-picker';
+import { ProIntro } from '@/components/pro-intro';
 
 // Register-or-update screen for the pro page (lot 2 pro, mockup validated
 // 2026-10-15):
@@ -64,6 +65,19 @@ export default function ProEditScreen() {
 
   const isUpdate = !!existing;
   const isApproved = existing?.status === 'approved';
+  // Someone who has never applied first sees what the pro space brings
+  // (ProIntro); going back from the form returns to it instead of closing.
+  const navigation = useNavigation();
+  const [introDone, setIntroDone] = useState(false);
+  const submittedRef = useRef(false);
+  useEffect(() => {
+    if (isLoading || existing || !introDone) return undefined;
+    return navigation.addListener('beforeRemove', (e) => {
+      if (submittedRef.current) return;
+      e.preventDefault();
+      setIntroDone(false);
+    });
+  }, [navigation, isLoading, existing, introDone]);
   // 00581: an approved pro's NEW professions wait for an admin (pending).
   const { data: pendingProfessions } = useQuery({
     queryKey: ['pro-pending-professions'],
@@ -301,6 +315,7 @@ export default function ProEditScreen() {
           : t('pro.submitted', { defaultValue: 'Demande envoyée — en attente de validation' }),
         preset: 'done',
       });
+      submittedRef.current = true;
       router.back();
     } catch (err) {
       Alert.alert(t('auth.error'), getFriendlyError(err, 'generic'));
@@ -311,6 +326,10 @@ export default function ProEditScreen() {
 
   if (isLoading) {
     return <View style={styles.center}><LogoSpinner size={48} /></View>;
+  }
+
+  if (!existing && !introDone) {
+    return <ProIntro onStart={() => setIntroDone(true)} />;
   }
 
   const contactSummary = [phone.trim(), website.trim(), email.trim(), instagram.trim(), facebook.trim()].filter(Boolean).length;

@@ -2865,5 +2865,26 @@
     "wholeDay": "dia inteiro",
     "daysCount": "{{count}} dias",
     "groupCap": "Máximo de 6 pessoas por inscrição — para mais, contacta o profissional."
+  },
+  "proIntro": {
+    "eyebrow": "Guias · monitores · acompanhantes",
+    "title": "A tua montra. E a tua ferramenta de organização.",
+    "subtitle": "Publica as tuas saídas, recebe reservas, fala com os teus clientes — tudo no mesmo sítio.",
+    "mapTitle": "As tuas saídas no mapa",
+    "mapBody": "Onde as pessoas procuram a próxima saída, com fotos, preços e avaliações.",
+    "agendaTitle": "Agenda e reservas",
+    "agendaBody": "Aceitas com um toque: a data fica bloqueada e o cliente é avisado. O teu calendário Google ou Apple pode acompanhar.",
+    "formsTitle": "Fichas do grupo",
+    "formsBody": "Números de calçado, alturas, pesos: recebe-los antes da saída.",
+    "chatTitle": "Mensagens com clientes",
+    "chatBody": "Uma pergunta antes de reservar, um pormenor na véspera: tudo passa pela app.",
+    "howTitle": "Como funciona",
+    "step1Strong": "Alguns dados",
+    "step1": ": o nome da tua página, as tuas profissões, o teu local, a tua designação social e o teu nome.",
+    "step2Strong": "A nossa equipa verifica",
+    "step2": " o teu pedido. Recebes uma notificação assim que for validado.",
+    "step3Strong": "O teu espaço pro abre-se",
+    "step3": " no Menu: adicionas as tuas saídas e datas.",
+    "cta": "Criar a minha página pro"
   }
 }

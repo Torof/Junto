@@ -2618,5 +2618,26 @@
     "meetingShort": "Meet: {{text}}",
     "wholeDay": "whole day",
     "daysCount": "{{count}} days"
+  },
+  "proIntro": {
+    "eyebrow": "Guides · instructors · leaders",
+    "title": "Your showcase. And your organising tool.",
+    "subtitle": "Put your outings online, receive bookings, talk with your clients — all in one place.",
+    "mapTitle": "Your outings on the map",
+    "mapBody": "Where people look for their next outing, with photos, prices and reviews.",
+    "agendaTitle": "Calendar and bookings",
+    "agendaBody": "Accept in one tap: the date is blocked and the client is notified. Your Google or Apple calendar can follow.",
+    "formsTitle": "Group forms",
+    "formsBody": "Shoe sizes, heights, weights: you get them before the outing.",
+    "chatTitle": "Client messages",
+    "chatBody": "A question before booking, a detail the day before: it all happens in the app.",
+    "howTitle": "How it works",
+    "step1Strong": "A few details",
+    "step1": ": your page name, your professions, your location, your company name and your name.",
+    "step2Strong": "Our team reviews",
+    "step2": " your application. You get a notification as soon as it’s approved.",
+    "step3Strong": "Your pro space opens",
+    "step3": " in the Menu: add your outings and dates.",
+    "cta": "Create my pro page"
   }
 }
