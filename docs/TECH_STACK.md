@@ -59,11 +59,20 @@ TanStack Query          Zustand
 - Postgres 15 + PostGIS pour les requêtes géospatiales
 - Auth : email/password, reset password via deep link
 - Storage : `avatars` (public, path fixe `/avatars/{user_id}/avatar`), `pro-documents` (privé)
-- Migrations versionnées dans `supabase/migrations/` (currently 149 migrations)
-- Edge Functions dans `supabase/functions/` :
-  - `send-push` — envoi push via Expo Push API, secret partagé via header
-  - `delete-user` — suppression de compte avec service_role
-- Types auto-générés via `supabase gen types typescript`
+- Migrations versionnées dans `supabase/migrations/` (base de départ `00526_baseline.sql` du projet actuel, puis une migration par changement), appliquées par `npx supabase db push --remote`
+- Edge Functions dans `supabase/functions/`. **Le réglage de vérification du JWT n'est pas mémorisé** : il se passe à chaque déploiement. Se tromper casse la fonction en silence (une fonction appelée par la base sans jeton répond 401 ; une fonction appelée par l'app perd son contrôle d'identité). Commande exacte en tête de chaque `index.ts`.
+
+  | Fonction | Appelée par | Déploiement |
+  |---|---|---|
+  | `send-push` | la base (pg_net), secret `x-junto-push-secret` | `--no-verify-jwt` (après `npm run push:templates`) |
+  | `notify-pro-application` | la base (demande pro, demande de métier), même secret | `--no-verify-jwt` |
+  | `calendar-import` | la base (pg_cron), même secret | `--no-verify-jwt` |
+  | `storage-cleanup` | la base (pg_cron), même secret | `--no-verify-jwt` |
+  | `calendar-feed` | les agendas externes (Google, Apple…) ; le jeton de l'URL est le secret | `--no-verify-jwt` |
+  | `delete-account` | l'app, JWT de l'utilisateur | par défaut (JWT vérifié) |
+  | `snap-trail` | l'app, JWT de l'utilisateur | par défaut (JWT vérifié) |
+  | `trace-elevation` | l'app, JWT de l'utilisateur | par défaut (JWT vérifié) |
+- Types auto-générés via `npx supabase gen types typescript --linked --schema public > src/types/supabase.ts`
 
 ---
 
