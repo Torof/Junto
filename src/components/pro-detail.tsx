@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type ComponentRef } from 'react';
+import { formatInterval } from '@/utils/activity-time';
 import { View, Pressable, ScrollView, StyleSheet, Linking, Modal, Alert, Share, Platform, Dimensions } from 'react-native';
 import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
@@ -130,19 +131,6 @@ const PHOTO_MAX_COLUMNS = 5;
 // ScrollView reconfigure its sticky header, which can disrupt scrolling.
 const STICKY_HEADER_INDICES = [2];
 
-// duration is a Postgres interval serialized as "HH:MM:SS" (e.g. "05:00:00").
-// Render it as "5h" / "2h30" / "45min" instead of the raw interval (mirrors
-// offering-detail's formatter so the catalogue matches the detail page).
-function formatDuration(d: string | null): string | null {
-  if (!d) return null;
-  const match = d.match(/^(\d+):(\d+):/);
-  if (!match) return d;
-  const h = parseInt(match[1] ?? '0', 10);
-  const m = parseInt(match[2] ?? '0', 10);
-  if (h > 0 && m > 0) return `${h}h${m.toString().padStart(2, '0')}`;
-  if (h > 0) return `${h}h`;
-  return `${m}min`;
-}
 
 // Open an external URL, swallowing the rejection Linking.openURL throws on a
 // device with no handler (no dialer / mail app) — audit 2026-07-13.
@@ -560,7 +548,7 @@ export function ProDetail({ pro, isOwner, initialTab, soloTab, onEdit, inSheet =
                 <GHScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carouselBleed} contentContainerStyle={styles.catCarousel}>
                   {offerings.map((o) => {
                     const accent = sportCategoryColor(o.sport_category, colors.cta);
-                    const duration = formatDuration(o.duration);
+                    const duration = formatInterval(o.duration);
                     const showRating = !!o.review_count && o.review_count > 0 && o.avg_rating != null;
                     return (
                       <Pressable
@@ -800,7 +788,7 @@ export function ProDetail({ pro, isOwner, initialTab, soloTab, onEdit, inSheet =
                 </AppText>
                 {offerings.map((o) => {
                   const accent = sportCategoryColor(o.sport_category, colors.cta);
-                  const duration = formatDuration(o.duration);
+                  const duration = formatInterval(o.duration);
                   const showRating = !!o.review_count && o.review_count > 0 && o.avg_rating != null;
                   return (
                     <Pressable key={o.id} style={styles.expCard} onPress={() => openOffering(o)}>

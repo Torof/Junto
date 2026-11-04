@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { formatInterval } from '@/utils/activity-time';
 import { View, Pressable, ScrollView, StyleSheet, Share } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -39,16 +40,6 @@ const WHITE = '#FFFFFF';
 const COVER_H = 250;
 const COLLAPSED_DESCRIPTION_CHARS = 280;
 
-function formatDuration(d: string | null): string | null {
-  if (!d) return null;
-  const match = d.match(/^(\d+):(\d+):/);
-  if (!match) return d;
-  const h = parseInt(match[1] ?? '0', 10);
-  const m = parseInt(match[2] ?? '0', 10);
-  if (h > 0 && m > 0) return `${h}h${m.toString().padStart(2, '0')}`;
-  if (h > 0) return `${h}h`;
-  return `${m}min`;
-}
 
 interface Props {
   offering: ProOffering;
@@ -102,7 +93,7 @@ export function OfferingPage({ offering, isOwner }: Props) {
   const hasRating = !!stats && stats.review_count > 0;
   const description = offering.description?.trim() ?? '';
   const descriptionOverflowing = description.length > COLLAPSED_DESCRIPTION_CHARS;
-  const duration = formatDuration(offering.duration);
+  const duration = formatInterval(offering.duration);
   const priceUnit = offering.price_unit === 'group'
     ? t('booking.perGroup', { defaultValue: '/groupe' })
     : t('booking.perPerson', { defaultValue: '/pers' });

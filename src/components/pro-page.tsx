@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { formatInterval } from '@/utils/activity-time';
 import { View, Pressable, ScrollView, StyleSheet, Linking, Share, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -51,16 +52,6 @@ function openLink(url: string): void {
   Linking.openURL(url).catch(() => {});
 }
 
-function formatDuration(d: string | null): string | null {
-  if (!d) return null;
-  const match = d.match(/^(\d+):(\d+):/);
-  if (!match) return d;
-  const h = parseInt(match[1] ?? '0', 10);
-  const m = parseInt(match[2] ?? '0', 10);
-  if (h > 0 && m > 0) return `${h}h${m.toString().padStart(2, '0')}`;
-  if (h > 0) return `${h}h`;
-  return `${m}min`;
-}
 
 function prettyUrl(url: string): string {
   return url.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/+$/, '');
@@ -235,7 +226,7 @@ export function ProPage({ pro, isOwner }: Props) {
             <View style={{ flex: 1, minWidth: 0 }}>
               <AppText style={styles.cardTitle} numberOfLines={2}>{o.title}</AppText>
               <AppText style={styles.sub} numberOfLines={1}>
-                {[formatDuration(o.duration), o.level, o.location_name].filter(Boolean).join(' · ')}
+                {[formatInterval(o.duration), o.level, o.location_name].filter(Boolean).join(' · ')}
               </AppText>
             </View>
             {o.price_eur != null ? (

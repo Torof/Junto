@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { formatInterval } from '@/utils/activity-time';
 import { View, Pressable, ScrollView, StyleSheet, Alert, Share } from 'react-native';
 import { AppText } from '@/components/app-text';
 import { Image } from 'expo-image';
@@ -47,16 +48,6 @@ interface Props {
   onEdit?: () => void;
 }
 
-function formatDuration(d: string | null): string | null {
-  if (!d) return null;
-  const match = d.match(/^(\d+):(\d+):/);
-  if (!match) return d;
-  const h = parseInt(match[1] ?? '0', 10);
-  const m = parseInt(match[2] ?? '0', 10);
-  if (h > 0 && m > 0) return `${h}h${m.toString().padStart(2, '0')}`;
-  if (h > 0) return `${h}h`;
-  return `${m}min`;
-}
 
 // Single-scroll "place-page" for a pro offering (RA): a compact info header
 // (sport chip · rating · title · location · schedule) then bold-titled sections
@@ -163,7 +154,7 @@ export function OfferingDetail({ offering, inSheet = false, onClose, onHeaderMea
   };
 
   const proThumbUrl = pro?.pin_image_url ?? null;
-  const formattedDuration = formatDuration(offering.duration);
+  const formattedDuration = formatInterval(offering.duration);
   const showRating = !!reviewStats && reviewStats.review_count > 0;
 
   type Stat = { id: string; icon: typeof BarChart3; value: string };
