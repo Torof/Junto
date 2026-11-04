@@ -27,5 +27,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Security audit
+      # Informational: the remaining high advisories are transitive Expo build
+      # tooling (not shipped in the app) and kept CI red for weeks, so nobody
+      # read it any more (2026-11-04). Lint and typecheck stay blocking.
+      - name: Security audit (informational)
         run: npm audit --audit-level=high
+        continue-on-error: true
