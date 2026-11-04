@@ -78,9 +78,6 @@ export interface InvitableActivity {
   max_participants: number;
 }
 
-// get_discovery_count returns -1 as the "quelques" floor (1–2 matches).
-export const DISCOVERY_FEW = -1;
-
 export const discoveryService = {
   getMyDispo: async (): Promise<MyDispo | null> => {
     const { data, error } = await supabase.rpc('get_my_dispo');
@@ -116,7 +113,7 @@ export const discoveryService = {
     if (error) throw error;
   },
 
-  // Live counter during compose. -1 (DISCOVERY_FEW) = "quelques".
+  // Live counter during compose. -1 = the "quelques" floor (1–2 matches).
   getCount: async (f: {
     sportKeys: string[]; baseLng: number; baseLat: number;
     radiusKm: number | null; windowStart: string; windowEnd: string;
