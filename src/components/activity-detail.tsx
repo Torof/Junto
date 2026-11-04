@@ -390,6 +390,11 @@ export function ActivityDetail({
   const selfPresence = participation?.self_presence ?? null;
   const fmtTime = (ms: number) => dayjs(ms).format('HH:mm');
   const fmtDate = (ms: number) => dayjs(ms).format('DD/MM');
+  // A deadline that isn't today carries its day (« sam. 14 nov. à 21:00 ») —
+  // the QR of a multi-day outing closes days later (audit 2026-11-04).
+  const fmtDeadline = (ms: number) => (dayjs(ms).isSame(dayjs(nowMs), 'day')
+    ? fmtTime(ms)
+    : t('presence.dateAt', { date: dayjs(ms).format('ddd D MMMM'), time: fmtTime(ms) }));
   // « dans 25 minutes » · « dans 5 heures » · « dans 3 jours et 6 heures »
   // (was « dans 428 heures », Scott 2026-11-03).
   const relFuture = (ms: number) => {
@@ -1097,8 +1102,8 @@ export function ActivityDetail({
                     the last moment it's still fixable before the outing. */}
                 <AppText style={[styles.statusBannerText, { textAlign: 'left', marginTop: spacing.xs, fontWeight: '600', color: bgLocationDenied ? colors.warning : colors.success }]}>
                   {bgLocationDenied
-                    ? t('presence.autoArmedNo', { qrClose: fmtTime(qrCloseMs) })
-                    : t('presence.autoArmedYes', { qrClose: fmtTime(qrCloseMs) })}
+                    ? t('presence.autoArmedNo', { qrClose: fmtDeadline(qrCloseMs) })
+                    : t('presence.autoArmedYes', { qrClose: fmtDeadline(qrCloseMs) })}
                 </AppText>
                 {bgLocationDenied && (
                   <Pressable
@@ -1213,7 +1218,7 @@ export function ActivityDetail({
                   {geoClosedQrOpen
                     ? t('presence.geoClosedQrOnly', {
                         ago: relPast(startsAtMs + 15 * 60 * 1000),
-                        time: fmtTime(qrCloseMs),
+                        time: fmtDeadline(qrCloseMs),
                       })
                     : isAtActivity
                     ? t('presence.atActivitySubtitle')

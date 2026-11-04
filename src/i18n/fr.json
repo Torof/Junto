@@ -1842,6 +1842,7 @@
     "agoHours_other": "il y a {{count}} heures",
     "agoDays_one": "il y a {{count}} jour",
     "agoDays_other": "il y a {{count}} jours",
+    "dateAt": "{{date}} à {{time}}",
     "notYetTitle": "Validation de présence",
     "opensToday": "ouvre à {{time}} ({{countdown}})",
     "opensOn": "ouvre {{date}} à {{time}} ({{countdown}})",
@@ -2583,6 +2584,8 @@
     }
   },
   "calendarSync": {
+    "loadError": "Impossible de charger tes liens d’agenda.",
+    "retry": "Réessayer",
     "title": "Synchroniser mon agenda",
     "entryTitle": "Synchroniser avec mon agenda",
     "entrySub": "Google Agenda, Apple, Outlook",

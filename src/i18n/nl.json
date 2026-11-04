@@ -2079,6 +2079,7 @@
     "agoHours_other": "{{count}} uur geleden",
     "agoDays_one": "{{count}} dag geleden",
     "agoDays_other": "{{count}} dagen geleden",
+    "dateAt": "{{date}} om {{time}}",
     "notYetTitle": "Aanwezigheidsvalidatie",
     "opensToday": "opent om {{time}} ({{countdown}})",
     "opensOn": "opent {{date}} om {{time}} ({{countdown}})",
@@ -2820,6 +2821,8 @@
     }
   },
   "calendarSync": {
+    "loadError": "Je agendalinks konden niet worden geladen.",
+    "retry": "Opnieuw proberen",
     "title": "Mijn agenda synchroniseren",
     "entryTitle": "Synchroniseren met mijn agenda",
     "entrySub": "Google Agenda, Apple, Outlook",

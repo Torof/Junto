@@ -1842,6 +1842,7 @@
     "agoHours_other": "hace {{count}} horas",
     "agoDays_one": "hace {{count}} día",
     "agoDays_other": "hace {{count}} días",
+    "dateAt": "{{time}} del {{date}}",
     "notYetTitle": "Validación de presencia",
     "opensToday": "abre a las {{time}} ({{countdown}})",
     "opensOn": "abre el {{date}} a las {{time}} ({{countdown}})",
@@ -2583,6 +2584,8 @@
     }
   },
   "calendarSync": {
+    "loadError": "No se han podido cargar tus enlaces de calendario.",
+    "retry": "Reintentar",
     "title": "Sincronizar mi calendario",
     "entryTitle": "Sincronizar con mi calendario",
     "entrySub": "Google Calendar, Apple, Outlook",

@@ -1842,6 +1842,7 @@
     "agoHours_other": "vor {{count}} Stunden",
     "agoDays_one": "vor {{count}} Tag",
     "agoDays_other": "vor {{count}} Tagen",
+    "dateAt": "{{date}} um {{time}}",
     "notYetTitle": "Anwesenheitsbestätigung",
     "opensToday": "öffnet um {{time}} ({{countdown}})",
     "opensOn": "öffnet {{date}} um {{time}} ({{countdown}})",
@@ -2583,6 +2584,8 @@
     }
   },
   "calendarSync": {
+    "loadError": "Deine Kalender-Links konnten nicht geladen werden.",
+    "retry": "Erneut versuchen",
     "title": "Meinen Kalender synchronisieren",
     "entryTitle": "Mit meinem Kalender synchronisieren",
     "entrySub": "Google Kalender, Apple, Outlook",

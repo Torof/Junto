@@ -2079,6 +2079,7 @@
     "agoHours_other": "há {{count}} horas",
     "agoDays_one": "há {{count}} dia",
     "agoDays_other": "há {{count}} dias",
+    "dateAt": "{{time}} de {{date}}",
     "notYetTitle": "Validação de presença",
     "opensToday": "abre às {{time}} ({{countdown}})",
     "opensOn": "abre {{date}} às {{time}} ({{countdown}})",
@@ -2820,6 +2821,8 @@
     }
   },
   "calendarSync": {
+    "loadError": "Não foi possível carregar as ligações da tua agenda.",
+    "retry": "Tentar de novo",
     "title": "Sincronizar a minha agenda",
     "entryTitle": "Sincronizar com a minha agenda",
     "entrySub": "Google Calendar, Apple, Outlook",

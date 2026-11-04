@@ -1842,6 +1842,7 @@
     "agoHours_other": "{{count}} hours ago",
     "agoDays_one": "{{count}} day ago",
     "agoDays_other": "{{count}} days ago",
+    "dateAt": "{{date}} at {{time}}",
     "notYetTitle": "Presence check-in",
     "opensToday": "opens at {{time}} ({{countdown}})",
     "opensOn": "opens {{date}} at {{time}} ({{countdown}})",
@@ -2583,6 +2584,8 @@
     }
   },
   "calendarSync": {
+    "loadError": "Couldn't load your calendar links.",
+    "retry": "Try again",
     "title": "Sync my calendar",
     "entryTitle": "Sync with my calendar",
     "entrySub": "Google Calendar, Apple, Outlook",
