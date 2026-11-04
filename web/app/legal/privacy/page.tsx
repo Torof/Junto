@@ -12,12 +12,13 @@ export default function PrivacyPage() {
     <article style={{ color: 'var(--ink)', lineHeight: 1.6 }}>
       <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8 }}>Politique de Confidentialité</h1>
       <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 32 }}>
-        Dernière mise à jour : octobre 2026
+        Dernière mise à jour : novembre 2026
       </p>
 
       <H2>1. Responsable du traitement</H2>
       <P>
-        Le responsable du traitement des données personnelles est askandgo, joignable à l'adresse :{' '}
+        Le responsable du traitement des données personnelles est l'éditeur d'askandgo, personne physique (voir les{' '}
+      <A href="/legal/mentions">mentions légales</A>), joignable à l'adresse :{' '}
         <A href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</A>.
       </P>
 
@@ -30,14 +31,23 @@ export default function PrivacyPage() {
       <P><B>Données de profil (optionnelles) :</B></P>
       <Ul>
         <li>Photo de profil</li>
+        <li>Présentation (bio)</li>
         <li>Sports pratiqués</li>
       </Ul>
       <P><B>Données d'activité :</B></P>
       <Ul>
         <li>Activités créées et rejointes (titre, description, lieu, date, sport, niveau)</li>
-        <li>Messages sur le mur d'événement et messages privés</li>
+        <li>Traces GPX et leurs étapes</li>
+        <li>Disponibilités indiquées pour trouver des partenaires (sports, dates, zone et rayon)</li>
+        <li>Messages sur le mur d'événement, dans les canaux de discussion et messages privés ; contacts</li>
         <li>Évaluations de fiabilité et badges de réputation</li>
         <li>Signalements effectués</li>
+        <li>Avis déposés sur les professionnels et leurs sorties</li>
+      </Ul>
+      <P><B>Données de réservation (si vous réservez une sortie encadrée) :</B></P>
+      <Ul>
+        <li>Sortie, date, nombre de personnes et message adressé au professionnel</li>
+        <li>Fiches participants, lorsque le professionnel les demande : pointure, taille, poids, âge, niveau, réponses à ses questions</li>
       </Ul>
       <P><B>Données techniques :</B></P>
       <Ul>
@@ -49,6 +59,7 @@ export default function PrivacyPage() {
       <Ul>
         <li>Nom de la structure et coordonnées (site web, email, téléphone, réseaux sociaux), affichés publiquement sur la page pro</li>
         <li>Nom et prénom du responsable — collectés uniquement pour vérifier et valider la demande, <B>jamais affichés publiquement</B></li>
+        <li>Agenda (créneaux ouverts, réservations) et, si le professionnel en connecte un, l'adresse de son agenda externe</li>
       </Ul>
 
       <H2>3. Finalités du traitement</H2>
@@ -60,6 +71,7 @@ export default function PrivacyPage() {
         <li>Assurer la modération et la sécurité de la plateforme</li>
         <li>Recueillir l'attestation d'âge minimum requis (18 ans)</li>
         <li>Vérifier et valider les demandes de page pro</li>
+        <li>Transmettre les réservations et les fiches participants au professionnel concerné</li>
       </Ul>
 
       <H2>4. Base légale</H2>
@@ -77,6 +89,17 @@ export default function PrivacyPage() {
         <li>Score de fiabilité, badges de réputation et trophées</li>
         <li>Activités publiées (titre, lieu, date, sport, niveau)</li>
       </Ul>
+      <P><B>Données transmises au professionnel quand vous réservez :</B></P>
+      <Ul>
+        <li>Pseudonyme et photo, réservation, message et fiches participants</li>
+        <li>Le professionnel ne peut les utiliser que pour organiser la sortie réservée (voir les CGU)</li>
+        <li>
+          Si le professionnel abonne son agenda externe (Google, Apple, Outlook) à askandgo, vos
+          réservations y apparaissent sans votre nom, sauf s'il choisit d'afficher les noms (votre pseudonyme).
+          À l'inverse, quand il importe son agenda externe, askandgo n'en conserve que les créneaux
+          occupés, jamais le contenu des événements.
+        </li>
+      </Ul>
       <P><B>Données NON visibles par les autres utilisateurs :</B></P>
       <Ul>
         <li>Adresse email</li>
@@ -91,7 +114,7 @@ export default function PrivacyPage() {
         <li>Photon / komoot (recherche de lieux et nom du lieu à partir d'une position — reçoit le texte recherché ou les coordonnées ; Allemagne)</li>
         <li>OpenRouteService / HeiGIT (calage d'un tracé dessiné sur les sentiers — reçoit les points du tracé, via nos serveurs ; Allemagne)</li>
         <li>IGN Géoplateforme (calcul du dénivelé d'un tracé — reçoit les points du tracé, via nos serveurs ; France)</li>
-        <li>Resend (envoi des e-mails de compte : confirmation, mot de passe — reçoit l'adresse email ; États-Unis)</li>
+        <li>Resend (envoi des e-mails de compte : confirmation, mot de passe — reçoit l'adresse email ; et des demandes de page pro à l'équipe askandgo ; États-Unis)</li>
         <li>Vercel (hébergement du site web askandgo.io ; États-Unis)</li>
       </Ul>
       <P>
@@ -107,7 +130,9 @@ export default function PrivacyPage() {
         <li>Données d'activité : conservées tant que l'activité existe</li>
         <li>Messages du mur : anonymisés en cas de suppression du compte (le contenu reste, sans lien avec vous)</li>
         <li>Signalements : conservés même après suppression du compte (obligation de modération)</li>
-        <li>Notifications : purgées automatiquement après 7 jours</li>
+        <li>Notifications : effacées automatiquement après 7 jours (sauf une demande pas encore lue)</li>
+        <li>Fiches participants, message de réservation et téléphone noté par le professionnel : effacés 30 jours après la date de la sortie</li>
+        <li>Quand vous retirez un contact, la conversation disparaît pour vous deux ; une copie est conservée 90 jours, accessible uniquement à la modération (en cas de signalement), puis effacée</li>
         <li>Après suppression du compte : données et médias (photos de profil, galeries) supprimés immédiatement ; toute donnée résiduelle sous 30 jours maximum</li>
       </Ul>
       <P>
@@ -154,12 +179,13 @@ export default function PrivacyPage() {
       </Ul>
       <P>
         <B>Géolocalisation en arrière-plan :</B> si vous l'autorisez explicitement, l'Application
-        peut détecter votre arrivée sur le lieu d'une activité <B>même lorsqu'elle est fermée</B>,
-        uniquement pendant la fenêtre de validation de présence (de 2 heures avant le début de
-        l'activité jusqu'à 3 heures après sa fin). La surveillance s'arrête automatiquement en
-        dehors de cette fenêtre. Cette autorisation est optionnelle (la présence peut aussi être
-        validée par QR code ou par les autres participants) et révocable à tout moment dans les
-        paramètres de votre appareil.
+        peut détecter votre arrivée sur le lieu d'une activité à laquelle vous participez{' '}
+        <B>même lorsqu'elle est fermée</B>. La détection est armée à partir de 24 heures avant le
+        début de l'activité et s'arrête 15 minutes après le début. Seule une position relevée entre
+        15 minutes avant et 15 minutes après le début sert à valider la présence. Sans connexion,
+        cette validation reste sur votre téléphone et est envoyée au plus tard 24 heures après la
+        fin de l'activité. Cette autorisation est optionnelle (la présence peut aussi être validée
+        par QR code) et révocable à tout moment dans les paramètres de votre appareil.
       </P>
       <P>
         Votre position n'est jamais stockée de manière permanente. La dernière position connue est
@@ -167,17 +193,23 @@ export default function PrivacyPage() {
         n'est disponible, une zone approximative est déduite de l'adresse IP.
       </P>
 
-      <H2>10. Mineurs</H2>
+      <H2>10. Cookies et mesure d'audience</H2>
+      <P>
+        L'Application et le site askandgo.io n'utilisent aucun cookie de suivi, aucun outil de mesure
+        d'audience et aucune publicité.
+      </P>
+
+      <H2>11. Mineurs</H2>
       <P>
         L'Application est strictement réservée aux personnes de 18 ans et plus. Lors de l'inscription, l'utilisateur atteste sur l'honneur avoir 18 ans ou plus. Aucune date de naissance n'est collectée.
       </P>
 
-      <H2>11. Modifications</H2>
+      <H2>12. Modifications</H2>
       <P>
         Nous nous réservons le droit de modifier cette politique. Toute modification substantielle sera communiquée via l'Application.
       </P>
 
-      <H2>12. Contact</H2>
+      <H2>13. Contact</H2>
       <P>
         Pour toute question relative à la protection de vos données :{' '}
         <A href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</A>.
