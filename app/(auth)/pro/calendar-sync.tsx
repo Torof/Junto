@@ -28,7 +28,7 @@ export default function CalendarSyncScreen() {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
 
-  const { data: links, isLoading } = useQuery({
+  const { data: links, isLoading, isError, refetch } = useQuery({
     queryKey: ['calendar-links'],
     queryFn: () => calendarLinkService.get(),
   });
@@ -111,7 +111,17 @@ export default function CalendarSyncScreen() {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Stack.Screen options={{ title: t('calendarSync.title', { defaultValue: 'Synchroniser mon agenda' }) }} />
-      {isLoading || !links ? (
+      {/* An error used to leave the spinner forever (audit 2026-11-04). */}
+      {isError && !links ? (
+        <View style={[styles.center, { gap: spacing.md, padding: spacing.lg }]}>
+          <AppText style={[styles.intro, { textAlign: 'center' }]}>
+            {t('calendarSync.loadError', { defaultValue: 'Impossible de charger tes liens d’agenda.' })}
+          </AppText>
+          <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { opacity: 0.85 }]} onPress={() => void refetch()} accessibilityRole="button">
+            <AppText style={styles.retryText}>{t('calendarSync.retry', { defaultValue: 'Réessayer' })}</AppText>
+          </Pressable>
+        </View>
+      ) : isLoading || !links ? (
         <View style={styles.center}><LogoSpinner size={32} /></View>
       ) : (
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
@@ -225,6 +235,8 @@ export default function CalendarSyncScreen() {
 const createStyles = (colors: AppColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  retryBtn: { backgroundColor: colors.cta, borderRadius: radius.full, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.lg },
+  retryText: { color: colors.onCta, fontSize: fontSizes.sm, fontWeight: '700' },
   scroll: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
   intro: { color: colors.textSecondary, fontSize: fontSizes.sm, lineHeight: 20 },
   card: {
