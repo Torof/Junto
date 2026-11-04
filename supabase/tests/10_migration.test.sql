@@ -115,8 +115,9 @@ PERFORM pg_temp.eq('M6 exactement ces colonnes restent illisibles pour un compte
       AND a.attnum > 0 AND NOT a.attisdropped AND NOT has_column_privilege('authenticated', c.oid, a.attnum, 'SELECT')$$,
   -- 00575 bookings.session_id, 00577 bookings.end_day : figées au trigger, lues par RPC seulement
   -- (SECURITY.md « Dates fixes » / « Plusieurs jours sur demande » : pas de grant SELECT client).
+  -- 00581 pro_profiles.pending_professions : demandes de métier, lues par RPC seulement.
   'activities.invite_token,bookings.end_day,bookings.participant_info,bookings.price_eur,bookings.price_unit,bookings.session_id,pro_profiles.company_name,'
-  || 'pro_profiles.primary_location,pro_profiles.real_name,pro_profiles.rejection_reason,pro_profiles.reviewed_at,pro_profiles.reviewed_by');
+  || 'pro_profiles.pending_professions,pro_profiles.primary_location,pro_profiles.real_name,pro_profiles.rejection_reason,pro_profiles.reviewed_at,pro_profiles.reviewed_by');
 
 -- ═════ M7 — Historique des migrations (nouveau projet seulement) ═════
 -- MIGRATION_PLAN §B.8 / §F.6 : le nouveau projet démarre avec la migration de base 00526 ;

@@ -2371,6 +2371,7 @@ export type Database = {
           instagram: string | null
           is_demo: boolean
           last_location_change_at: string
+          pending_professions: string[]
           phone: string | null
           pin_icon: string | null
           pin_image_url: string | null
@@ -2402,6 +2403,7 @@ export type Database = {
           instagram?: string | null
           is_demo?: boolean
           last_location_change_at?: string
+          pending_professions?: string[]
           phone?: string | null
           pin_icon?: string | null
           pin_image_url?: string | null
@@ -2433,6 +2435,7 @@ export type Database = {
           instagram?: string | null
           is_demo?: boolean
           last_location_change_at?: string
+          pending_professions?: string[]
           phone?: string | null
           pin_icon?: string | null
           pin_image_url?: string | null
@@ -3731,6 +3734,10 @@ export type Database = {
         Returns: string
       }
       add_pro_photo: { Args: { p_photo_url: string }; Returns: string }
+      admin_decide_pro_profession: {
+        Args: { p_approve: boolean; p_pro: string; p_profession: string }
+        Returns: undefined
+      }
       admin_get_pending_pro_applications: {
         Args: never
         Returns: {
@@ -3756,6 +3763,18 @@ export type Database = {
           updated_at: string
           user_id: string
           website: string
+        }[]
+      }
+      admin_get_pro_profession_requests: {
+        Args: never
+        Returns: {
+          company_name: string
+          display_name: string
+          pending_professions: string[]
+          professions: string[]
+          real_name: string
+          updated_at: string
+          user_id: string
         }[]
       }
       admin_pro_owner: {
@@ -4487,6 +4506,7 @@ export type Database = {
           starts_at: string
         }[]
       }
+      get_my_pending_professions: { Args: never; Returns: string[] }
       get_my_pro_application: {
         Args: never
         Returns: {
@@ -5079,7 +5099,7 @@ export type Database = {
       }
       set_pro_professions: {
         Args: { p_professions: string[] }
-        Returns: undefined
+        Returns: string[]
       }
       set_sport_level: {
         Args: { p_new_level: string; p_sport_key: string }

@@ -36,9 +36,10 @@ PERFORM pg_temp.as_('pm_cli');
 PERFORM pg_temp.eq('PM1 le métier est lisible par un autre membre',
   format($$SELECT profession FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pm_pro')), 'canyoning_instructor');
 PERFORM pg_temp.as_('pm_pro2');
-PERFORM pg_temp.ok('PM1 le pro renseigne son métier après coup', $$SELECT public.update_pro_profile(p_profession := 'school_office')::text$$);
+-- 00581 : un pro validé n'ajoute plus de métier seul (demande validée par un admin, domaine 23).
+PERFORM pg_temp.denied('PM1 pro validé : nouveau métier via update_pro_profile refusé', $$SELECT public.update_pro_profile(p_profession := 'school_office')::text$$, 'Operation not permitted');
 PERFORM pg_temp.denied('PM1 métier hors liste refusé à la modification', $$SELECT public.update_pro_profile(p_profession := 'sorcier')::text$$, 'junto.pro_profession_invalid');
-PERFORM pg_temp.eq('PM1 le pro relit son métier', $$SELECT profession FROM public.get_my_pro_application()$$, 'school_office');
+PERFORM pg_temp.eq('PM1 le pro relit son métier (inchangé)', $$SELECT coalesce(profession, 'NULL') FROM public.get_my_pro_application()$$, 'NULL');
 PERFORM pg_temp.ok('PM1 le pro vide son métier', $$SELECT public.update_pro_profile(p_clear := ARRAY['profession'])::text$$);
 PERFORM pg_temp.eq('PM1 métier vidé', $$SELECT coalesce(profession, 'NULL') FROM public.get_my_pro_application()$$, 'NULL');
 PERFORM pg_temp.denied('PM1 pas d''écriture directe du métier',

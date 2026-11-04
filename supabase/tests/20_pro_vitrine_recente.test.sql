@@ -238,29 +238,27 @@ PERFORM pg_temp.ok('PV4 les 13 métiers à la fois',
       'ski_instructor', 'mtb_instructor', 'whitewater_instructor', 'diving_instructor', 'surf_instructor', 'wellness_instructor', 'school_office', 'other'])::text$$);
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('PV4 13 métiers enregistrés', format($$SELECT cardinality(professions)::text FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pv_cand')), '13');
--- Pro approuvé + synchro avec l'ancien champ unique (builds publiés).
-PERFORM pg_temp.as_('pv_pro');
-PERFORM pg_temp.ok('PV4 le pro approuvé choisit deux métiers', $$SELECT public.set_pro_professions(ARRAY['ski_instructor', 'mountain_guide'])::text$$);
+-- Pro approuvé + synchro avec l'ancien champ unique (builds publiés). Depuis 00581, un
+-- ajout passe par une demande (domaine 23) : pv_pro2 (validé avec mountain_leader) sert ici.
+PERFORM pg_temp.as_('pv_pro2');
+PERFORM pg_temp.eq('PV4 le pro approuvé ajoute un métier : il part en attente',
+  $$SELECT public.set_pro_professions(ARRAY['mountain_leader', 'ski_instructor'])::text$$, '{ski_instructor}');
 PERFORM pg_temp.denied('PV4 pas d''écriture directe des métiers',
-  format($$UPDATE public.pro_profiles SET professions = ARRAY['other'] WHERE user_id = %L RETURNING 1$$, pg_temp.id('pv_pro')));
+  format($$UPDATE public.pro_profiles SET professions = ARRAY['other'] WHERE user_id = %L RETURNING 1$$, pg_temp.id('pv_pro2')));
 PERFORM pg_temp.as_('pv_cli');
-PERFORM pg_temp.eq('PV4 les métiers sont lisibles par un autre membre',
-  format($$SELECT professions::text FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pv_pro')), '{ski_instructor,mountain_guide}');
-PERFORM pg_temp.as_('pv_pro');
-PERFORM pg_temp.ok('PV4 ancien client : nouveau métier unique via update_pro_profile', $$SELECT public.update_pro_profile(p_profession := 'climbing_instructor')::text$$);
+PERFORM pg_temp.eq('PV4 les métiers acquis sont lisibles par un autre membre',
+  format($$SELECT professions::text FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pv_pro2')), '{mountain_leader}');
+PERFORM pg_temp.as_('pv_pro2');
+PERFORM pg_temp.denied('PV4 ancien client : nouveau métier via update_pro_profile refusé', $$SELECT public.update_pro_profile(p_profession := 'climbing_instructor')::text$$, 'Operation not permitted');
+PERFORM pg_temp.ok('PV4 ancien client : un métier déjà dans la liste', $$SELECT public.update_pro_profile(p_profession := 'mountain_leader')::text$$);
 PERFORM pg_temp.as_('db');
-PERFORM pg_temp.eq('PV4 synchro : le nouveau métier passe en tête, les autres restent',
-  format($$SELECT professions::text || '|' || profession FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pv_pro')), '{climbing_instructor,ski_instructor,mountain_guide}|climbing_instructor');
-PERFORM pg_temp.as_('pv_pro');
-PERFORM pg_temp.ok('PV4 ancien client : un métier déjà dans la liste', $$SELECT public.update_pro_profile(p_profession := 'mountain_guide')::text$$);
-PERFORM pg_temp.as_('db');
-PERFORM pg_temp.eq('PV4 synchro : déplacé en tête, sans doublon',
-  format($$SELECT professions::text FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pv_pro')), '{mountain_guide,climbing_instructor,ski_instructor}');
-PERFORM pg_temp.as_('pv_pro');
+PERFORM pg_temp.eq('PV4 synchro : métier en tête, demande intacte',
+  format($$SELECT professions::text || '|' || profession || '|' || pending_professions::text FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pv_pro2')), '{mountain_leader}|mountain_leader|{ski_instructor}');
+PERFORM pg_temp.as_('pv_pro2');
 PERFORM pg_temp.ok('PV4 ancien client : vider le métier', $$SELECT public.update_pro_profile(p_clear := ARRAY['profession'])::text$$);
 PERFORM pg_temp.as_('db');
 PERFORM pg_temp.eq('PV4 synchro : vider le métier vide la liste',
-  format($$SELECT professions::text || '|' || coalesce(profession, 'null') FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pv_pro')), '{}|null');
+  format($$SELECT professions::text || '|' || coalesce(profession, 'null') FROM public.pro_profiles WHERE user_id = %L$$, pg_temp.id('pv_pro2')), '{}|null');
 
 -- ═════ PV5 — Couvertures choisies par le pro (00562) ═════
 PERFORM pg_temp.as_('pv_pro');

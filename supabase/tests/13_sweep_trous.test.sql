@@ -266,7 +266,11 @@ PERFORM pg_temp.put('sw_auth', $ref$ARRAY[
   'public.set_gpx_trace_waypoints(p_id uuid, p_waypoints jsonb)',
   -- 00580 (CLIENT-3) : auth, suspendu → false, pas sa page, pro non suspendu, approuvé non démo, pas bloqué
   -- par le pro, sortie finie avec ce pro — testée dans 22_pro_audit2.
-  'public.can_add_community_photo(p_pro_id uuid, p_offering_id uuid)']$ref$);
+  'public.can_add_community_photo(p_pro_id uuid, p_offering_id uuid)',
+  -- 00581 (lot B, chaînes validées 2026-11-04) : demandes de métier d'un pro validé — testées dans 23_lot_b.
+  'public.get_my_pending_professions()',
+  'public.admin_get_pro_profession_requests()',
+  'public.admin_decide_pro_profession(p_pro uuid, p_profession text, p_approve boolean)']$ref$);
 -- Appelables par un compte mais PAS encore documentées comme RPC client dans SECURITY.md
 -- (« Chaîne d'autorisation » + table de classification) : à tenir ici, signalées en échec
 -- jusqu'à ce que la doc existe — alors les déplacer dans sw_auth. Vide aujourd'hui.

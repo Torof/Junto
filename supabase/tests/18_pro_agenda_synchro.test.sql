@@ -113,7 +113,7 @@ PERFORM pg_temp.denied('AG2 un suspendu n''a pas de lien d''agenda', $$SELECT co
 PERFORM pg_temp.as_('ag_pro');
 PERFORM pg_temp.eq('AG2 une seule ligne pour le pro', $$SELECT count(*)::text FROM public.get_calendar_links()$$, '1');
 PERFORM pg_temp.eq('AG2 jeton d''export : 64 caractères hexadécimaux', $$SELECT (export_token ~ '^[0-9a-f]{64}$')::text FROM public.get_calendar_links()$$, 'true');
-PERFORM pg_temp.eq('AG2 par défaut : noms affichés, pas d''import', $$SELECT hide_names::text || '/' || import_connected::text || '/' || coalesce(import_synced_at::text, 'null') || '/' || coalesce(import_error, 'null') FROM public.get_calendar_links()$$, 'false/false/null/null');
+PERFORM pg_temp.eq('AG2 par défaut (00581) : noms masqués, pas d''import', $$SELECT hide_names::text || '/' || import_connected::text || '/' || coalesce(import_synced_at::text, 'null') || '/' || coalesce(import_error, 'null') FROM public.get_calendar_links()$$, 'true/false/null/null');
 PERFORM pg_temp.put('ag_tok0', pg_temp.ok('AG2 lecture du jeton', $$SELECT export_token FROM public.get_calendar_links()$$));
 PERFORM pg_temp.eq('AG2 relire ne change pas le jeton', $$SELECT export_token FROM public.get_calendar_links()$$, pg_temp.get('ag_tok0'));
 PERFORM pg_temp.as_('ag_pro2');
@@ -158,8 +158,8 @@ PERFORM pg_temp.eq('AG4 le choix est relu', $$SELECT hide_names::text FROM publi
 PERFORM pg_temp.ok('AG4 le pro réaffiche les noms', $$SELECT public.set_calendar_export_hide_names(false)::text$$);
 PERFORM pg_temp.eq('AG4 retour à l''affichage', $$SELECT hide_names::text FROM public.get_calendar_links()$$, 'false');
 PERFORM pg_temp.as_('db');
-PERFORM pg_temp.eq('AG4 le réglage de ag_pro ne touche pas ag_pro2',
-  format($$SELECT hide_names::text FROM private.pro_calendar_links WHERE pro_id = %L$$, pg_temp.id('ag_pro2')), 'false');
+PERFORM pg_temp.eq('AG4 le réglage de ag_pro ne touche pas ag_pro2 (défaut : masqués)',
+  format($$SELECT hide_names::text FROM private.pro_calendar_links WHERE pro_id = %L$$, pg_temp.id('ag_pro2')), 'true');
 
 -- ═════ AG5 — set_calendar_import_url : qui, et quelles adresses ═════
 PERFORM pg_temp.as_('anon');
