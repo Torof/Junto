@@ -205,11 +205,14 @@ export default function ProAgendaScreen() {
 
   // ----- Raccourcis d'ouverture (mode édition) -----
   const bulkOpen = async (slots: { day: string; period: BookingPeriod }[], successMsg: string) => {
-    // N'ouvre que les créneaux futurs, pas déjà ouverts, sans réservation.
+    // N'ouvre que les créneaux futurs, pas déjà ouverts, sans réservation, ni
+    // occupés dans l'agenda importé, ni pris par une date fixe (audit
+    // 2026-11-04 — la base les refusait déjà à la réservation).
     const todo = slots.filter(({ day, period }) => {
       if (day < dayjs().format('YYYY-MM-DD')) return false;
+      if (fixedIndex.has(`${day}|${period}`)) return false;
       const st = slotIndex.get(`${day}|${period}`);
-      return !st?.available && !(st && (st.accepted > 0 || st.pending > 0));
+      return !st?.available && !st?.busy && !(st && (st.accepted > 0 || st.pending > 0));
     });
     if (todo.length === 0) {
       Burnt.toast({ title: t('booking.bulkNothing', { defaultValue: 'Rien à ouvrir' }) });
