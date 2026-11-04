@@ -41,6 +41,6 @@ moniteurs et bureaux sont sur la même carte, avec photos, tarifs et réservatio
 Gratuit, sans publicité, sans revente de données.
 
 ## À trancher
-- Le QR pointe sur le site (téléchargement), à remplacer par le lien Play quand la fiche
-  est publiée. Le domaine askandgo n'étant pas choisi, toute impression faite avant porte
-  l'adresse actuelle : attendre le domaine pour imprimer, ou prévoir une réimpression.
+- Le QR pointe sur https://askandgo.io (2026-11-04 ; avant : getjunto.app, qui répond
+  toujours). À remplacer par le lien Play quand la fiche est publique, si on préfère
+  envoyer directement au téléchargement.
