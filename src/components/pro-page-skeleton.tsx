@@ -9,11 +9,11 @@ import { useColors } from '@/hooks/use-theme';
 import { spacing, radius } from '@/constants/theme';
 import type { AppColors } from '@/constants/colors';
 
-// The pro page's shape while it loads (ProPage): cover with the centred title
-// and the bottom block, contact chips, two outing cards and the banner. The
+// The pro page's shape while it loads (ProPage): cover with the left-aligned
+// identity block at its foot, contact chips, two outing cards and the banner. The
 // close button is real, so a slow load can always be left.
 
-const COVER_H = 300;
+const COVER_H = 292;
 
 export function ProPageSkeleton() {
   const colors = useColors();
@@ -23,10 +23,8 @@ export function ProPageSkeleton() {
     <View style={styles.container}>
       <View style={styles.cover}>
         <CloseButton top={Math.max(10, insets.top - 14)} styles={styles} colors={colors} />
-        <View style={[styles.coverCenter, { top: Math.max(10, insets.top - 14) + 48 }]}>
-          <Bone width="62%" height={26} style={styles.onCover} />
-        </View>
-        <View style={[styles.coverCenter, { bottom: 14, gap: 8 }]}>
+        <View style={[styles.coverFoot, { bottom: 14, gap: 8 }]}>
+          <Bone width="62%" height={22} style={styles.onCover} />
           <Bone width="44%" height={13} style={styles.onCover} />
           <Bone width="30%" height={13} style={styles.onCover} />
           <View style={styles.row}>
@@ -61,7 +59,7 @@ export const createStyles = (colors: AppColors) => StyleSheet.create({
   cover: { height: COVER_H, backgroundColor: colors.surfaceAlt },
   // Bones on the grey cover read one step darker.
   onCover: { backgroundColor: colors.borderMuted },
-  coverCenter: { position: 'absolute', left: 18, right: 18, alignItems: 'center' },
+  coverFoot: { position: 'absolute', left: 18, right: 18 },
   close: { position: 'absolute', right: 12, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
   row: { flexDirection: 'row', gap: 6 },
   chips: { gap: 8, paddingHorizontal: spacing.md, paddingTop: spacing.sm + 4, overflow: 'hidden' },

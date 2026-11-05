@@ -42,8 +42,9 @@ import { PRO_GOLD, PRO_GOLD_INK } from '@/constants/pin-style';
 // here, the price only in the featured card, no date anywhere.
 
 const WHITE = '#FFFFFF';
-// 292 (was 250, Scott 2026-10-25): room between the top row and the avatar.
-const COVER_H = 300;
+// 292 (Scott 2026-11-05): back to the left-aligned identity at the foot of
+// the photo, without the avatar (it lives in « À propos »).
+const COVER_H = 292;
 const TOP_BTN = 34;
 const AVATAR = 56;
 const COLLAPSED_DESCRIPTION_CHARS = 280;
@@ -171,10 +172,9 @@ export function ProPage({ pro, isOwner }: Props) {
           </Pressable>
         </View>
 
-        {/* The pro's title (name or company) heads the photo; the avatar lives in « À propos ». */}
-        <AppText style={[styles.name, styles.coverTitle, { top: Math.max(10, insets.top - 14) + TOP_BTN + 14 }]} numberOfLines={2}>{pro.display_name}</AppText>
-
+        {/* Identity at the foot of the photo, left-aligned; the avatar lives in « À propos ». */}
         <View style={styles.identity}>
+          <AppText style={styles.name} numberOfLines={2}>{pro.display_name}</AppText>
           {professionsLabel ? (
             <AppText style={styles.professions} numberOfLines={2}>{professionsLabel}</AppText>
           ) : null}
@@ -409,15 +409,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   proBadge: { backgroundColor: PRO_GOLD, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 4 },
   proBadgeText: { color: PRO_GOLD_INK, fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
   topBtn: { width: TOP_BTN, height: TOP_BTN, borderRadius: TOP_BTN / 2, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
-  coverTitle: { position: 'absolute', left: 18, right: 18 },
-  identity: { position: 'absolute', left: 18, right: 18, bottom: 12, gap: 5, alignItems: 'center' },
+  identity: { position: 'absolute', left: 18, right: 18, bottom: 12, gap: 5 },
   whoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   whoName: { color: colors.textPrimary, fontSize: fontSizes.md, fontWeight: '800' },
-  name: { textAlign: 'center', color: WHITE, fontSize: 26, fontWeight: '800', lineHeight: 30, letterSpacing: -0.4, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8, textShadowOffset: { width: 0, height: 1 } },
-  professions: { textAlign: 'center', color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
+  name: { color: WHITE, fontSize: 22, fontWeight: '800', lineHeight: 25, letterSpacing: -0.4, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8, textShadowOffset: { width: 0, height: 1 } },
+  professions: { color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
   placeRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   place: { flexShrink: 1, color: WHITE, fontSize: fontSizes.sm - 1, fontWeight: '600', opacity: 0.95, textShadowColor: 'rgba(0,0,0,0.55)', textShadowRadius: 8 },
-  labels: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6, marginTop: 2 },
+  labels: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
   label: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 3 },
   labelText: { color: WHITE, fontSize: 11, fontWeight: '700' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 1 },
